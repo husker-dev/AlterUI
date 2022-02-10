@@ -1,0 +1,67 @@
+import java.util.stream.*
+
+
+task compile {
+    group = "compile"
+    dependsOn 'compilePlatform', 'compileGL', 'compileD3D9'
+}
+
+task compilePlatform {
+    group = "compile"
+    doLast {
+        buildProject("${projectDir}/modules/${getPlatformName()}")
+    }
+}
+
+task compileGL {
+    group = "compile"
+    doLast {
+        buildProject("${projectDir}/modules/gl", getPlatformName().toUpperCase())
+    }
+}
+
+task compileD3D9 {
+    group = "compile"
+    doLast {
+        if(isWin())
+            buildProject("${projectDir}/modules/d3d9", getPlatformName().toUpperCase())
+    }
+}
+
+void buildProject(String project, String... defs){
+    if(isWin()) {
+        // Use 'msbuild' to compile project
+        String msbuildPath = getCommandOut("${projectDir}\\vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe")
+        for (i in ["x86", "x64", "ARM64"]) {
+            if(defs.length == 0)
+                runCommand("\"${msbuildPath}\" ${project} /t:Rebuild /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")
+            else
+                runCommand("set CL=/D${String.join(";", defs)} && \"${msbuildPath}\" ${project} /t:Rebuild /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")
+        }
+    }
+}
+
+static String getCommandOut(String command) {
+    String suffix = isWin() ? "cmd /c " : ""
+    Process p = Runtime.runtime.exec("${suffix}${command}")
+    return new BufferedReader(new InputStreamReader(p.inputStream)).lines().collect(Collectors.joining("\n"));
+}
+
+void runCommand(String command){
+    println ">> ${command}"
+    String suffix = isWin() ? "cmd /c " : ""
+    InputStream is = Runtime.runtime.exec("${suffix}${command}").inputStream
+
+    byte[] buffer = new byte[1024]
+    for (int length; (length = is.read(buffer)) != -1; )
+        System.out.write(buffer, 0, length)
+}
+
+static boolean isWin(){
+    return System.getProperty("os.name").toLowerCase().contains("win")
+}
+
+static String getPlatformName(){
+    if(isWin())
+        return "win"
+}

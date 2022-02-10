@@ -1,0 +1,90 @@
+package com.huskerdev.alter.internal.pipelines.gl
+
+import com.huskerdev.alter.AlterUI
+import com.huskerdev.alter.OS
+import com.huskerdev.alter.internal.Pipeline
+import com.huskerdev.alter.internal.Platform
+import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.utils.MainThreadLocker
+import com.huskerdev.alter.internal.utils.Trigger
+import java.nio.ByteBuffer
+import java.nio.FloatBuffer
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
+
+class GLPipeline: Pipeline.WindowPoll("gl") {
+
+    companion object {
+        private lateinit var window: Window
+        private var resourceThread: Thread? = null
+
+        private val resourcesQueue = LinkedBlockingQueue<() -> Unit>()
+
+        // Platform-specific
+        @JvmStatic external fun nMakeCurrent(handle: Long)
+        @JvmStatic external fun nSwapBuffers(handle: Long)
+
+        // GL
+        const val GL_COLOR_BUFFER_BIT = 0x4000
+        const val GL_DEPTH_BUFFER_BIT = 0x100
+
+        @JvmStatic external fun glClear(mask: Int)
+        @JvmStatic external fun glClearColor(red: Float, green: Float, blue: Float, alpha: Float)
+        @JvmStatic external fun glViewport(x: Int, y: Int, width: Int, height: Int)
+        @JvmStatic external fun glUseProgram(program: Int)
+
+        @JvmStatic external fun initContext()
+        @JvmStatic external fun drawArray(array: FloatBuffer, count: Int)
+
+        // GL-Shader
+        @JvmStatic external fun createShaderProgram(vertexSource: ByteBuffer, fragmentSource: ByteBuffer): Int
+        @JvmStatic external fun setShaderVariable4f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float, val4: Float)
+        @JvmStatic external fun setShaderVariable3f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float)
+        @JvmStatic external fun setShaderMatrixVariable(program: Int, name: ByteBuffer, matrix: FloatBuffer)
+    }
+
+    private external fun nCreateWindow(shareWith: Long): Long
+
+    override fun load() {
+        super.load()
+        MainThreadLocker.invoke{
+            window = Platform.current.createWindowInstance(nCreateWindow(0))
+            resourceThread = thread(name = "Alter OpenGL resource", isDaemon = true) {
+                nMakeCurrent(window.handle)
+                while(true)
+                    (resourcesQueue.poll(200, TimeUnit.MILLISECONDS) ?: continue).invoke()
+            }
+        }
+    }
+
+    override fun createGraphics(window: Window) = GLGraphics(window)
+    override fun isUIRequireMainThread() = OS.current != OS.Windows
+
+    override fun createWindow(): Window {
+        lateinit var newWindow: Window
+        invokeOnResourceThread {
+            nMakeCurrent(0)
+            AlterUI.invokeOnMainThread{
+                newWindow = Platform.current.createWindowInstance(nCreateWindow(window.handle))
+            }
+            nMakeCurrent(window.handle)
+        }
+        windows.add(newWindow)
+        return newWindow
+    }
+
+    fun invokeOnResourceThread(run: () -> Unit){
+        if(Thread.currentThread() == resourceThread)
+            run()
+        else Trigger.waitForInvoke(resourcesQueue, run)
+    }
+
+    fun invokeOnResourceThreadAsync(run: () -> Unit){
+        if(Thread.currentThread() == resourceThread)
+            run()
+        else resourcesQueue.offer(run)
+    }
+
+
+}
