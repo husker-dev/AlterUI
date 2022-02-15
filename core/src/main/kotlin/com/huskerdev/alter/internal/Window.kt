@@ -63,6 +63,8 @@ abstract class Window(val handle: Long) {
             invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
         }
 
+    var onRepaintEvent: (Graphics) -> Unit = {}
+
     val graphics: Graphics
 
     init {
@@ -75,13 +77,13 @@ abstract class Window(val handle: Long) {
     protected abstract fun setVisibleImpl(visible: Boolean)
     protected abstract fun setTitleImpl(title: String)
     protected abstract fun setSizeImpl(x: Double, y: Double, width: Double, height: Double)
-    protected abstract fun requestRepaint()
+    abstract fun requestRepaint()
 
     private fun onDrawCallback(){
         if(!visible)
             return
         graphics.begin()
-        paint(graphics)
+        onRepaintEvent(graphics)
         graphics.end()
     }
 
@@ -101,7 +103,7 @@ abstract class Window(val handle: Long) {
     }
 
     private fun invokeOnMainIfRequired(run: () -> Unit){
-        if(Pipeline.current.isUIRequireMainThread())
+        if(Pipeline.current.isMainThreadRequired())
             MainThreadLocker.invoke(run)
         else run()
     }
@@ -111,23 +113,6 @@ abstract class Window(val handle: Long) {
     }
 
     fun paint(gr: Graphics){
-        gr.clear()
-        gr.color = background
-        gr.fillRect(0f, 0f, width.toFloat(), height.toFloat())
 
-        gr.color = Color.black
-        gr.fillRect(0f, 0f, 200f, 200f)
-
-        gr.color = Color.blue
-        gr.fillRect(width.toFloat() - 200f, 0f, 200f, 200f)
-
-        gr.color = Color.red
-        gr.fillRect(width.toFloat() - 200f, height.toFloat() - 200f, 200f, 200f)
-
-        gr.color = Color.green
-        gr.fillRect(0f, height.toFloat() - 200f, 200f, 200f)
-
-        gr.color = Color.white
-        gr.fillRect(200f, 200f, width.toFloat() - 400f, height.toFloat() - 400f)
     }
 }

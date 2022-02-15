@@ -1,3 +1,5 @@
+
+
 plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
@@ -30,11 +32,40 @@ dependencies {
 
     // For debug
     compileOnly platform("org.lwjgl:lwjgl-bom:3.3.0")
-
     compileOnly "org.lwjgl:lwjgl"
     compileOnly "org.lwjgl:lwjgl-glfw"
     compileOnly "org.lwjgl:lwjgl-opengles"
     compileOnly "org.lwjgl:lwjgl::natives-windows"
     compileOnly "org.lwjgl:lwjgl-glfw::natives-windows"
     compileOnly "org.lwjgl:lwjgl-opengles::natives-windows"
+}
+
+task moveNatives() {
+    group 'compile'
+    //dependsOn ':native:compile'
+
+    doLast {
+        String[] modules = ['win', "gl", "d3d9"]
+        for(String module in modules){
+            File from = new File(projectDir.parentFile, "native/modules/$module/out")
+            File to = new File(projectDir.parentFile, "core/src/main/resources/com/huskerdev/alter/resources/$module")
+            for(File file in from.listFiles())
+                copyFile(file, new File(to, file.name))
+        }
+    }
+}
+
+static void copyFile(File source, File target){
+    try {
+        InputStream input = new BufferedInputStream(new FileInputStream(source))
+        OutputStream output = new BufferedOutputStream(new FileOutputStream(target))
+        byte[] buffer = new byte[1024]
+        int lengthRead;
+        while ((lengthRead = input.read(buffer)) > 0) {
+            output.write(buffer, 0, lengthRead)
+            output.flush()
+        }
+        input.close()
+        output.close()
+    }catch(Exception ignored){ }
 }

@@ -22,35 +22,38 @@ class D3D9Shader(private val content: String, private val type: D3D9ShaderType) 
         if(pointer == -1L) {
             pointer = if(type == D3D9ShaderType.Pixel)
                 D3D9Pipeline.nCreatePixelShader(
-                    D3D9Graphics.currentDevice,
                     BufferUtils.createByteBuffer(*content.encodeToByteArray()),
                     content.length
                 )
             else
                 D3D9Pipeline.nCreateVertexShader(
-                    D3D9Graphics.currentDevice,
                     BufferUtils.createByteBuffer(*content.encodeToByteArray()),
                     content.length
                 )
         }
         if(type == D3D9ShaderType.Pixel)
-            D3D9Pipeline.nSetPixelShader(D3D9Graphics.currentDevice, pointer)
+            D3D9Pipeline.nSetPixelShader(pointer)
         else
-            D3D9Pipeline.nSetVertexShader(D3D9Graphics.currentDevice, pointer)
+            D3D9Pipeline.nSetVertexShader(pointer)
     }
 
     fun set3f(name: String, v1: Float, v2: Float, v3: Float){
         if(pointer != -1L)
-            D3D9Pipeline.nSetShaderValue3f(D3D9Graphics.currentDevice, pointer, BufferUtils.createByteBuffer(*name.c_str), v1, v2, v3)
+            D3D9Pipeline.nSetShaderValue3f(pointer, BufferUtils.createByteBuffer(*name.c_str), v1, v2, v3)
     }
 
     fun set4f(name: String, v1: Float, v2: Float, v3: Float, v4: Float){
         if(pointer != -1L)
-            D3D9Pipeline.nSetShaderValue4f(D3D9Graphics.currentDevice, pointer, BufferUtils.createByteBuffer(*name.c_str), v1, v2, v3, v4)
+            D3D9Pipeline.nSetShaderValue4f(pointer, BufferUtils.createByteBuffer(*name.c_str), v1, v2, v3, v4)
+    }
+
+    fun set(name: String, v: Float){
+        if(pointer != -1L)
+            D3D9Pipeline.nSetShaderValue1f(pointer, BufferUtils.createByteBuffer(*name.c_str), v)
     }
 
     fun setMatrix(name: String, matrix: Matrix){
         if(pointer != -1L)
-            D3D9Pipeline.nSetShaderMatrix(D3D9Graphics.currentDevice, pointer, BufferUtils.createByteBuffer(*name.c_str), BufferUtils.createFloatBuffer(*matrix.elements))
+            D3D9Pipeline.nSetShaderMatrix(pointer, BufferUtils.createByteBuffer(*name.c_str), BufferUtils.createFloatBuffer(*matrix.elements))
     }
 }

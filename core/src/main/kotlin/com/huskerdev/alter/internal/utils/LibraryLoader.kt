@@ -1,6 +1,7 @@
 package com.huskerdev.alter.internal.utils
 
 import com.huskerdev.alter.AlterUI
+import com.huskerdev.alter.OS
 import com.huskerdev.nioex.*
 import java.io.*
 
@@ -35,6 +36,14 @@ class LibraryLoader {
             lockFile.lock()
 
             return@lazy folder
+        }
+
+        fun loadModuleLib(name: String) {
+            val postfix = when(OS.current){
+                OS.Windows -> ".dll"
+                else -> throw UnsupportedOperationException("Unsupported OS")
+            }
+            load("com/huskerdev/alter/resources/${name}/${name}_${OS.arch.shortName}$postfix")
         }
 
         fun load(path: String) {

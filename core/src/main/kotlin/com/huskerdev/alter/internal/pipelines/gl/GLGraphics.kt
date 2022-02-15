@@ -1,6 +1,8 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.graphics.Graphics
+import com.huskerdev.alter.graphics.Painter
+import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_COLOR_BUFFER_BIT
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_DEPTH_BUFFER_BIT
@@ -12,6 +14,7 @@ import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.initContex
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nMakeCurrent
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSwapBuffers
 import com.huskerdev.alter.internal.pipelines.gl.painters.GLColorPainter
+import com.huskerdev.alter.internal.pipelines.gl.painters.GLImagePainter
 import com.huskerdev.alter.internal.pipelines.gl.painters.GLPainter
 
 class GLGraphics(window: Window): Graphics(window) {
@@ -40,5 +43,11 @@ class GLGraphics(window: Window): Graphics(window) {
         glClearColor(0f, 0f, 0f, 1f)
     }
 
+    override fun setPainter(painter: Painter) {
+        super.setPainter(painter)
+        (painter as GLPainter).updateMatrix(matrix)
+    }
+
     override fun getColorPainter() = GLColorPainter
+    override fun getImagePainter() = GLImagePainter
 }

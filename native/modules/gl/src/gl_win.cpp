@@ -11,7 +11,8 @@ static int gl_major_version;
 static int gl_minor_version;
 
 void throwError(const char* text) {
-    std::cout << "Internal OpenGL error: " << text << std::endl;
+    std::cout << "[ERROR] Internal OpenGL error: " << text << std::endl;
+    std::cout << glGetError() << std::endl;
     MessageBoxA(NULL, text, "Internal OpenGL error", MB_OK | MB_ICONERROR);
     exit(1);
 }
@@ -54,13 +55,13 @@ jlong nCreateWindow(jlong shareWith) {
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         wc.hbrBackground = (HBRUSH)CreateSolidBrush(0xFF00FF);
         wc.lpszMenuName = NULL;
-        wc.lpszClassName = L"minui_gl";
+        wc.lpszClassName = L"alterui_gl";
         RegisterClass(&wc);
 
         // Create dummy window
         HWND hwnd = CreateWindowEx(
             WS_EX_LAYERED,
-            L"minui_gl", L"",
+            L"alterui_gl", L"",
             WS_OVERLAPPEDWINDOW,
             0, 0,
             100, 100,
@@ -101,7 +102,7 @@ jlong nCreateWindow(jlong shareWith) {
     // Create window
     HWND hwnd = CreateWindowEx(
         WS_EX_APPWINDOW,
-        L"minui_gl", L"",
+        L"alterui_gl", L"",
         WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION | WS_MAXIMIZEBOX | WS_THICKFRAME,
         0, 0,
         100, 100,
@@ -150,16 +151,6 @@ jlong nCreateWindow(jlong shareWith) {
     // Save pointers
     rc_list[hwnd] = rc;
     dc_list[hwnd] = dc;
-
-    // Remove window background
-    /*
-    DWM_BLURBEHIND bb = { 0 };
-    HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
-    bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
-    bb.hRgnBlur = hRgn;
-    bb.fEnable = TRUE;
-    DwmEnableBlurBehindWindow(hwnd, &bb);
-    */
 
     wglMakeCurrent(nullptr, nullptr);
     return (jlong)hwnd;

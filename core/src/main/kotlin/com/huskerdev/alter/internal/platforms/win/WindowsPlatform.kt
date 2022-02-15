@@ -1,6 +1,7 @@
 package com.huskerdev.alter.internal.platforms.win
 
 import com.huskerdev.alter.internal.Platform
+import com.huskerdev.alter.internal.utils.LibraryLoader
 import java.nio.charset.StandardCharsets
 
 val String.wideBytes: ByteArray
@@ -25,7 +26,7 @@ val ByteArray.c_wstr: ByteArray
 class WindowsPlatform: Platform() {
 
     override fun load() {
-        loadDefaultLibrary()
+        LibraryLoader.loadModuleLib("win")
     }
 
     override fun createWindowInstance(handle: Long) = WWindow(handle)

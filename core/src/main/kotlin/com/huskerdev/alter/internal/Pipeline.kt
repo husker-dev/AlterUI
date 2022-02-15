@@ -1,13 +1,15 @@
 package com.huskerdev.alter.internal
 
 import com.huskerdev.alter.AlterUIProperties
-import com.huskerdev.alter.OS
 import com.huskerdev.alter.graphics.Graphics
-import com.huskerdev.alter.graphics.Painter
+import com.huskerdev.alter.graphics.Image
+import com.huskerdev.alter.graphics.ImageType
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import com.huskerdev.alter.internal.utils.MainThreadLocker
+import java.nio.ByteBuffer
+import java.nio.IntBuffer
 import java.util.concurrent.TimeUnit
 
 abstract class Pipeline {
@@ -36,20 +38,13 @@ abstract class Pipeline {
     abstract fun load()
     abstract fun createWindow(): Window
     abstract fun createGraphics(window: Window): Graphics
-    abstract fun isUIRequireMainThread(): Boolean
-
-    protected fun loadDefaultLibrary(name: String){
-        val postfix = when(OS.current){
-            OS.Windows -> ".dll"
-            else -> throw UnsupportedOperationException("Unsupported OS")
-        }
-        LibraryLoader.load("com/huskerdev/alter/resources/${name}_${OS.arch.shortName}$postfix")
-    }
+    abstract fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?): Image
+    abstract fun isMainThreadRequired(): Boolean
 
     abstract class WindowPoll(private val libName: String): Pipeline() {
 
         override fun load() {
-            loadDefaultLibrary(libName)
+            LibraryLoader.loadModuleLib(libName)
 
             MainThreadLocker.invokeAsync {
                 MainThreadLocker.queueNotifiers.add {
@@ -60,7 +55,7 @@ abstract class Pipeline {
                     if(MainThreadLocker.disposed)
                         break
                     if(MainThreadLocker.tasksQueue.size > 0)
-                        MainThreadLocker.tasksQueue.poll(1, TimeUnit.MILLISECONDS)!!.run()
+                        MainThreadLocker.tasksQueue.poll(1, TimeUnit.MILLISECONDS)!!()
 
                     if(windows.isNotEmpty())
                         Platform.current.pollEvents()

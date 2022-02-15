@@ -1,23 +1,26 @@
 #include "d3d9.h"
 
 static IDirect3D9 *d3d = nullptr;
-static std::map<HWND, IDirect3DDevice9*> devices;
-static std::map<IDirect3DDevice9*, IDirect3DSurface9*> surfaces;
-static std::map<IDirect3DDevice9*, IDirect3DSwapChain9*> swapchains;
-
-static std::map<jlong, ID3DXConstantTable*> constantTables;
-static std::map<IDirect3DDevice9*, D3DPRESENT_PARAMETERS> parameters;
-
+static IDirect3DDevice9* device;
+static D3DPRESENT_PARAMETERS pp;
+static std::map<HWND, IDirect3DSurface9*> surfaces;
+static std::map<HWND, IDirect3DSwapChain9*> swapChains;
 static std::map<int, LPDIRECT3DVERTEXBUFFER9> cachedBuffers;
 static int devices_count = 0;
+
+// Shader's constants
+static std::map<jlong, ID3DXConstantTable*> constantTables;
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_DESTROY:
     {
-        devices[hwnd]->Release();
-        devices.erase(devices.find(hwnd));
+        surfaces[hwnd]->Release();
+        surfaces.erase(surfaces.find(hwnd));
+
+        swapChains[hwnd]->Release();
+        swapChains.erase(swapChains.find(hwnd));
 
         if (--devices_count == 0)
             d3d->Release();
@@ -27,12 +30,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-void createCachedBuffer(IDirect3DDevice9* device, int vertices) {
+void cacheBufferSize(int vertices) {
     device->CreateVertexBuffer(12 * vertices, 0, D3DFVF_XYZ, D3DPOOL_MANAGED, &cachedBuffers[vertices], NULL);
 }
 
-jlong nCreateWindow() {
-
+jlong nCreateMainWindow() {
     WNDCLASS wc = {};
     wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     wc.lpfnWndProc = WndProc;
@@ -43,33 +45,21 @@ jlong nCreateWindow() {
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)CreateSolidBrush(0x00000000);
     wc.lpszMenuName = NULL;
-    wc.lpszClassName = L"minui_d3d9";
+    wc.lpszClassName = L"alterui_d3d9";
     RegisterClass(&wc);
 
     HWND hwnd = CreateWindowEx(
         WS_EX_COMPOSITED,
-        L"minui_d3d9", L"",
-        WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION | WS_MAXIMIZEBOX | WS_THICKFRAME,
-        0, 0, 
-        100, 100, 
+        L"alterui_d3d9", L"",
+        WS_POPUPWINDOW,
+        0, 0,
+        10, 10,
         NULL, NULL,
         GetModuleHandle(NULL),
         NULL);
 
-    /*
-    // Remove window background
-    DWM_BLURBEHIND bb = { 0 };
-    HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
-    bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
-    bb.hRgnBlur = hRgn;
-    bb.fEnable = TRUE;
-    DwmEnableBlurBehindWindow(hwnd, &bb);
-    */
-    
-    if(d3d == nullptr)
-        d3d = Direct3DCreate9(D3D_SDK_VERSION);
-
-    D3DPRESENT_PARAMETERS pp = {};
+    // Create D3D9
+    pp = {};
     pp.Windowed = TRUE;
     pp.SwapEffect = D3DSWAPEFFECT_DISCARD;
     pp.hDeviceWindow = hwnd;
@@ -79,91 +69,132 @@ jlong nCreateWindow() {
     pp.BackBufferHeight = 0;
     pp.BackBufferCount = 1;
 
-    IDirect3DDevice9* device;
-    d3d->CreateDevice(D3DADAPTER_DEFAULT,
-        D3DDEVTYPE_HAL,
+    d3d = Direct3DCreate9(D3D_SDK_VERSION);
+    d3d->CreateDevice(
+        D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL,
         hwnd,
         D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE,
-        &pp,
-        &device);
+        &pp, &device);
+    cacheBufferSize(6);
 
-    devices[hwnd] = device;
-    parameters[device] = pp;
-    devices_count++;
-
-    device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+    // Set parameters
     device->SetFVF(D3DFVF_XYZ);
-
-    // Create cached vertices buffer to decrease create/release in future
-    createCachedBuffer(device, 6);
+    device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+    device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+    device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+    device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+    device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
     return (jlong)hwnd;
 }
 
-jlong nGetDevice(jlong hwnd) {
-    return (jlong)devices[(HWND)hwnd];
+jlong nCreateWindow() {
+    HWND hwnd = CreateWindowEx(
+        WS_EX_COMPOSITED,
+        L"alterui_d3d9", L"",
+        WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION | WS_MAXIMIZEBOX | WS_THICKFRAME,
+        0, 0,
+        10, 10,
+        NULL, NULL,
+        GetModuleHandle(NULL),
+        NULL);
+
+    pp.hDeviceWindow = hwnd;
+    pp.BackBufferWidth = 1;
+    pp.BackBufferHeight = 1;
+    
+    IDirect3DSwapChain9* swapChain;
+    IDirect3DSurface9* surface;
+    device->CreateAdditionalSwapChain(&pp, &swapChain);
+    swapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &surface);
+
+    swapChains[hwnd] = swapChain;
+    surfaces[hwnd] = surface;
+
+    return (jlong)hwnd;
 }
 
-void nSetViewport(jlong _device, jint width, jint height) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
+jlong nGetDevice() {
+    return (jlong)device;
+}
 
-    if (surfaces[device] != 0)
-        surfaces[device]->Release();
-    if (swapchains[device] != 0)
-        swapchains[device]->Release();
+void nSetViewport(jlong _hwnd, jint width, jint height) {
+    HWND hwnd = (HWND)_hwnd;
 
-    D3DPRESENT_PARAMETERS pp = parameters[device];
+    if (surfaces[hwnd] != 0)
+        surfaces[hwnd]->Release();
+    if (swapChains[hwnd] != 0)
+        swapChains[hwnd]->Release();
+
+    pp.hDeviceWindow = hwnd;
     pp.BackBufferWidth = width > 0 ? 0 : 1;
     pp.BackBufferHeight = height > 0 ? 0 : 1;
 
     IDirect3DSwapChain9* swapChain;
+    IDirect3DSurface9* surface;
     device->CreateAdditionalSwapChain(&pp, &swapChain);
-    swapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &surfaces[device]);
+    swapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &surface);
 
-    swapchains[device] = swapChain;
+    swapChains[hwnd] = swapChain;
+    surfaces[hwnd] = surface;
 }
 
-void nBeginScene(jlong _device) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
-    device->SetRenderTarget(0, surfaces[device]);
+void nBeginScene(jlong _hwnd) {
+    HWND hwnd = (HWND)_hwnd;
+    device->SetRenderTarget(0, surfaces[hwnd]);
     device->BeginScene();
 }
 
-void nEndScene(jlong _device) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
+void nEndScene(jlong _hwnd) {
+    HWND hwnd = (HWND)_hwnd;
     device->EndScene();
-    swapchains[device]->Present(NULL, NULL, NULL, NULL, NULL);
+    swapChains[hwnd]->Present(NULL, NULL, NULL, NULL, NULL);
 }
 
-void nClear(jlong _device) {
-    IDirect3DDevice9* device = (IDirect3DDevice9Ex*)_device;
+void nClear() {
     device->Clear(0, NULL, D3DCLEAR_TARGET, 0x00000000, 1.0f, 0);
 }
 
-void nDrawArrays(jlong _device, jfloat* array, jint count) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
 
+void nSetTexture(jlong _texture) {
+    IDirect3DTexture9* texture = (IDirect3DTexture9*)_texture;
+
+    if (device->SetTexture(0, texture) != S_OK)
+        throwError("Can't set texture");
+}
+
+void nDrawArrays(jfloat* array, jint count, jint type) {
     LPDIRECT3DVERTEXBUFFER9 v_buffer;
+    
+    // Create buffer
     if (count == 6)
         v_buffer = cachedBuffers[count];
-    else device->CreateVertexBuffer(12 * count, 0, D3DFVF_XYZ, D3DPOOL_MANAGED, &v_buffer, NULL);
+    else if(device->CreateVertexBuffer(12 * count, 0, D3DFVF_XYZ, D3DPOOL_MANAGED, &v_buffer, NULL) != S_OK)
+        throwError("Can't create vertex buffer");
     
+    // Write data
     VOID* pVoid;
-    v_buffer->Lock(0, 0, (void**)&pVoid, 0);
+    if(v_buffer->Lock(0, 0, (void**)&pVoid, 0) != S_OK)
+        throwError("Can't lock buffer");
+
     memcpy(pVoid, array, 12 * count);
-    v_buffer->Unlock();
+
+    if(v_buffer->Unlock() != S_OK)
+        throwError("Can't unlock buffer");
 
     // Draw
-    device->SetStreamSource(0, v_buffer, 0, 12);
-    device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, count / 3);
+    if(device->SetStreamSource(0, v_buffer, 0, 12) != S_OK)
+        throwError("Can't set stream source");
 
+    if(device->DrawPrimitive((_D3DPRIMITIVETYPE)type, 0, count / 3) != S_OK)
+        throwError("Can't draw promitives");
+
+    // Release
     if (count != 6)
         v_buffer->Release();
 }
 
-jlong nCreatePixelShader(jlong _device, char* content, jint length) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
-
+jlong nCreatePixelShader(char* content, jint length) {
     ID3DXBuffer* buffer;
     ID3DXBuffer* error;
     ID3DXConstantTable* table;
@@ -178,9 +209,7 @@ jlong nCreatePixelShader(jlong _device, char* content, jint length) {
     return (jlong)shader;
 }
 
-jlong nCreateVertexShader(jlong _device, char* content, jint length) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
-
+jlong nCreateVertexShader(char* content, jint length) {
     ID3DXBuffer* buffer;
     ID3DXBuffer* error;
     ID3DXConstantTable* table;
@@ -194,40 +223,74 @@ jlong nCreateVertexShader(jlong _device, char* content, jint length) {
     return (jlong)shader;
 }
 
-void nSetPixelShader(jlong _device, jlong _shader) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
+void nSetPixelShader(jlong _shader) {
     IDirect3DPixelShader9* shader = (IDirect3DPixelShader9*)_shader;
-    device->SetPixelShader(shader);
+    if(device->SetPixelShader(shader) != S_OK)
+        throwError("Can't set pixels shader buffer");
 }
 
-void nSetVertexShader(jlong _device, jlong _shader) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
+void nSetVertexShader(jlong _shader) {
     IDirect3DVertexShader9* shader = (IDirect3DVertexShader9*)_shader;
-    device->SetVertexShader(shader);
+    if(device->SetVertexShader(shader) != S_OK)
+        throwError("Can't set vertex shader buffer");
 }
 
-void nSetShaderValue3f(jlong _device, jlong _shader, char* name, jfloat v1, jfloat v2, jfloat v3) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
+void nSetShaderValue1f(jlong _shader, char* name, jfloat v) {
+    ID3DXConstantTable* table = constantTables[_shader];
+
+    table->SetFloat(device, table->GetConstantByName(0, name), v);
+}
+
+void nSetShaderValue3f(jlong _shader, char* name, jfloat v1, jfloat v2, jfloat v3) {
     ID3DXConstantTable* table = constantTables[_shader];
 
     const float a[3]{ v1, v2, v3 };
     table->SetFloatArray(device, table->GetConstantByName(0, name), a, 3);
 }
 
-void nSetShaderValue4f(jlong _device, jlong _shader, char* name, jfloat v1, jfloat v2, jfloat v3, jfloat v4) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
+void nSetShaderValue4f(jlong _shader, char* name, jfloat v1, jfloat v2, jfloat v3, jfloat v4) {
     ID3DXConstantTable* table = constantTables[_shader];
 
     const float a[4]{ v1, v2, v3, v4 };
     table->SetFloatArray(device, table->GetConstantByName(0, name), a, 4);
 }
 
-void nSetShaderMatrix(jlong _device, jlong _shader, char* name, jfloat* matrix) {
-    IDirect3DDevice9* device = (IDirect3DDevice9*)_device;
+void nSetShaderMatrix(jlong _shader, char* name, jfloat* matrix) {
     ID3DXConstantTable* table = constantTables[_shader];
 
     D3DXMATRIX m = D3DXMATRIX(matrix);
     table->SetMatrix(device, table->GetConstantByName(0, name), &m);
+}
+
+jlong nCreateTexture(jint width, jint height, jint components, char* data) {
+    IDirect3DTexture9* texture;
+
+    D3DFORMAT format = D3DFMT_A8R8G8B8;
+    if (components == 3)
+        format = D3DFMT_X8R8G8B8;
+    if (components == 1)
+        format = D3DFMT_A8;
+    HRESULT h;
+    if ((h = device->CreateTexture(width, height, 1, 0, format, D3DPOOL_MANAGED, &texture, 0)) != S_OK)
+        throwError("Can't create texture");
+
+    D3DLOCKED_RECT lockedRect;
+    texture->LockRect(0, &lockedRect, 0, D3DLOCK_DISCARD);
+
+    char* pData = (char*)lockedRect.pBits;
+
+    for (unsigned int i = 0, s = 0; 
+        i < width * height * 4; 
+        i += 4, s += components
+    ) {
+        pData[i]     = data[s + 2];
+        pData[i + 1] = data[s + 1];
+        pData[i + 2] = data[s];
+        pData[i + 3] = components == 4 ? data[s + 3] : 1;
+    }
+    texture->UnlockRect(0);
+    
+    return (jlong)texture;
 }
 
 

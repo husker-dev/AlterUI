@@ -2,6 +2,7 @@ package com.huskerdev.alter.internal.pipelines.d3d11
 
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.painters.ColorPainter
+import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.Window
 
 class D3D11Graphics(window: Window): Graphics(window) {
@@ -28,6 +29,10 @@ class D3D11Graphics(window: Window): Graphics(window) {
 
 
     override fun getColorPainter(): ColorPainter {
+        TODO("Not yet implemented")
+    }
+
+    override fun getImagePainter(): ImagePainter {
         TODO("Not yet implemented")
     }
 }

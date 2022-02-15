@@ -9,7 +9,7 @@ jlong nCreateWindow(jlong shareWith);
 void nMakeCurrent(jlong handle);
 void nSwapBuffers(jlong handle);
 
-void throwException(JNIEnv* env, const char* exceptionClass, const char* message) {
+void throwJavaException(JNIEnv* env, const char* exceptionClass, const char* message) {
 	env->ThrowNew(env->FindClass(exceptionClass), message);
 }
 
@@ -36,6 +36,10 @@ extern "C" {
 		glUseProgram(program);
 	}
 
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glBindTexture(JNIEnv*, jobject, jint target, jint texture) {
+		glBindTexture(target, texture);
+	}
+
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_initContext(JNIEnv*, jobject) {
 		unsigned int vao, vbo = 0;
 		// VAO
@@ -50,15 +54,61 @@ extern "C" {
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_drawArray(JNIEnv* env, jobject, jobject _array, jint count) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_drawArray(JNIEnv* env, jobject, jobject _array, jint count, jint type) {
 		jfloat* array = (jfloat*)env->GetDirectBufferAddress(_array);
 
+		if (type > 1)
+			type++;
+
 		glBufferData(GL_ARRAY_BUFFER, 12 * count, array, GL_STATIC_DRAW);
-		glDrawArrays(GL_TRIANGLES, 0, count);
+		glDrawArrays(type, 0, count);
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_createEmptyTexture(JNIEnv* env, jobject, jint width, jint height, jint channels) {
+		int type = GL_ALPHA;
+		if (channels == 3)
+			type = GL_RGB;
+		if (channels == 4)
+			type = GL_RGBA;
+
+		GLuint tex;
+		glGenTextures(1, &tex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, 0);
+		glFlush();
+		return tex;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_createTexture(JNIEnv* env, jobject, jint width, jint height, jint channels, jobject _data) {
+		char* data = (char*)env->GetDirectBufferAddress(_data);
+		
+		int type = GL_ALPHA;
+		if (channels == 3)
+			type = GL_RGB;
+		if (channels == 4)
+			type = GL_RGBA;
+
+		GLuint tex;
+		glGenTextures(1, &tex);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glFlush();
+		return tex;
 	}
 
 	/* ================
@@ -81,7 +131,7 @@ extern "C" {
 			char* infoLog = new char[infoLen];
 			glGetShaderInfoLog(vertex, infoLen, NULL, infoLog);
 			
-			throwException(env, "java/lang/RuntimeException", infoLog);
+			throwJavaException(env, "java/lang/RuntimeException", infoLog);
 			delete[] infoLog;
 			return -1;
 		}
@@ -97,7 +147,7 @@ extern "C" {
 			char* infoLog = new char[infoLen];
 			glGetShaderInfoLog(vertex, infoLen, NULL, infoLog);
 
-			throwException(env, "java/lang/RuntimeException", infoLog);
+			throwJavaException(env, "java/lang/RuntimeException", infoLog);
 			delete[] infoLog;
 			return -1;
 		}
@@ -114,7 +164,7 @@ extern "C" {
 			char* infoLog = new char[infoLen];
 			glGetProgramInfoLog(program, infoLen, NULL, infoLog);
 
-			throwException(env, "java/lang/RuntimeException", infoLog);
+			throwJavaException(env, "java/lang/RuntimeException", infoLog);
 			delete[] infoLog;
 			return -1;
 		}

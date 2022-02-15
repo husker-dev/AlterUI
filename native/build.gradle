@@ -1,9 +1,10 @@
 import java.util.stream.*
 
+project.ext.DEBUG = false
 
 task compile {
     group = "compile"
-    dependsOn 'compilePlatform', 'compileGL', 'compileD3D9'
+    dependsOn 'compilePlatform', 'compileBase', 'compileGL', 'compileD3D9'
 }
 
 task compilePlatform {
@@ -28,15 +29,24 @@ task compileD3D9 {
     }
 }
 
+task compileBase {
+    group = "compile"
+    doLast {
+        buildProject("${projectDir}/modules/base")
+    }
+}
+
 void buildProject(String project, String... defs){
     if(isWin()) {
-        // Use 'msbuild' to compile project
+        // Uses 'msbuild' to compile project
         String msbuildPath = getCommandOut("${projectDir}\\vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe")
+        println("Compiling native module \"${project.split("/").last()}\":")
         for (i in ["x86", "x64", "ARM64"]) {
-            if(defs.length == 0)
-                runCommand("\"${msbuildPath}\" ${project} /t:Rebuild /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")
-            else
-                runCommand("set CL=/D${String.join(";", defs)} && \"${msbuildPath}\" ${project} /t:Rebuild /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")
+            String result = runCommand(
+                    "${defs.length > 0? "set CL=/D${String.join(";", defs)} &&": ""} " +                                                // Definitions
+                    "\"${msbuildPath}\" \"${project}\" /t:Rebuild /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")  // Compilation script
+                    ? "OK" : "ERROR"
+            println("\t- $i${".".repeat(15 - i.length())}[${result}]")
         }
     }
 }
@@ -47,14 +57,19 @@ static String getCommandOut(String command) {
     return new BufferedReader(new InputStreamReader(p.inputStream)).lines().collect(Collectors.joining("\n"));
 }
 
-void runCommand(String command){
-    println ">> ${command}"
+boolean runCommand(String command){
+    if(DEBUG)
+        println ">> ${command}"
     String suffix = isWin() ? "cmd /c " : ""
-    InputStream is = Runtime.runtime.exec("${suffix}${command}").inputStream
 
-    byte[] buffer = new byte[1024]
-    for (int length; (length = is.read(buffer)) != -1; )
-        System.out.write(buffer, 0, length)
+    Process p = Runtime.runtime.exec("${suffix}${command}")
+    String out = new BufferedReader(new InputStreamReader(p.inputStream)).lines().collect(Collectors.joining("\n"))
+    boolean result = p.waitFor() == 0
+
+    if(!result && DEBUG)
+        System.out.println(out)
+
+    return result
 }
 
 static boolean isWin(){

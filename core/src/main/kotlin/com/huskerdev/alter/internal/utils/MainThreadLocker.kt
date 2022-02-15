@@ -10,37 +10,37 @@ class MainThreadLocker {
     companion object {
 
         var queueNotifiers = arrayListOf<() -> Unit>()
-        var tasksQueue = LinkedBlockingQueue<Runnable>()
+        var tasksQueue = LinkedBlockingQueue<() -> Unit>()
         var disposed = false
-        private var mainThread: Thread? = null
+        var mainThread: Thread? = null
 
         fun lock(){
             mainThread = Thread.currentThread()
             createDaemon()
             while(!disposed)
-                (tasksQueue.poll(150, TimeUnit.MILLISECONDS) ?: continue).run()
+                (tasksQueue.poll(150, TimeUnit.MILLISECONDS) ?: continue)()
         }
 
-        fun invokeAsync(toInvoke: Runnable){
+        fun invokeAsync(toInvoke: () -> Unit){
             if(mainThread == null)
                 throw UnsupportedOperationException("Main thread is not locked")
             if(Thread.currentThread() == mainThread)
-                toInvoke.run()
+                toInvoke()
             else {
                 tasksQueue.offer(toInvoke)
                 queueNotifiers.forEach { it() }
             }
         }
 
-        fun invoke(toInvoke: Runnable){
+        inline fun invoke(crossinline toInvoke: () -> Unit){
             if(mainThread == null)
                 throw UnsupportedOperationException("Main thread is not locked")
             if(Thread.currentThread() == mainThread)
-                toInvoke.run()
+                toInvoke()
             else {
                 val trigger = Trigger()
                 tasksQueue.offer {
-                    toInvoke.run()
+                    toInvoke()
                     trigger.ready()
                 }
                 queueNotifiers.forEach { it() }
@@ -49,7 +49,7 @@ class MainThreadLocker {
         }
 
         private fun createDaemon(){
-            thread(name = "MinUI Daemon Checker", isDaemon = true){
+            thread(name = "AlterUI Daemon Checker", isDaemon = true){
                 while(!disposed) {
                     val allThreads = getAllThreads()
                         .filter { it != mainThread && !it.isDaemon }

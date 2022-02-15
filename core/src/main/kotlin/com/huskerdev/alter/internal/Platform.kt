@@ -35,18 +35,4 @@ abstract class Platform {
     abstract fun pollEvents()
     abstract fun sendEmptyMessage(handle: Long)
 
-    protected fun loadDefaultLibrary(){
-        val archName = when(OS.arch){
-            OS.Arch.X64 -> "x64"
-            OS.Arch.X86 -> "x86"
-            OS.Arch.Arm64 -> "arm64"
-            else -> ""
-        }
-        val postfix = when(OS.current){
-            OS.Windows -> ".dll"
-            else -> throw UnsupportedOperationException("Unsupported OS")
-        }
-
-        LibraryLoader.load("com/huskerdev/alter/resources/win_$archName$postfix")
-    }
 }
