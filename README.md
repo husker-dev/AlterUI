@@ -23,6 +23,7 @@ The main task is to make window creation faster and easier.
   - :white_square_button: MacOS
   
 ### Pipelines
+  - :white_check_mark: Direct3D 11
   - :white_check_mark: Direct3D 9
   - :white_check_mark: OpenGL
   - :white_square_button: Metal
