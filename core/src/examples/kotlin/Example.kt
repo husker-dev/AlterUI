@@ -26,8 +26,12 @@ fun main() = AlterUI.takeMain {
     val start = System.nanoTime()
     AlterUI.load()
 
-    var secondImage: Image? = null
+    Runtime.getRuntime().addShutdownHook(Thread{
+        println("JVM shutdown")
+    })
 
+    var firstImage: Image? = null
+    var secondImage: Image? = null
 
     val window = Pipeline.current.createWindow()
     window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
@@ -40,6 +44,7 @@ fun main() = AlterUI.takeMain {
     window.apply {
         window.onRepaintEvent = { gr ->
             gr.clear()
+
             gr.color = background
             gr.fillRect(0f, 0f, width.toFloat(), height.toFloat())
 
@@ -58,22 +63,20 @@ fun main() = AlterUI.takeMain {
             gr.color = Color.rgba(0f, 1f, 0f, 0.8f)
             gr.drawRect(0f, height.toFloat() - 200f, 200f, 200f)
 
-
-            if(secondImage != null)
-                gr.drawImage(secondImage!!, width.toFloat() - 300f, 0f, 300f, 300f)
+            if(firstImage != null)
+                gr.drawImage(firstImage!!, 0f, 0f, width.toFloat(), height.toFloat())
 
         }
     }
-
     window.visible = true
 
+
     thread {
-        secondImage = Image.createFromURL("https://sun9-57.userapi.com/impg/1bZ2JejlcpxeEiIUd7OEcbyjJ5XpOvdhuOrKew/qigWWTeP694.jpg?size=1242x1515&quality=96&sign=3696360abe9d16443f11887a0ff78b82&type=album")
+        firstImage = Image.createFromURL("https://sun9-24.userapi.com/impg/LsVdTpA1ZtqYvMwOS8yJYQBCsIWAdvvKOnMOxQ/e0tIo-AiWwA.jpg?size=750x730&quality=96&sign=f4b42d8cebeed684793621ec62b04fb1&type=album")
+        firstImage!!.linearFiltered = false
         window.requestRepaint()
     }
 
     val current = System.nanoTime()
     println("Startup time: \t${(current - start) / 1000000.0 / 1000} ms")
-
-
 }

@@ -9,9 +9,9 @@ import java.net.URL
 import java.nio.ByteBuffer
 
 enum class ImageType(val channels: Int) {
-    MONO(1),   // Grey
-    RGB(3),    // Red  Green Blue
-    RGBA(4)    // Red  Green Blue Alpha
+    MONO(1),
+    RGB(3),
+    RGBA(4)
 }
 
 abstract class Image(val width: Int, val height: Int, val type: ImageType) {
@@ -38,6 +38,8 @@ abstract class Image(val width: Int, val height: Int, val type: ImageType) {
 
         fun create(width: Int, height: Int, type: ImageType = ImageType.RGBA) = Pipeline.current.createImage(type, width, height, null)
     }
+
+    open var linearFiltered = true
 }
 
 data class ImageInfo(val width: Int, val height: Int, val type: ImageType) {

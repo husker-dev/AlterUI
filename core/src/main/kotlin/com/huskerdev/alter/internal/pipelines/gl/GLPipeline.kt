@@ -1,8 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
-import com.huskerdev.alter.AlterUI
 import com.huskerdev.alter.OS
-import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.ImageType
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
@@ -11,7 +9,6 @@ import com.huskerdev.alter.internal.utils.MainThreadLocker
 import com.huskerdev.alter.internal.utils.Trigger
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
-import java.nio.IntBuffer
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -39,16 +36,17 @@ class GLPipeline: Pipeline.WindowPoll("gl") {
         @JvmStatic external fun glUseProgram(program: Int)
         @JvmStatic external fun glBindTexture(target: Int, texture: Int)
 
-        @JvmStatic external fun initContext()
-        @JvmStatic external fun drawArray(array: FloatBuffer, count: Int, type: Int)
-        @JvmStatic external fun createTexture(width: Int, height: Int, channels: Int, data: ByteBuffer): Int
+        @JvmStatic external fun nInitContext()
+        @JvmStatic external fun nDrawArray(array: FloatBuffer, count: Int, type: Int)
+        @JvmStatic external fun nCreateTexture(width: Int, height: Int, channels: Int, data: ByteBuffer): Int
         @JvmStatic external fun createEmptyTexture(width: Int, height: Int, channels: Int): Int
+        @JvmStatic external fun nSetLinearFiltering(tex: Int, linearFiltering: Boolean)
 
         // GL-Shader
-        @JvmStatic external fun createShaderProgram(vertexSource: ByteBuffer, fragmentSource: ByteBuffer): Int
-        @JvmStatic external fun setShaderVariable4f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float, val4: Float)
-        @JvmStatic external fun setShaderVariable3f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float)
-        @JvmStatic external fun setShaderMatrixVariable(program: Int, name: ByteBuffer, matrix: FloatBuffer)
+        @JvmStatic external fun nCreateShaderProgram(vertexSource: ByteBuffer, fragmentSource: ByteBuffer): Int
+        @JvmStatic external fun nSetShaderVariable4f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float, val4: Float)
+        @JvmStatic external fun nSetShaderVariable3f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float)
+        @JvmStatic external fun nSetShaderMatrixVariable(program: Int, name: ByteBuffer, matrix: FloatBuffer)
     }
 
     private external fun nCreateWindow(shareWith: Long): Long

@@ -8,19 +8,35 @@ import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
 class D3D11Pipeline: Pipeline.WindowPoll("d3d11") {
 
     companion object {
+        @JvmStatic external fun nCreateContext()
         @JvmStatic external fun nCreateWindow(): Long
 
-        @JvmStatic external fun nGetDevice(hwnd: Long): Long
-        @JvmStatic external fun nGetContext(hwnd: Long): Long
-        @JvmStatic external fun nGetSwapchain(hwnd: Long): Long
+        @JvmStatic external fun setRenderTarget(hwnd: Long)
+        @JvmStatic external fun setViewport(width: Int, height: Int)
+        @JvmStatic external fun nPresent(hwnd: Long)
+        @JvmStatic external fun nClear(hwnd: Long)
 
-        @JvmStatic external fun nPresent(device: Long)
-        @JvmStatic external fun nClear(device: Long, red: Float, green: Float, blue: Float, alpha: Float)
+        @JvmStatic external fun nCreatePixelShader(content: ByteBuffer, length: Int): Long
+        @JvmStatic external fun nCreateVertexShader(content: ByteBuffer, length: Int): Long
+        @JvmStatic external fun nSetPixelShader(pointer: Long)
+        @JvmStatic external fun nSetVertexShader(pointer: Long)
+        @JvmStatic external fun nSetShaderValue4f(pointer: Long, name: ByteBuffer, v1: Float, v2: Float, v3: Float, v4: Float)
+        @JvmStatic external fun nSetShaderValue3f(pointer: Long, name: ByteBuffer, v1: Float, v2: Float, v3: Float)
+        @JvmStatic external fun nSetShaderValue1f(pointer: Long, name: ByteBuffer, v1: Float)
+        @JvmStatic external fun nSetShaderMatrix(pointer: Long, name: ByteBuffer, matrix: FloatBuffer)
+    }
+
+    override fun load() {
+        super.load()
+        MainThreadLocker.invoke {
+            nCreateContext()
+        }
     }
 
     override fun createWindow(): Window {

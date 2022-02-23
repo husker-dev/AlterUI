@@ -2,27 +2,27 @@ import java.util.stream.*
 
 project.ext.DEBUG = false
 
-task compile {
-    group = "compile"
+task compileAll{
+    group = "alterui natives"
     dependsOn 'compilePlatform', 'compileBase', 'compileGL', 'compileD3D9'
 }
 
 task compilePlatform {
-    group = "compile"
+    group = "alterui natives"
     doLast {
         buildProject("${projectDir}/modules/${getPlatformName()}")
     }
 }
 
 task compileGL {
-    group = "compile"
+    group = "alterui natives"
     doLast {
         buildProject("${projectDir}/modules/gl", getPlatformName().toUpperCase())
     }
 }
 
 task compileD3D9 {
-    group = "compile"
+    group = "alterui natives"
     doLast {
         if(isWin())
             buildProject("${projectDir}/modules/d3d9", getPlatformName().toUpperCase())
@@ -30,7 +30,7 @@ task compileD3D9 {
 }
 
 task compileBase {
-    group = "compile"
+    group = "alterui natives"
     doLast {
         buildProject("${projectDir}/modules/base")
     }

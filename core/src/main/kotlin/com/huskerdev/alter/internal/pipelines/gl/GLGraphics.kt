@@ -2,15 +2,13 @@ package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Painter
-import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_COLOR_BUFFER_BIT
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_DEPTH_BUFFER_BIT
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.drawArray
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glClear
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glClearColor
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glViewport
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.initContext
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nInitContext
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nMakeCurrent
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSwapBuffers
 import com.huskerdev.alter.internal.pipelines.gl.painters.GLColorPainter
@@ -26,7 +24,7 @@ class GLGraphics(window: Window): Graphics(window) {
         glViewport(0, 0, window.width.toInt(), window.height.toInt())
         if(!initialized){
             initialized = true
-            initContext()
+            nInitContext()
         }
     }
 

@@ -36,6 +36,7 @@ class D3D9Pipeline: Pipeline.WindowPoll("d3d9") {
         @JvmStatic external fun nSetShaderValue4f(shader: Long, name: ByteBuffer, v1: Float, v2: Float, v3: Float, v4: Float)
         @JvmStatic external fun nSetShaderMatrix(shader: Long, name: ByteBuffer, matrix: FloatBuffer)
         @JvmStatic external fun nCreateTexture(width: Int, height: Int, components: Int, data: ByteBuffer): Long
+        @JvmStatic external fun nSetLinearFiltering(linearFiltering: Boolean)
     }
 
 

@@ -28,10 +28,10 @@ enum class OS(val shortName: String) {
 
         val arch by lazy {
             if(current == Windows){
-                when(System.getenv("PROCESSOR_ARCHITECTURE")){
-                    "AMD64", "IA64", "EM64T" -> Arch.X64
-                    "X86" -> Arch.X86
-                    "ARM64" -> Arch.Arm64
+                when(System.getenv("PROCESSOR_ARCHITECTURE").lowercase()){
+                    "amd64", "ia64", "em64t" -> Arch.X64
+                    "x86" -> Arch.X86
+                    "arm64" -> Arch.Arm64
                     else -> throw UnsupportedOperationException("Unsupported processor architecture")
                 }
             }else

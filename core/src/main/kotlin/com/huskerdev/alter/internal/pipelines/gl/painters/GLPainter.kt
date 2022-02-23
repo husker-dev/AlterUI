@@ -14,7 +14,7 @@ interface GLPainter: VertexPainter {
     fun updateMatrix(matrix: Matrix) = shader.setMatrix("u_Matrix", matrix)
 
     override fun drawVertices(vertices: FloatBuffer, points: Int, type: VertexDrawType) {
-        GLPipeline.drawArray(vertices, points, type.ordinal)
+        GLPipeline.nDrawArray(vertices, points, type.ordinal)
     }
 
 }

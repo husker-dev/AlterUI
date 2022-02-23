@@ -85,6 +85,10 @@ jlong nCreateMainWindow() {
     device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
     device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
+    device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+    device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+    
+
     return (jlong)hwnd;
 }
 
@@ -291,6 +295,12 @@ jlong nCreateTexture(jint width, jint height, jint components, char* data) {
     texture->UnlockRect(0);
     
     return (jlong)texture;
+}
+
+void nSetLinearFiltering(jboolean linearFiltering) {
+    device->SetSamplerState(0, D3DSAMP_MINFILTER, linearFiltering ? D3DTEXF_LINEAR : D3DTEXF_POINT);
+    device->SetSamplerState(0, D3DSAMP_MAGFILTER, linearFiltering ? D3DTEXF_LINEAR : D3DTEXF_POINT);
+    device->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
 }
 
 

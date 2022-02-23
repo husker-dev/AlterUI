@@ -2,16 +2,14 @@ package com.huskerdev.alter.internal.pipelines.d3d9
 
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Painter
-import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nBeginScene
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nClear
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nEndScene
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nGetDevice
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetViewport
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ColorPainter
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ImagePainter
-import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3DPainter
+import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9Painter
 
 class D3D9Graphics(window: Window): Graphics(window) {
 
@@ -41,13 +39,13 @@ class D3D9Graphics(window: Window): Graphics(window) {
     }
 
     override fun updateMatrix() {
-        if(painter is D3DPainter)
-            (painter as D3DPainter).updateMatrix(matrix)
+        if(painter is D3D9Painter)
+            (painter as D3D9Painter).updateMatrix(matrix)
     }
 
     override fun setPainter(painter: Painter) {
         super.setPainter(painter)
-        painter as D3DPainter
+        painter as D3D9Painter
         painter.updateMatrix(matrix)
         painter.updateHeight(oldHeight.toFloat())
     }

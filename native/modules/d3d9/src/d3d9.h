@@ -36,6 +36,7 @@ void nSetShaderValue4f(jlong shader, char* name, jfloat v1, jfloat v2, jfloat v3
 void nSetShaderMatrix(jlong shader, char* name, jfloat* matrix);
 jlong nCreateTexture(jint width, jint height, jint components, char* data);
 //jlong nCreateEmptyTexture(jlong device, char* data);
+void nSetLinearFiltering(jboolean linearFiltering);
 
 extern "C" {
 
@@ -130,6 +131,10 @@ extern "C" {
 	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint components, jobject _data) {
 		char* data = (char*)env->GetDirectBufferAddress(_data);
 		return nCreateTexture(width, height, components, data);
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetLinearFiltering(JNIEnv*, jobject, jboolean linearFiltering) {
+		nSetLinearFiltering(linearFiltering);
 	}
 
 }

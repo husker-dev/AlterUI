@@ -49,7 +49,6 @@ void nCreateContext() {
         &device,
         NULL,
         &context);
-    devices_count++;
 
     CreateDXGIFactory2(0, __uuidof(IDXGIFactory4), (void**)&dxgiFactory);
 }
@@ -66,17 +65,18 @@ jlong nCreateWindow() {
         NULL);
 
     DXGI_SWAP_CHAIN_DESC1 pp = {};
-    pp.Width                = 1;
-    pp.Height               = 1;
+    pp.Width                = 0;
+    pp.Height               = 0;
     pp.Format               = DXGI_FORMAT_R8G8B8A8_UNORM;
     pp.Stereo               = FALSE;
     pp.SampleDesc.Count     = 1;
+    pp.SampleDesc.Quality   = 0;
     pp.BufferUsage          = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     pp.BufferCount          = 1;
     pp.Scaling              = DXGI_SCALING_STRETCH;
     pp.SwapEffect           = DXGI_SWAP_EFFECT_DISCARD;
     pp.AlphaMode            = DXGI_ALPHA_MODE_UNSPECIFIED;
-    pp.Flags                = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    pp.Flags                = 0;
     
     IDXGISwapChain1* swapChain;
     dxgiFactory->CreateSwapChainForHwnd(device, hwnd, &pp, NULL, NULL, &swapChain);
@@ -89,17 +89,96 @@ jlong nCreateWindow() {
 
     swapChains[hwnd] = swapChain;
     targets[hwnd] = target;
+    devices_count++;
 
     return (jlong)hwnd;
 }
 
+/* ===============
+    Paint
+   ===============
+*/
+
+void setRenderTarget(jlong hwnd) {
+    context->OMSetRenderTargets(1, &targets[(HWND)hwnd], NULL);
+}
+
+void setViewport(jint width, jint height) {
+    D3D11_VIEWPORT viewport = {};
+
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = width;
+    viewport.Height = height;
+
+    context->RSSetViewports(1, &viewport);
+}
+
 void nPresent(jlong hwnd) {
-    swapChains[(HWND)hwnd]->Present(NULL, NULL);
+    swapChains[(HWND)hwnd]->Present(0, 0);
 }
 
 void nClear(jlong hwnd) {
-    FLOAT colors[4]{ 1.0f, 1.0f, 1.0f, 1.0f };
+    FLOAT colors[4]{ 0.0f, 1.0f, 0.0f, 1.0f };
     context->ClearRenderTargetView(targets[(HWND)hwnd], colors);
+}
+
+/* ===============
+    Shaders
+   ===============
+*/
+
+jlong nCreatePixelShader(char* content, jint length) {
+    ID3DBlob* code;
+    ID3DBlob* error;
+
+    if(D3DCompile(content, length, NULL, NULL, NULL, "main", "ps_5_0", NULL, NULL, &code, &error) != S_OK)
+        std::cout << (char*)error->GetBufferPointer() << std::endl;
+
+    ID3D11PixelShader* shader;
+    device->CreatePixelShader(error->GetBufferPointer(), code->GetBufferSize(), NULL, &shader);
+
+    return (jlong)shader;
+}
+
+jlong nCreateVertexShader(char* content, jint length) {
+    ID3DBlob* code;
+    ID3DBlob* error;
+
+    if (D3DCompile(content, length, NULL, NULL, NULL, "main", "vs_5_0", NULL, NULL, &code, &error) != S_OK)
+        std::cout << (char*)error->GetBufferPointer() << std::endl;
+
+    ID3D11VertexShader* shader;
+    device->CreateVertexShader(error->GetBufferPointer(), code->GetBufferSize(), NULL, &shader);
+
+    return (jlong)shader;
+}
+
+void nSetPixelShader(jlong _shader) {
+    ID3D11PixelShader* shader = (ID3D11PixelShader*)_shader;
+    context->PSSetShader(shader, NULL, NULL);
+}
+
+void nSetVertexShader(jlong _shader) {
+    ID3D11VertexShader* shader = (ID3D11VertexShader*)_shader;
+    context->VSSetShader(shader, NULL, NULL);
+}
+
+void nSetShaderValue4f(jlong _shader, char* name, jfloat v1, jfloat v2, jfloat v3, jfloat v4) {
+    ID3D11PixelShader* shader = (ID3D11PixelShader*)_shader;
+    context->PS
+}
+
+void nSetShaderValue3f(jlong pointer, char* name, jfloat v1, jfloat v2, jfloat v3) {
+
+}
+
+void nSetShaderValue1f(jlong pointer, char* name, jfloat v1) {
+
+}
+
+void nSetShaderMatrix(jlong pointer, char* name, jfloat* matrix) {
+
 }
 
 

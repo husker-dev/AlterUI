@@ -40,7 +40,7 @@ extern "C" {
 		glBindTexture(target, texture);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_initContext(JNIEnv*, jobject) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nInitContext(JNIEnv*, jobject) {
 		unsigned int vao, vbo = 0;
 		// VAO
 		glGenVertexArrays(1, &vao);
@@ -59,7 +59,7 @@ extern "C" {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_drawArray(JNIEnv* env, jobject, jobject _array, jint count, jint type) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nDrawArray(JNIEnv* env, jobject, jobject _array, jint count, jint type) {
 		jfloat* array = (jfloat*)env->GetDirectBufferAddress(_array);
 
 		if (type > 1)
@@ -69,7 +69,7 @@ extern "C" {
 		glDrawArrays(type, 0, count);
 	}
 
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_createEmptyTexture(JNIEnv* env, jobject, jint width, jint height, jint channels) {
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nCreateEmptyTexture(JNIEnv* env, jobject, jint width, jint height, jint channels) {
 		int type = GL_ALPHA;
 		if (channels == 3)
 			type = GL_RGB;
@@ -88,7 +88,7 @@ extern "C" {
 		return tex;
 	}
 
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_createTexture(JNIEnv* env, jobject, jint width, jint height, jint channels, jobject _data) {
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint channels, jobject _data) {
 		char* data = (char*)env->GetDirectBufferAddress(_data);
 		
 		int type = GL_ALPHA;
@@ -111,11 +111,18 @@ extern "C" {
 		return tex;
 	}
 
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetLinearFiltering(JNIEnv* env, jobject, jint tex, jboolean linearFiltering) {
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
+		glFlush();
+	}
+
 	/* ================
 		 GL-Shader
 	   ================
 	*/
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_createShaderProgram(JNIEnv* env, jobject, jobject _vertex, jobject _fragment) {
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nCreateShaderProgram(JNIEnv* env, jobject, jobject _vertex, jobject _fragment) {
 		char* vertexSource = (char*)env->GetDirectBufferAddress(_vertex);
 		char* fragmentSource = (char*)env->GetDirectBufferAddress(_fragment);
 
@@ -175,19 +182,19 @@ extern "C" {
 		return program;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_setShaderVariable4f(JNIEnv* env, jobject, jint program, jobject _name, jfloat var1, jfloat var2, jfloat var3, jfloat var4) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderVariable4f(JNIEnv* env, jobject, jint program, jobject _name, jfloat var1, jfloat var2, jfloat var3, jfloat var4) {
 		char* name = (char*)env->GetDirectBufferAddress(_name);
 		GLint location = glGetUniformLocation(program, name);
 		glUniform4f(location, var1, var2,var3, var4);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_setShaderVariable3f(JNIEnv* env, jobject, jint program, jobject _name, jfloat var1, jfloat var2, jfloat var3) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderVariable3f(JNIEnv* env, jobject, jint program, jobject _name, jfloat var1, jfloat var2, jfloat var3) {
 		char* name = (char*)env->GetDirectBufferAddress(_name);
 		GLint location = glGetUniformLocation(program, name);
 		glUniform3f(location, var1, var2, var3);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_setShaderMatrixVariable(JNIEnv* env, jobject, jint program, jobject _name, jobject _matrix) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderMatrixVariable(JNIEnv* env, jobject, jint program, jobject _name, jobject _matrix) {
 		char* name = (char*)env->GetDirectBufferAddress(_name);
 		float* matrix = (float*)env->GetDirectBufferAddress(_matrix);
 

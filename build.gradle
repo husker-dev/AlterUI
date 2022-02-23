@@ -9,7 +9,8 @@ repositories {
     mavenCentral()
 }
 
-task compileProject(type: GradleBuild){
-    group 'compile'
-    tasks = [':native:compile', ':core:moveNatives', ':core:jar']
+task buildProject(type: GradleBuild){
+    group 'alterui'
+    tasks = [':native:compileAll', ':core:moveNatives', ':core:jar']
 }
+
