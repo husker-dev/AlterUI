@@ -3,14 +3,10 @@ package com.huskerdev.alter.graphics
 @JvmInline
 value class Color(private val value: Int) {
 
-    val a: Float
-        get() = (value shr 24 and 0xFF).toFloat() / 255
-    val r: Float
-        get() = (value shr 16 and 0xFF).toFloat() / 255
-    val g: Float
-        get() = (value shr 8 and 0xFF).toFloat() / 255
-    val b: Float
-        get() = (value and 0xFF).toFloat() / 255
+    val a get() = (value shr 24 and 0xFF).toFloat() / 255
+    val r get() = (value shr 16 and 0xFF).toFloat() / 255
+    val g get() = (value shr 8 and 0xFF).toFloat() / 255
+    val b get() = (value and 0xFF).toFloat() / 255
 
     fun toARGB() = value
     fun toRGB() = value or 0xff000000.toInt()

@@ -21,7 +21,7 @@ class GLGraphics(window: Window): Graphics(window) {
 
     override fun beginImpl() {
         nMakeCurrent(window.handle)
-        glViewport(0, 0, window.width.toInt(), window.height.toInt())
+        glViewport(0, 0, window.physicalWidth, window.physicalHeight)
         if(!initialized){
             initialized = true
             nInitContext()
@@ -32,19 +32,23 @@ class GLGraphics(window: Window): Graphics(window) {
         nSwapBuffers(window.handle)
     }
 
-    override fun updateMatrix() {
+    override fun updateTransforms() {
         (painter as GLPainter).updateMatrix(matrix)
     }
 
     override fun clear() {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-        glClearColor(0f, 0f, 0f, 1f)
     }
 
-    override fun setPainter(painter: Painter) {
-        super.setPainter(painter)
-        (painter as GLPainter).updateMatrix(matrix)
-    }
+    override var painter: Painter?
+        get() = super.painter
+        set(value) {
+            super.painter = value
+            if(value is GLPainter){
+                value.updateMatrix(matrix)
+                value.updateDpi(dpi)
+            }
+        }
 
     override fun getColorPainter() = GLColorPainter
     override fun getImagePainter() = GLImagePainter

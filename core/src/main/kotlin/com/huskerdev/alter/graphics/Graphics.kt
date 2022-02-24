@@ -1,20 +1,23 @@
 package com.huskerdev.alter.graphics
 
-import com.huskerdev.alter.geom.Matrix
+import com.huskerdev.alter.geom.Matrix4
 import com.huskerdev.alter.graphics.painters.ColorPainter
 import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.Window
 
 abstract class Graphics(var window: Window) {
 
-    protected var matrix = Matrix.identity
-    private var lastMatrix = Matrix.identity
-    private var lastWidth = -1.0
-    private var lastHeight = -1.0
+    protected var matrix = Matrix4.identity
+    private var lastMatrix = Matrix4.identity
+    var width = -1
+    var height = -1
+    var dpi = 1f
 
-    private lateinit var _painter: Painter
-    val painter: Painter
-        get() = _painter
+    open var painter: Painter? = null
+        protected set(value){
+            field = value
+            value?.enable()
+        }
 
     var color: Color
         get() {
@@ -30,34 +33,36 @@ abstract class Graphics(var window: Window) {
         beginImpl()
 
         setColorPainter(Color.black)
-
-        if(lastWidth != window.width || lastHeight != window.height) {
-            lastWidth = window.width
-            lastHeight = window.height
-            lastMatrix = Matrix.ortho(window.width.toFloat(), window.height.toFloat())
+        if(width != window.width ||
+            height != window.width ||
+            dpi != window.dpi
+        ) {
+            width = window.width
+            height = window.width
+            dpi = window.dpi
+            lastMatrix = Matrix4.ortho(window.width.toFloat(), window.height.toFloat())
         }
         matrix = lastMatrix
-        updateMatrix()
-
+        updateTransforms()
     }
     fun end() = endImpl()
 
     protected abstract fun beginImpl()
     protected abstract fun endImpl()
-    protected abstract fun updateMatrix()
+    protected abstract fun updateTransforms()
     abstract fun clear()
 
     fun fillRect(x: Float, y: Float, width: Float, height: Float) {
         if(width > 0 && height > 0) {
-            painter.checkChanges()
-            painter.fillRect(x, y, width, height)
+            painter!!.checkChanges()
+            painter!!.fillRect(x, y, width, height)
         }
     }
 
     fun drawRect(x: Float, y: Float, width: Float, height: Float) {
         if(width > 0 && height > 0) {
-            painter.checkChanges()
-            painter.drawRect(x, y, width, height)
+            painter!!.checkChanges()
+            painter!!.drawRect(x, y, width, height)
         }
     }
 
@@ -66,20 +71,20 @@ abstract class Graphics(var window: Window) {
             val oldPainter = painter
             setImagePainter(image, x, y, width, height, color)
             fillRect(x, y, width, height)
-            setPainter(oldPainter)
+            painter = oldPainter
         }
     }
 
     // Painters
     fun setColorPainter(color: Color){
-        setPainter(getColorPainter())
+        painter = getColorPainter()
         (painter as ColorPainter).apply {
             this.color = color
         }
     }
 
     fun setImagePainter(image: Image, x: Float, y: Float, width: Float, height: Float, color: Color = Color.white){
-        setPainter(getImagePainter())
+        painter = getImagePainter()
         (painter as ImagePainter).apply {
             this.image = image
             this.x = x
@@ -88,11 +93,6 @@ abstract class Graphics(var window: Window) {
             this.height = height
             this.color = color
         }
-    }
-
-    protected open fun setPainter(painter: Painter){
-        _painter = painter
-        _painter.enable()
     }
 
     protected abstract fun getColorPainter(): ColorPainter

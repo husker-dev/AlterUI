@@ -6,11 +6,13 @@ import com.huskerdev.alter.graphics.Painter
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
+@ImplicitUsage
 class D3D11Pipeline: Pipeline.WindowPoll("d3d11") {
 
     companion object {

@@ -1,6 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.d3d11
 
-import com.huskerdev.alter.geom.Matrix
+import com.huskerdev.alter.geom.Matrix4
 import com.huskerdev.alter.internal.c_str
 
 import com.huskerdev.alter.internal.utils.BufferUtils
@@ -54,7 +54,7 @@ class D3D11Shader(private val content: String, private val type: D3D11ShaderType
             D3D11Pipeline.nSetShaderValue1f(pointer, BufferUtils.createByteBuffer(*name.c_str), v)
     }
 
-    fun setMatrix(name: String, matrix: Matrix){
+    fun setMatrix(name: String, matrix: Matrix4){
         if(pointer != -1L)
             D3D11Pipeline.nSetShaderMatrix(pointer, BufferUtils.createByteBuffer(*name.c_str), BufferUtils.createFloatBuffer(*matrix.elements))
     }

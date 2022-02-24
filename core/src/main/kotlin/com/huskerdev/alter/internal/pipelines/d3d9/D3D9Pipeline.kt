@@ -4,17 +4,18 @@ import com.huskerdev.alter.graphics.ImageType
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
+@ImplicitUsage
 class D3D9Pipeline: Pipeline.WindowPoll("d3d9") {
 
     companion object {
         var mainWindow = 0L
-        var resourceThread: Thread? = null
 
         @JvmStatic external fun nCreateMainWindow(): Long
         @JvmStatic external fun nCreateWindow(): Long
@@ -38,7 +39,6 @@ class D3D9Pipeline: Pipeline.WindowPoll("d3d9") {
         @JvmStatic external fun nCreateTexture(width: Int, height: Int, components: Int, data: ByteBuffer): Long
         @JvmStatic external fun nSetLinearFiltering(linearFiltering: Boolean)
     }
-
 
     override fun load() {
         super.load()

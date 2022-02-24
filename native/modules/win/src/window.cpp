@@ -1,15 +1,29 @@
 #include "window.h"
 
+
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_NCDESTROY:
     {
         return 0;
     }
-    case WM_PAINT:
+    case WM_DPICHANGED:
     {
-        callback(jvm, callbackObjects[hwnd], onDrawCallback);
-        break;
+        callback(jvm, callbackObjects[hwnd], onDpiChangedCallback, (float)LOWORD(wParam) / 96);
+
+        RECT rcWindow;
+        GetClientRect(hwnd, &rcWindow);
+        InvalidateRect(hwnd, &rcWindow, FALSE);
+
+        RECT* prcNewWindow = (RECT*)lParam;
+        int iWindowX = prcNewWindow->left;
+        int iWindowY = prcNewWindow->top;
+        int iWindowWidth = prcNewWindow->right - prcNewWindow->left;
+        int iWindowHeight = prcNewWindow->bottom - prcNewWindow->top;
+        SetWindowPos(hwnd, nullptr, iWindowX, iWindowY, iWindowWidth, iWindowHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+
+        return 0;
     }
     case WM_DESTROY:
     {
@@ -24,6 +38,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
         return 0;
     }
+    case WM_PAINT:
+    {
+        callback(jvm, callbackObjects[hwnd], onDrawCallback);
+        break;
+    }
     case WM_MOVE:
     {
         callback(jvm, callbackObjects[hwnd], onMovedCallback, LOWORD(lParam), HIWORD(lParam));
@@ -32,12 +51,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     case WM_SIZE:
     {
         callback(jvm, callbackObjects[hwnd], onResizedCallback, LOWORD(lParam), HIWORD(lParam));
-        SendMessage(hwnd, WM_PAINT, NULL, NULL);
+        //SendMessage(hwnd, WM_PAINT, NULL, NULL);
         break;
     }
     case WM_SHOWWINDOW:
     case WM_ERASEBKGND:
-        SendMessage(hwnd, WM_PAINT, NULL, NULL);
+        //SendMessage(hwnd, WM_PAINT, NULL, NULL);
         return TRUE;
     }
     
@@ -54,6 +73,10 @@ void nSetTitle(jlong hwnd, jbyte* title) {
 
 void nSetSize(jlong hwnd, jint x, jint y, jint width, jint height) {
     SetWindowPos((HWND)hwnd, nullptr, x, y, width, height, SWP_NOACTIVATE | SWP_NOZORDER);
+}
+
+jfloat nGetDpi(jlong hwnd) {
+    return (float)GetDpiForWindow((HWND)hwnd) / 96;
 }
 
 void nSetBackground(jlong hwnd, int color) {

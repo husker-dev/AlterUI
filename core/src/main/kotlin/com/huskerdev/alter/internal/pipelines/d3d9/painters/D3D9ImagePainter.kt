@@ -21,7 +21,7 @@ class D3D9ImagePainter: ImagePainter(), D3D9Painter {
     override fun disable() {}
 
     override fun drawVertices(vertices: FloatBuffer, points: Int, type: VertexDrawType) {
-        nSetLinearFiltering(image.linearFiltered)
+        nSetLinearFiltering(image!!.linearFiltered)
         super.drawVertices(vertices, points, type)
     }
 

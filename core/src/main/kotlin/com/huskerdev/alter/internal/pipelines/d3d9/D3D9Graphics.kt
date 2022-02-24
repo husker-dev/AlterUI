@@ -13,22 +13,16 @@ import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9Painter
 
 class D3D9Graphics(window: Window): Graphics(window) {
 
-    companion object {
-        var currentDevice = 0L
-    }
-
     private val colorPainterInstance by lazy { D3D9ColorPainter() }
     private val imagePainterInstance by lazy { D3D9ImagePainter() }
 
-    //private val device = nGetDevice(window.handle)
     private var oldWidth = -1
     private var oldHeight = -1
 
     override fun beginImpl() {
-        //currentDevice = device
-        if(oldWidth != window.width.toInt() || oldHeight != window.height.toInt()) {
-            oldWidth = window.width.toInt()
-            oldHeight = window.height.toInt()
+        if(oldWidth != window.width || oldHeight != window.height) {
+            oldWidth = window.width
+            oldHeight = window.height
             nSetViewport(window.handle, oldWidth, oldHeight)
         }
         nBeginScene(window.handle)
@@ -38,17 +32,20 @@ class D3D9Graphics(window: Window): Graphics(window) {
         nEndScene(window.handle)
     }
 
-    override fun updateMatrix() {
+    override fun updateTransforms() {
         if(painter is D3D9Painter)
             (painter as D3D9Painter).updateMatrix(matrix)
     }
 
-    override fun setPainter(painter: Painter) {
-        super.setPainter(painter)
-        painter as D3D9Painter
-        painter.updateMatrix(matrix)
-        painter.updateHeight(oldHeight.toFloat())
-    }
+    override var painter: Painter?
+        get() = super.painter
+        set(value) {
+            super.painter = value
+            value as D3D9Painter
+            value.updateMatrix(matrix)
+            value.updateHeight(oldHeight.toFloat())
+            value.updateDpi(dpi)
+        }
 
     override fun clear() = nClear()
 

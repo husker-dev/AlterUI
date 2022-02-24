@@ -5,6 +5,9 @@
 
 #include "callbacks.h"
 
+#if !defined(WM_DPICHANGED)
+#define WM_DPICHANGED 0x02E0
+#endif
 
 static JavaVM* jvm;
 static std::map<HWND, jweak> callbackObjects;
@@ -14,13 +17,13 @@ static jmethodID onDrawCallback;
 static jmethodID onClosedCallback;
 static jmethodID onResizedCallback;
 static jmethodID onMovedCallback;
-
+static jmethodID onDpiChangedCallback;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void nSetVisible(jlong hwnd, jboolean visible);
 void nSetTitle(jlong hwnd, jbyte* title);
 void nSetSize(jlong hwnd, jint x, jint y, jint width, jint height);
-void nSetBackground(jlong hwnd, int color);
+jfloat nGetDpi(jlong hwnd);
 
 void nRequestRepaint(jlong hwnd);
 void nPollEvents();
@@ -37,6 +40,7 @@ extern "C" {
 		onClosedCallback = getCallbackMethod(env, _object, "onClosedCallback", "()V");
 		onResizedCallback = getCallbackMethod(env, _object, "onResizedCallback", "(II)V");
 		onMovedCallback = getCallbackMethod(env, _object, "onMovedCallback", "(II)V");
+		onDpiChangedCallback = getCallbackMethod(env, _object, "onDpiChangedCallback", "(F)V");
 
 		callbackObjects[(HWND)hwnd] = object;
 		baseProcs[(HWND)hwnd] = (WNDPROC)SetWindowLongPtr((HWND)hwnd, GWLP_WNDPROC, (LONG_PTR)&WndProc);
@@ -56,9 +60,13 @@ extern "C" {
 		nSetSize(hwnd, x, y, width, height);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetBackground(JNIEnv* env, jobject, jlong hwnd, int color) {
-		nSetBackground(hwnd, color);
+	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nGetDpi(JNIEnv*, jobject, jlong hwnd) {
+		return nGetDpi(hwnd);
 	}
+
+	/*
+		Default
+	*/
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nRequestRepaint(JNIEnv*, jobject, jlong hwnd) {
 		nRequestRepaint(hwnd);
@@ -68,7 +76,7 @@ extern "C" {
 		nPollEvents();
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSendEmptyMessage(JNIEnv*, jobject, jlong handle) {
-		nSendEmptyMessage(handle);
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSendEmptyMessage(JNIEnv*, jobject, jlong hwnd) {
+		nSendEmptyMessage(hwnd);
 	}
 }

@@ -2,117 +2,142 @@ package com.huskerdev.alter.internal
 
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
+import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 
 abstract class Window(val handle: Long) {
 
-    private var _background: Color = Color.white
-    var background: Color
-        get() = _background
+    companion object {
+        private fun invokeOnMainIfRequired(run: () -> Unit){
+            if(Pipeline.current.isMainThreadRequired())
+                MainThreadLocker.invoke(run)
+            else run()
+        }
+    }
+
+    var background = Color.white
         set(value) {
-            _background = value
+            field = value
             repaint()
         }
 
-    private var _visible = false
-    var visible: Boolean
-        get() = _visible
+    var visible = false
         set(value) {
-            _visible = value
+            field = value
             invokeOnMainIfRequired { setVisibleImpl(value) }
             repaint()
         }
 
-    private var _title = ""
-    var title: String
-        get() = _title
+    var title: String = ""
         set(value) {
-            _title = value
+            field = value
             invokeOnMainIfRequired { setTitleImpl(value) }
         }
 
-    private var _x = 0.0
-    var x: Double
+    private var _x = 0
+    var x: Int
         get() = _x
         set(value) {
             _x = value
             invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
         }
 
-    private var _y = 0.0
-    var y: Double
+    private var _y = 0
+    var y: Int
         get() = _y
         set(value) {
             _y = value
             invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
         }
 
-    private var _width = 0.0
-    var width: Double
+    private var _width = 0
+    var width: Int
         get() = _width
         set(value) {
             _width = value
             invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
         }
 
-    private var _height = 0.0
-    var height: Double
+    private var _height = 0
+    var height: Int
         get() = _height
         set(value) {
             _height = value
             invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
         }
 
-    var onRepaintEvent: (Graphics) -> Unit = {}
+    var physicalWidth = 0
+        private set
+    var physicalHeight = 0
+        private set
+    var physicalX = 0
+        private set
+    var physicalY = 0
+        private set
+
+    var dpi = 1f
+        private set
+
+    var onPaintEvent: (Graphics) -> Unit = {}
+    var onClosedListeners = arrayListOf<() -> Unit>()
+    var onResizedListeners = arrayListOf<() -> Unit>()
+    var onMovedListeners = arrayListOf<() -> Unit>()
+    var onDpiChangedListeners = arrayListOf<() -> Unit>()
 
     val graphics: Graphics
 
     init {
-        this.initCallbacks()
+        this.initCallbacksImpl()
+        dpi = getDpiImpl()
         graphics = Pipeline.current.createGraphics(this)
         onDrawCallback()
     }
 
-    protected abstract fun initCallbacks()
+    protected abstract fun initCallbacksImpl()
+    protected abstract fun getDpiImpl(): Float
     protected abstract fun setVisibleImpl(visible: Boolean)
     protected abstract fun setTitleImpl(title: String)
-    protected abstract fun setSizeImpl(x: Double, y: Double, width: Double, height: Double)
-    abstract fun requestRepaint()
+    protected abstract fun setSizeImpl(x: Int, y: Int, width: Int, height: Int)
+    protected abstract fun requestRepaint()
+
+    fun repaint() = invokeOnMainIfRequired { requestRepaint() }
 
     private fun onDrawCallback(){
         if(!visible)
             return
         graphics.begin()
-        onRepaintEvent(graphics)
+        onPaintEvent(graphics)
         graphics.end()
     }
 
+    @ImplicitUsage
     private fun onClosedCallback(){
-        println("Window closed")
         Pipeline.windows.remove(this)
+        onClosedListeners.forEach { it() }
     }
 
+    @ImplicitUsage
     private fun onResizedCallback(width: Int, height: Int){
-        _width = width.toDouble()
-        _height = height.toDouble()
+        _width = (width / dpi).toInt()
+        _height = (height / dpi).toInt()
+        physicalWidth = width
+        physicalHeight = height
+        onResizedListeners.forEach { it() }
     }
 
+    @ImplicitUsage
     private fun onMovedCallback(x: Int, y: Int){
-        _x = x.toDouble()
-        _y = y.toDouble()
+        _x = (x / dpi).toInt()
+        _y = (y / dpi).toInt()
+        physicalX = x
+        physicalY = y
+        onMovedListeners.forEach { it() }
     }
 
-    private fun invokeOnMainIfRequired(run: () -> Unit){
-        if(Pipeline.current.isMainThreadRequired())
-            MainThreadLocker.invoke(run)
-        else run()
+    @ImplicitUsage
+    private fun onDpiChangedCallback(dpi: Float){
+        this.dpi = dpi
+        onDpiChangedListeners.forEach { it() }
     }
 
-    private fun repaint(){
-        invokeOnMainIfRequired { requestRepaint() }
-    }
-
-    fun paint(gr: Graphics){
-
-    }
 }

@@ -7,11 +7,9 @@ abstract class ColorPainter: Painter {
 
     private var colorChanged = true
 
-    private var _color = Color.black
-    var color: Color
-        get() = _color
+    open var color = Color.black
         set(value) {
-            _color = value
+            field = value
             colorChanged = true
         }
 

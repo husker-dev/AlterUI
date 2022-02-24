@@ -5,6 +5,7 @@ import com.huskerdev.alter.graphics.ImageType
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import com.huskerdev.alter.internal.utils.Trigger
 import java.nio.ByteBuffer
@@ -13,6 +14,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
+@ImplicitUsage
 class GLPipeline: Pipeline.WindowPoll("gl") {
 
     companion object {
@@ -46,6 +48,7 @@ class GLPipeline: Pipeline.WindowPoll("gl") {
         @JvmStatic external fun nCreateShaderProgram(vertexSource: ByteBuffer, fragmentSource: ByteBuffer): Int
         @JvmStatic external fun nSetShaderVariable4f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float, val4: Float)
         @JvmStatic external fun nSetShaderVariable3f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float)
+        @JvmStatic external fun nSetShaderVariable1f(program: Int, name: ByteBuffer, val1: Float)
         @JvmStatic external fun nSetShaderMatrixVariable(program: Int, name: ByteBuffer, matrix: FloatBuffer)
     }
 

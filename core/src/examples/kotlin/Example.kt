@@ -1,11 +1,12 @@
 import com.huskerdev.alter.AlterUI
 import com.huskerdev.alter.AlterUIProperties
-import com.huskerdev.alter.geom.Rectangle
+import com.huskerdev.alter.components.Frame
+import com.huskerdev.alter.geom.Matrix4
 import com.huskerdev.alter.graphics.Color
+import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.utils.LibraryLoader
-import java.net.URL
 import kotlin.concurrent.thread
 
 fun main() = AlterUI.takeMain {
@@ -20,7 +21,6 @@ fun main() = AlterUI.takeMain {
     LibraryLoader.alternativePaths["com/huskerdev/alter/resources/base/base_x64.dll"] =
         "C:\\Users\\redfa\\Documents\\Java_projects\\alterui\\native\\modules\\base\\out\\base_x64.dll"
 
-
     println("Pipeline: \t\t${AlterUIProperties.pipeline.uppercase()}")
 
     val start = System.nanoTime()
@@ -31,19 +31,10 @@ fun main() = AlterUI.takeMain {
     })
 
     var firstImage: Image? = null
-    var secondImage: Image? = null
 
-    val window = Pipeline.current.createWindow()
-    window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
-    window.x = 200.0
-    window.y = 200.0
-    window.width = 500.0
-    window.height = 500.0
-    window.background = Color.rgb(0.9f, 0.9f, 0f)
-
-    window.apply {
-        window.onRepaintEvent = { gr ->
-            gr.clear()
+    val window = object: Frame(){
+        override fun paint(gr: Graphics) {
+            super.paint(gr)
 
             gr.color = background
             gr.fillRect(0f, 0f, width.toFloat(), height.toFloat())
@@ -65,16 +56,20 @@ fun main() = AlterUI.takeMain {
 
             if(firstImage != null)
                 gr.drawImage(firstImage!!, 0f, 0f, width.toFloat(), height.toFloat())
-
         }
     }
+    window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
+    window.x = 200
+    window.y = 200
+    window.width = 500
+    window.height = 500
+    window.background = Color.rgb(0.9f, 0.9f, 0f)
     window.visible = true
-
 
     thread {
         firstImage = Image.createFromURL("https://sun9-24.userapi.com/impg/LsVdTpA1ZtqYvMwOS8yJYQBCsIWAdvvKOnMOxQ/e0tIo-AiWwA.jpg?size=750x730&quality=96&sign=f4b42d8cebeed684793621ec62b04fb1&type=album")
         firstImage!!.linearFiltered = false
-        window.requestRepaint()
+        window.repaint()
     }
 
     val current = System.nanoTime()

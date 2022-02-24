@@ -11,8 +11,6 @@ class D3D9Image(width: Int, height: Int, type: ImageType, data: ByteBuffer?): Im
     var ptr = 0L
 
     init {
-
-            ptr = nCreateTexture(width, height, type.channels, data!!)
-
+        ptr = nCreateTexture(width, height, type.channels, data!!)
     }
 }

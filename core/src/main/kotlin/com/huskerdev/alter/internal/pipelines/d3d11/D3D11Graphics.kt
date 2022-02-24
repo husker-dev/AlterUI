@@ -18,7 +18,7 @@ class D3D11Graphics(window: Window): Graphics(window) {
         D3D11Pipeline.nPresent(window.handle)
     }
 
-    override fun updateMatrix() {
+    override fun updateTransforms() {
 
     }
 

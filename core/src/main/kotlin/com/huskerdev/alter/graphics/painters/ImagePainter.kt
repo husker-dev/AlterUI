@@ -6,51 +6,39 @@ import com.huskerdev.alter.graphics.Painter
 
 abstract class ImagePainter: Painter {
 
-    private lateinit var _image: Image
-    var image: Image
-        get() = _image
+    var image: Image? = null
         set(value) {
-            _image = value
+            field = value
             imageChanged = true
         }
 
-    private var _x = 0f
-    var x: Float
-        get() = _x
+    var x = 0f
         set(value) {
-            _x = value
+            field = value
             sizeChanged = true
         }
 
-    private var _y = 0f
-    var y: Float
-        get() = _y
+    var y = 0f
         set(value) {
-            _y = value
+            field = value
             sizeChanged = true
         }
 
-    private var _width = 0f
-    var width: Float
-        get() = _width
+    var width = 0f
         set(value) {
-            _width = value
+            field = value
             sizeChanged = true
         }
 
-    private var _height = 0f
-    var height: Float
-        get() = _height
+    var height = 0f
         set(value) {
-            _height = value
+            field = value
             sizeChanged = true
         }
 
-    private var _color = Color.black
-    var color: Color
-        get() = _color
+    var color = Color.black
         set(value) {
-            _color = value
+            field = value
             colorChanged = true
         }
 

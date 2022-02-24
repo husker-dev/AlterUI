@@ -194,6 +194,12 @@ extern "C" {
 		glUniform3f(location, var1, var2, var3);
 	}
 
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderVariable1f(JNIEnv* env, jobject, jint program, jobject _name, jfloat var1) {
+		char* name = (char*)env->GetDirectBufferAddress(_name);
+		GLint location = glGetUniformLocation(program, name);
+		glUniform1f(location, var1);
+	}
+
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderMatrixVariable(JNIEnv* env, jobject, jint program, jobject _name, jobject _matrix) {
 		char* name = (char*)env->GetDirectBufferAddress(_name);
 		float* matrix = (float*)env->GetDirectBufferAddress(_matrix);

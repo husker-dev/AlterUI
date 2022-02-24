@@ -26,7 +26,7 @@ fun main() = AlterUI.takeMain {
 
 
     window.apply {
-        window.onRepaintEvent = { gr ->
+        window.onPaintEvent = { gr ->
             gr.clear()
 
             gr.color = background

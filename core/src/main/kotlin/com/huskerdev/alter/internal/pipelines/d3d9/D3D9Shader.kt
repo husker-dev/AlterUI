@@ -1,6 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.d3d9
 
-import com.huskerdev.alter.geom.Matrix
+import com.huskerdev.alter.geom.Matrix4
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.utils.BufferUtils
 
@@ -52,7 +52,7 @@ class D3D9Shader(private val content: String, private val type: D3D9ShaderType) 
             D3D9Pipeline.nSetShaderValue1f(pointer, BufferUtils.createByteBuffer(*name.c_str), v)
     }
 
-    fun setMatrix(name: String, matrix: Matrix){
+    fun setMatrix(name: String, matrix: Matrix4){
         if(pointer != -1L)
             D3D9Pipeline.nSetShaderMatrix(pointer, BufferUtils.createByteBuffer(*name.c_str), BufferUtils.createFloatBuffer(*matrix.elements))
     }

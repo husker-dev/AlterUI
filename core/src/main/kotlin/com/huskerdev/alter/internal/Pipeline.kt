@@ -15,19 +15,9 @@ import java.util.concurrent.TimeUnit
 abstract class Pipeline {
 
     companion object {
-        val current by lazy {
-            return@lazy when(val pipelineName = AlterUIProperties.pipeline){
-                "gl" -> GLPipeline()
-                "d3d9" -> D3D9Pipeline()
-                else -> {
-                    // Search by name using reflection
-                    Class.forName("com.huskerdev.alter.internal.pipelines.$pipelineName.${pipelineName.uppercase()}Pipeline")
+        val current = Class.forName("com.huskerdev.alter.internal.pipelines.${AlterUIProperties.pipeline.lowercase()}.${AlterUIProperties.pipeline.uppercase()}Pipeline")
                         .getDeclaredConstructor()
                         .newInstance() as Pipeline
-                }
-            }
-        }
-
         val windows = arrayListOf<Window>()
 
         fun initialize(){

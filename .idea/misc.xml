@@ -4,6 +4,12 @@
     <option name="show" value="ASK" />
     <option name="description" value="" />
   </component>
+  <component name="EntryPointsManager">
+    <list size="2">
+      <item index="0" class="java.lang.String" itemvalue="com.huskerdev.alter.internal.utils.Callback" />
+      <item index="1" class="java.lang.String" itemvalue="com.huskerdev.alter.internal.utils.ImplicitUsage" />
+    </list>
+  </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$" />
