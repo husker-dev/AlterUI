@@ -34,11 +34,11 @@ abstract class Graphics(var window: Window) {
 
         setColorPainter(Color.black)
         if(width != window.width ||
-            height != window.width ||
+            height != window.height ||
             dpi != window.dpi
         ) {
             width = window.width
-            height = window.width
+            height = window.height
             dpi = window.dpi
             lastMatrix = Matrix4.ortho(window.width.toFloat(), window.height.toFloat())
         }
