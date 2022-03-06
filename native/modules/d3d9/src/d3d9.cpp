@@ -268,8 +268,14 @@ void nSetShaderMatrix(jlong _shader, char* name, jfloat* matrix) {
 jlong nCreateTexture(jint width, jint height, jint components, char* data) {
     IDirect3DTexture9* texture;
 
+    _D3DFORMAT format = D3DFMT_A8R8G8B8;
+    if (components == 3)
+        format = D3DFMT_X8R8G8B8;
+    if (components == 1)
+        format = D3DFMT_L8;
+
     HRESULT h;
-    if ((h = device->CreateTexture(width, height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texture, 0)) != S_OK)
+    if ((h = device->CreateTexture(width, height, 1, 0, format, D3DPOOL_MANAGED, &texture, 0)) != S_OK)
         throwError("Can't create texture");
 
     D3DLOCKED_RECT lockedRect;
@@ -277,27 +283,25 @@ jlong nCreateTexture(jint width, jint height, jint components, char* data) {
 
     char* pData = (char*)lockedRect.pBits;
 
-    for (unsigned int i = 0, s = 0;
-        i < width * height * 4;
-        i += 4, s += components
-    ) {
-        if (components == 4) {
+    if (components == 4 || components == 3) {
+        for (unsigned int i = 0, s = 0;
+            i < width * height * 4;
+            i += 4, s += components
+        ) {
             pData[i] = data[s + 2];
             pData[i + 1] = data[s + 1];
             pData[i + 2] = data[s];
-            pData[i + 3] = data[s + 3];
+            pData[i + 3] = components == 3 ? 255 : data[s + 3];
         }
-        if (components == 3) {
-            pData[i] = data[s + 2];
-            pData[i + 1] = data[s + 1];
-            pData[i + 2] = data[s];
-            pData[i + 3] = 255;
-        }
-        if (components == 1) {
-            pData[i] = 255;
-            pData[i + 1] = 255;
-            pData[i + 2] = data[s];
-            pData[i + 3] = 255;
+    }
+    if (components == 1) {
+        for (int row = 0; row < height; row++) {
+            for (int i = 0; i < width; i++) {
+                int posSource = row * width + i;
+                int posTarget = row * lockedRect.Pitch + i;
+
+                pData[posTarget] = data[posSource];
+            }
         }
     }
     

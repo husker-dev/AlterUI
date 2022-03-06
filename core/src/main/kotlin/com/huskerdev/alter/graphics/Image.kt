@@ -1,6 +1,5 @@
 package com.huskerdev.alter.graphics
 
-import com.huskerdev.alter.internal.AlterCore
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.utils.BufferUtils
@@ -17,12 +16,17 @@ enum class ImageType(val channels: Int) {
 abstract class Image(val width: Int, val height: Int, val type: ImageType) {
 
     companion object {
+
+        @JvmStatic private external fun nGetBitmap(data: ByteBuffer): ByteBuffer
+        @JvmStatic private external fun nGetBitmapFromFile(path: ByteBuffer): ByteBuffer
+        @JvmStatic private external fun nReleaseBitmap(data: ByteBuffer)
+
         fun create(data: ByteArray) = create(BufferUtils.createByteBuffer(*data))
         fun create(data: ByteBuffer): Image{
             val info = ImageInfo.get(data)
-            val bitmap = AlterCore.nGetBitmap(data)
+            val bitmap = nGetBitmap(data)
             val image = Pipeline.current.createImage(info.type, info.width, info.height, bitmap)
-            AlterCore.nReleaseBitmap(bitmap)
+            nReleaseBitmap(bitmap)
             return image
         }
 
@@ -30,9 +34,9 @@ abstract class Image(val width: Int, val height: Int, val type: ImageType) {
 
         fun create(filePath: String): Image{
             val info = ImageInfo.get(filePath)
-            val bitmap = AlterCore.nGetBitmapFromFile(BufferUtils.createByteBuffer(*filePath.c_str))
+            val bitmap = nGetBitmapFromFile(BufferUtils.createByteBuffer(*filePath.c_str))
             val image = Pipeline.current.createImage(info.type, info.width, info.height, bitmap)
-            AlterCore.nReleaseBitmap(bitmap)
+            nReleaseBitmap(bitmap)
             return image
         }
 
@@ -44,21 +48,3 @@ abstract class Image(val width: Int, val height: Int, val type: ImageType) {
     open var linearFiltered = true
 }
 
-data class ImageInfo(val width: Int, val height: Int, val type: ImageType) {
-
-    companion object {
-        fun get(file: File) = processInfo(AlterCore.nGetBitmapInfoFromFile(BufferUtils.createByteBuffer(*file.absolutePath.c_str)))
-        fun get(filePath: String) = get(File(filePath))
-        fun get(data: ByteBuffer) = processInfo(AlterCore.nGetBitmapInfo(data))
-        fun get(data: ByteArray) = get(BufferUtils.createByteBuffer(*data))
-
-        private fun processInfo(info: IntArray): ImageInfo{
-            return ImageInfo(info[0], info[1], when(info[2]){
-                1 -> ImageType.MONO
-                3 -> ImageType.RGB
-                4 -> ImageType.RGBA
-                else -> throw UnsupportedOperationException("Unsupported image format")
-            })
-        }
-    }
-}

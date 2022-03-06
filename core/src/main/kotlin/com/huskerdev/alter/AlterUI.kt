@@ -1,8 +1,8 @@
 package com.huskerdev.alter
 
-import com.huskerdev.alter.internal.AlterCore
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
+import com.huskerdev.alter.internal.utils.LibraryLoader
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import kotlin.concurrent.thread
 
@@ -12,7 +12,8 @@ class AlterUI {
         const val version = "1.0"
 
         @JvmStatic fun load(){
-            AlterCore.initialize()
+            LibraryLoader.loadModuleLib("base")
+
             Platform.initialize()
             Pipeline.initialize()
         }

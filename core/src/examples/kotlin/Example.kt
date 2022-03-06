@@ -26,9 +26,6 @@ fun main() = AlterUI.takeMain {
     val start = System.nanoTime()
     AlterUI.load()
 
-
-    Font.register(File("C:\\Users\\redfa\\Desktop\\Whitney-Medium.ttf"))
-
     Runtime.getRuntime().addShutdownHook(Thread{
         println("JVM shutdown")
     })
@@ -44,10 +41,10 @@ fun main() = AlterUI.takeMain {
                 gr.drawImage(firstImage!!, 0f, 0f, width, height)
 
             var y = 0
-            for(i in 10..100 step 10){
+            for(i in 50..150 step 10){
                 gr.font = Font.get("lobster").derived(i.toFloat())
 
-                gr.drawText("This is lobster", 100f, 100f + y)
+                gr.drawText("Сыровое", 0f, 0f + y)
                 y += i + 2
             }
         }

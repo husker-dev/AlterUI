@@ -5,6 +5,7 @@ import com.huskerdev.alter.graphics.font.Font
 import com.huskerdev.alter.graphics.painters.*
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
+import kotlin.math.roundToInt
 
 abstract class Graphics(var window: Window) {
 
@@ -103,8 +104,8 @@ abstract class Graphics(var window: Window) {
 
         for(i in 0 until rasterInfo.count) {
             val glyph = rasterInfo.glyphs[i]
-            val rx = x + rasterInfo.getGlyphX(i) / dpi
-            val ry = y + rasterInfo.getGlyphY(i) / dpi
+            val rx = x + (rasterInfo.getGlyphX(i) + rasterInfo.baselineX) / dpi
+            val ry = y + (rasterInfo.getGlyphY(i) + rasterInfo.baselineY) / dpi
             val width = glyph.width.toFloat() / dpi
             val height = glyph.height.toFloat() / dpi
 
@@ -121,7 +122,6 @@ abstract class Graphics(var window: Window) {
             painter!!.checkPropertyChanges()
             painter!!.fillRect(rx, ry, width, height)
         }
-
     }
 
     // Painters

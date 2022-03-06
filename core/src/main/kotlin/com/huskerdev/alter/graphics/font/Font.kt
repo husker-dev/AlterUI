@@ -16,7 +16,7 @@ class Font private constructor(
         @JvmStatic private external fun nLoadFreeType(): Long
         @JvmStatic private external fun nCreateFace(lib: Long, data: ByteBuffer): Long
 
-        @JvmStatic external fun nSetFaceSize(face: Long, size: Int)
+        @JvmStatic private external fun nSetFaceSize(face: Long, size: Int)
         @JvmStatic private external fun nLoadChar(face: Long, charIndex: Int)
         @JvmStatic private external fun nGetGlyphData(face: Long): ByteBuffer
         @JvmStatic private external fun nGetGlyphWidth(face: Long): Int
@@ -48,6 +48,7 @@ class Font private constructor(
         }
     }
 
+    // TODO: This functions invokes on every paint event, so may need to be cached
     fun derived(size: Float): Font {
         return Font(family, size)
     }

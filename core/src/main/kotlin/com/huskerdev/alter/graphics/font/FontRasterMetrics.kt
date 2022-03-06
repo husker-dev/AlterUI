@@ -1,6 +1,5 @@
 package com.huskerdev.alter.graphics.font
 
-import com.huskerdev.alter.graphics.font.Font.Companion.nSetFaceSize
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.utils.BufferUtils
 import java.nio.ByteBuffer
@@ -13,7 +12,7 @@ class FontRasterMetrics(
 ){
     companion object {
         @JvmStatic private external fun nHBSetBufferText(buffer: Long, text: ByteBuffer)
-        @JvmStatic private external fun nHBCreateFont(face: Long): Long
+        @JvmStatic private external fun nHBCreateFont(face: Long, size: Int): Long
         @JvmStatic private external fun nHBShape(font: Long, buffer: Long)
         @JvmStatic private external fun nHBGetGlyphCount(buffer: Long): Int
         @JvmStatic private external fun nHBGetGlyphInfo(buffer: Long): Long
@@ -32,13 +31,12 @@ class FontRasterMetrics(
     val height: Int
 
     val glyphs: Array<Glyph>
-    private val glyphX = hashMapOf<Int, Float>()
-    private val glyphY = hashMapOf<Int, Float>()
+    private val glyphX = hashMapOf<Int, Int>()
+    private val glyphY = hashMapOf<Int, Int>()
 
     init {
         val family = font.family
-        nSetFaceSize(family.face, font.size.toInt())
-        val hbFont: Long = nHBCreateFont(family.face)
+        val hbFont: Long = nHBCreateFont(family.face, font.size.toInt())
 
         nHBSetBufferText(family.hbBuffer, BufferUtils.createByteBuffer(*text.c_str))
         nHBShape(hbFont, family.hbBuffer)
@@ -56,16 +54,16 @@ class FontRasterMetrics(
         var currentY = 0f
 
         glyphs = Array(count){ i ->
-            val glyphInfo = font.getGlyph(nHBGetGlyphId(info, i))
+            val glyph = font.getGlyph(nHBGetGlyphId(info, i))
 
-            val glyphWidth = glyphInfo.width
-            val glyphHeight = glyphInfo.height
+            val glyphWidth = glyph.width
+            val glyphHeight = glyph.height
 
-            val offsetX = nHBGetXOffset(positions, i) / 64
-            val offsetY = nHBGetYOffset(positions, i) / 64
+            val offsetX = nHBGetXOffset(positions, i) / 64f
+            val offsetY = nHBGetYOffset(positions, i) / 64f
 
-            glyphX[i] = currentX + offsetX + glyphInfo.bearingX
-            glyphY[i] = -(currentY + offsetY) + (glyphInfo.bearingY - glyphInfo.height)
+            glyphX[i] = (currentX + offsetX + glyph.bearingX).toInt()
+            glyphY[i] = (-(currentY + offsetY) + (glyph.bearingY - glyph.height)).toInt()
 
             minX = min(minX, currentX + offsetX)
             minY = min(minY, currentY + offsetY)
@@ -73,13 +71,13 @@ class FontRasterMetrics(
             maxY = max(maxY, currentY + offsetY + glyphHeight)
 
             if(i == 0)
-                baselineX = -glyphInfo.bearingX
-            baselineY = max(baselineY, -glyphInfo.bearingY)
+                baselineX = -glyph.bearingX
+            baselineY = max(baselineY, -glyph.bearingY)
 
-            currentX += nHBGetXAdvance(positions, i) / 64
-            currentY += nHBGetYAdvance(positions, i) / 64
+            currentX += nHBGetXAdvance(positions, i) / 64f
+            currentY += nHBGetYAdvance(positions, i) / 64f
 
-            return@Array glyphInfo
+            return@Array glyph
         }
 
         width = (maxX - minX).toInt()

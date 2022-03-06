@@ -9,6 +9,8 @@ uniform float u_Dpi;
 
 void main(){
     vec4 bounds = u_Bounds * vec4(u_Dpi, u_Dpi, u_Dpi, u_Dpi);
+    bounds.y -= 0.1;    // 0.1 - for pixel-perfect on HiDPI (idk why)
+
     vec2 texCoord = vec2(
         (gl_FragCoord.x - bounds.x) / bounds.z,
         1 - (gl_FragCoord.y - bounds.y) / bounds.w

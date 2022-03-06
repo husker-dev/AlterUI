@@ -8,6 +8,8 @@ sampler u_Texture;
 
 float4 main(float4 Pos : SV_POSITION) : COLOR {
     vector bounds = u_Bounds * vector(u_Dpi, u_Dpi, u_Dpi, u_Dpi);
+    bounds.y -= 0.1;    // 0.1 - for pixel-perfect on HiDPI (idk why)
+
     float2 texCoord = float2(
         (Pos.x - bounds.x + 0.5) / bounds.z,
         1 - ((u_Height - Pos.y) - bounds.y - 0.5) / bounds.w
