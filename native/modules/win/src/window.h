@@ -1,5 +1,7 @@
 #include <jni.h>
 #include <windows.h>
+#include <windowsx.h>
+#include <dwmapi.h>
 #include <map>
 #include <iostream>
 
@@ -19,17 +21,25 @@ static jmethodID onResizedCallback;
 static jmethodID onMovedCallback;
 static jmethodID onDpiChangedCallback;
 
+// WWindow
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void nSetVisible(jlong hwnd, jboolean visible);
 void nSetTitle(jlong hwnd, jbyte* title);
 void nSetSize(jlong hwnd, jint x, jint y, jint width, jint height);
 jfloat nGetDpi(jlong hwnd);
 
+// WindowsPlatform
+jobject nGetFontData(JNIEnv* env, char* name);
+
 void nRequestRepaint(jlong hwnd);
 void nPollEvents();
 void nSendEmptyMessage(jlong handle);
 
 extern "C" {
+
+	/*
+		WWindow
+	*/
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nInitCallbacks(JNIEnv* env, jobject, jlong hwnd, jobject _object) {
 		env->GetJavaVM(&jvm);
@@ -38,7 +48,7 @@ extern "C" {
 		// Callbacks
 		onDrawCallback = getCallbackMethod(env, _object, "onDrawCallback", "()V");
 		onClosedCallback = getCallbackMethod(env, _object, "onClosedCallback", "()V");
-		onResizedCallback = getCallbackMethod(env, _object, "onResizedCallback", "(II)V");
+		onResizedCallback = getCallbackMethod(env, _object, "onResizedCallback", "(IIII)V");
 		onMovedCallback = getCallbackMethod(env, _object, "onMovedCallback", "(II)V");
 		onDpiChangedCallback = getCallbackMethod(env, _object, "onDpiChangedCallback", "(F)V");
 
@@ -65,8 +75,12 @@ extern "C" {
 	}
 
 	/*
-		Default
+		WindowsPlatform
 	*/
+	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetFontData(JNIEnv* env, jobject, jobject _name) {
+		char* name = (char*)env->GetDirectBufferAddress(_name);
+		return nGetFontData(env, name);
+	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nRequestRepaint(JNIEnv*, jobject, jlong hwnd) {
 		nRequestRepaint(hwnd);

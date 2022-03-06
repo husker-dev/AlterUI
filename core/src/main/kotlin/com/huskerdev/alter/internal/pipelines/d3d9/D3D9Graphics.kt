@@ -20,9 +20,9 @@ class D3D9Graphics(window: Window): Graphics(window) {
     private var oldHeight = -1
 
     override fun beginImpl() {
-        if(oldWidth != window.width || oldHeight != window.height) {
-            oldWidth = window.width
-            oldHeight = window.height
+        if(oldWidth != window.clientWidth || oldHeight != window.clientHeight) {
+            oldWidth = window.clientWidth
+            oldHeight = window.clientHeight
             nSetViewport(window.handle, oldWidth, oldHeight)
         }
         nBeginScene(window.handle)
@@ -41,10 +41,11 @@ class D3D9Graphics(window: Window): Graphics(window) {
         get() = super.painter
         set(value) {
             super.painter = value
-            value as D3D9Painter
-            value.updateMatrix(matrix)
-            value.updateHeight(oldHeight.toFloat())
-            value.updateDpi(dpi)
+            if(value is D3D9Painter) {
+                value.updateMatrix(matrix)
+                value.updateHeight(oldHeight.toFloat())
+                value.updateDpi(dpi)
+            }
         }
 
     override fun clear() = nClear()

@@ -8,11 +8,9 @@ import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
-import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 
 @ImplicitUsage
-class D3D9Pipeline: Pipeline.WindowPoll("d3d9") {
+class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
 
     companion object {
         var mainWindow = 0L

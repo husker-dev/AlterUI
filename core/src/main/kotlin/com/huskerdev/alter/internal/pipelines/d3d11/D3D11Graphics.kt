@@ -32,4 +32,5 @@ class D3D11Graphics(window: Window): Graphics(window) {
     override fun getImagePainter(): ImagePainter {
         TODO("Not yet implemented")
     }
+
 }

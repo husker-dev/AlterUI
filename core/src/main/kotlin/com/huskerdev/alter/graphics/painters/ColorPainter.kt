@@ -13,7 +13,7 @@ abstract class ColorPainter: Painter {
             colorChanged = true
         }
 
-    override fun checkChanges() {
+    override fun checkPropertyChanges() {
         if(colorChanged){
             colorChanged = false
             updateColor()

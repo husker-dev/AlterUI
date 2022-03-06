@@ -47,7 +47,7 @@ abstract class ImagePainter: Painter {
     private var imageChanged = true
     private var colorChanged = true
 
-    override fun checkChanges() {
+    override fun checkPropertyChanges() {
         if(colorChanged){
             colorChanged = false
             updateColor()

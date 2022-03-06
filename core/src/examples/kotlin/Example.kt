@@ -1,12 +1,12 @@
 import com.huskerdev.alter.AlterUI
 import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.components.Frame
-import com.huskerdev.alter.geom.Matrix4
 import com.huskerdev.alter.graphics.Color
+import com.huskerdev.alter.graphics.font.Font
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.utils.LibraryLoader
+import java.io.File
 import kotlin.concurrent.thread
 
 fun main() = AlterUI.takeMain {
@@ -26,6 +26,9 @@ fun main() = AlterUI.takeMain {
     val start = System.nanoTime()
     AlterUI.load()
 
+
+    Font.register(File("C:\\Users\\redfa\\Desktop\\Whitney-Medium.ttf"))
+
     Runtime.getRuntime().addShutdownHook(Thread{
         println("JVM shutdown")
     })
@@ -36,42 +39,33 @@ fun main() = AlterUI.takeMain {
         override fun paint(gr: Graphics) {
             super.paint(gr)
 
-            gr.color = background
-            gr.fillRect(0f, 0f, width.toFloat(), height.toFloat())
-
-            gr.color = Color.white
-            gr.fillRect(100f, 100f, width.toFloat() - 200f, height.toFloat() - 200f)
-
-            gr.color = Color.rgba(0f, 0f, 0f, 0.8f)
-            gr.fillRect(0f, 0f, 200f, 200f)
-
-            gr.color = Color.rgba(0f, 0f, 1f, 0.8f)
-            gr.fillRect(width.toFloat() - 200f, 0f, 200f, 200f)
-
-            gr.color = Color.rgba(1f, 0f, 0f, 0.8f)
-            gr.fillRect(width.toFloat() - 200f, height.toFloat() - 200f, 200f, 200f)
-
-            gr.color = Color.rgba(0f, 1f, 0f, 0.8f)
-            gr.drawRect(0f, height.toFloat() - 200f, 200f, 200f)
-
+            gr.color = Color.black
             if(firstImage != null)
-                gr.drawImage(firstImage!!, 0f, 0f, width.toFloat(), height.toFloat())
+                gr.drawImage(firstImage!!, 0f, 0f, width, height)
+
+            var y = 0
+            for(i in 10..100 step 10){
+                gr.font = Font.get("lobster").derived(i.toFloat())
+
+                gr.drawText("This is lobster", 100f, 100f + y)
+                y += i + 2
+            }
         }
     }
     window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
-    window.x = 200
-    window.y = 200
-    window.width = 500
-    window.height = 500
-    window.background = Color.rgb(0.9f, 0.9f, 0f)
+
+    window.background = Color.white
     window.visible = true
 
     thread {
-        firstImage = Image.createFromURL("https://sun9-24.userapi.com/impg/LsVdTpA1ZtqYvMwOS8yJYQBCsIWAdvvKOnMOxQ/e0tIo-AiWwA.jpg?size=750x730&quality=96&sign=f4b42d8cebeed684793621ec62b04fb1&type=album")
+        firstImage = Image.create("C:\\Users\\redfa\\Desktop\\Td7NHeUSZ9E.jpg")
         firstImage!!.linearFiltered = false
         window.repaint()
+
     }
 
     val current = System.nanoTime()
-    println("Startup time: \t${(current - start) / 1000000.0 / 1000} ms")
+    println("Startup time: \t${(current - start) / 1000000.0 / 1000} sec")
+
+
 }

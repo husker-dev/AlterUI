@@ -10,8 +10,14 @@ import java.nio.FloatBuffer
 interface GLPainter: VertexPainter {
 
     val shader: GLShader
+    var matrix: Matrix4
 
-    fun updateMatrix(matrix: Matrix4) = shader.setMatrix("u_Matrix", matrix)
+    fun updateMatrix(matrix: Matrix4) {
+        if(this.matrix != matrix) {
+            shader.setMatrix("u_Matrix", matrix)
+            this.matrix = matrix
+        }
+    }
     fun updateDpi(dpi: Float) = shader.set("u_Dpi", dpi)
 
     override fun drawVertices(vertices: FloatBuffer, points: Int, type: VertexDrawType) {

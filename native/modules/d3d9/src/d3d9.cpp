@@ -43,7 +43,6 @@ jlong nCreateMainWindow() {
     wc.hInstance = GetModuleHandle(NULL);
     wc.hIcon = NULL;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)CreateSolidBrush(0x00000000);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = L"alterui_d3d9";
     RegisterClass(&wc);
@@ -86,8 +85,8 @@ jlong nCreateMainWindow() {
     device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
     device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+    device->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
     device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-    
 
     return (jlong)hwnd;
 }
@@ -131,8 +130,8 @@ void nSetViewport(jlong _hwnd, jint width, jint height) {
         swapChains[hwnd]->Release();
 
     pp.hDeviceWindow = hwnd;
-    pp.BackBufferWidth = width > 0 ? 0 : 1;
-    pp.BackBufferHeight = height > 0 ? 0 : 1;
+    pp.BackBufferWidth = width > 0 ? width : 1;
+    pp.BackBufferHeight = height > 0 ? height : 1;
 
     IDirect3DSwapChain9* swapChain;
     IDirect3DSurface9* surface;
@@ -156,7 +155,7 @@ void nEndScene(jlong _hwnd) {
 }
 
 void nClear() {
-    device->Clear(0, NULL, D3DCLEAR_TARGET, 0x00000000, 1.0f, 0);
+    device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, NULL, 1.0f, 0);
 }
 
 
@@ -269,13 +268,8 @@ void nSetShaderMatrix(jlong _shader, char* name, jfloat* matrix) {
 jlong nCreateTexture(jint width, jint height, jint components, char* data) {
     IDirect3DTexture9* texture;
 
-    D3DFORMAT format = D3DFMT_A8R8G8B8;
-    if (components == 3)
-        format = D3DFMT_X8R8G8B8;
-    if (components == 1)
-        format = D3DFMT_A8;
     HRESULT h;
-    if ((h = device->CreateTexture(width, height, 1, 0, format, D3DPOOL_MANAGED, &texture, 0)) != S_OK)
+    if ((h = device->CreateTexture(width, height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &texture, 0)) != S_OK)
         throwError("Can't create texture");
 
     D3DLOCKED_RECT lockedRect;
@@ -283,15 +277,30 @@ jlong nCreateTexture(jint width, jint height, jint components, char* data) {
 
     char* pData = (char*)lockedRect.pBits;
 
-    for (unsigned int i = 0, s = 0; 
-        i < width * height * 4; 
+    for (unsigned int i = 0, s = 0;
+        i < width * height * 4;
         i += 4, s += components
     ) {
-        pData[i]     = data[s + 2];
-        pData[i + 1] = data[s + 1];
-        pData[i + 2] = data[s];
-        pData[i + 3] = components == 4 ? data[s + 3] : 1;
+        if (components == 4) {
+            pData[i] = data[s + 2];
+            pData[i + 1] = data[s + 1];
+            pData[i + 2] = data[s];
+            pData[i + 3] = data[s + 3];
+        }
+        if (components == 3) {
+            pData[i] = data[s + 2];
+            pData[i + 1] = data[s + 1];
+            pData[i + 2] = data[s];
+            pData[i + 3] = 255;
+        }
+        if (components == 1) {
+            pData[i] = 255;
+            pData[i + 1] = 255;
+            pData[i + 2] = data[s];
+            pData[i + 3] = 255;
+        }
     }
+    
     texture->UnlockRect(0);
     
     return (jlong)texture;

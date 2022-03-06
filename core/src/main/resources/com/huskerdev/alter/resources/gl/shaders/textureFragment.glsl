@@ -4,11 +4,20 @@ out vec4 color;
 uniform vec4 u_Bounds;
 uniform vec4 u_Color;
 uniform sampler2D u_Texture;
+uniform float u_TextureColors;
 uniform float u_Dpi;
 
 void main(){
-    float tex_x = (gl_FragCoord.x - u_Bounds.x) / u_Bounds.z;
-    float tex_y = u_Dpi - (gl_FragCoord.y - u_Bounds.y) / u_Bounds.w;
+    vec4 bounds = u_Bounds * vec4(u_Dpi, u_Dpi, u_Dpi, u_Dpi);
+    vec2 texCoord = vec2(
+        (gl_FragCoord.x - bounds.x) / bounds.z,
+        1 - (gl_FragCoord.y - bounds.y) / bounds.w
+    );
 
-    color = texture(u_Texture, vec2(tex_x / u_Dpi, tex_y / u_Dpi));
+    if(u_TextureColors != 1)
+        color = texture(u_Texture, texCoord) * u_Color;
+    else {
+        float a = texture(u_Texture, texCoord).r;
+        color = vec4(1.0, 1.0, 1.0, a) * u_Color;
+    }
 }

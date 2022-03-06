@@ -1,6 +1,7 @@
 package com.huskerdev.alter.internal.platforms.win
 
 import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.utils.MainThreadLocker
 
 class WWindow(hwnd: Long): Window(hwnd) {
 
@@ -20,12 +21,7 @@ class WWindow(hwnd: Long): Window(hwnd) {
     override fun getDpiImpl() = nGetDpi(handle)
     override fun setVisibleImpl(visible: Boolean) = nSetVisible(handle, visible)
     override fun setTitleImpl(title: String) = nSetTitle(handle, title.c_wideBytes)
-    override fun setSizeImpl(x: Int, y: Int, width: Int, height: Int) = nSetSize(handle,
-        (x * dpi).toInt(),
-        (y * dpi).toInt(),
-        (width * dpi).toInt(),
-        (height * dpi).toInt()
-    )
+    override fun setSizeImpl(x: Int, y: Int, width: Int, height: Int) = nSetSize(handle, x, y, width, height)
 
     override fun requestRepaint() = nRequestRepaint(handle)
 

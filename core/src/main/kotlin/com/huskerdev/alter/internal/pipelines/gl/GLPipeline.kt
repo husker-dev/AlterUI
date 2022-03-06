@@ -1,6 +1,7 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.OS
+import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.ImageType
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
@@ -11,14 +12,13 @@ import com.huskerdev.alter.internal.utils.Trigger
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 @ImplicitUsage
-class GLPipeline: Pipeline.WindowPoll("gl") {
+class GLPipeline: Pipeline.DefaultEventPoll("gl") {
 
     companion object {
-        private lateinit var window: Window
+        private var resourceWindow = 0L
         var resourceThread: Thread? = null
 
         val resourcesQueue = LinkedBlockingQueue<() -> Unit>()
@@ -41,15 +41,16 @@ class GLPipeline: Pipeline.WindowPoll("gl") {
         @JvmStatic external fun nInitContext()
         @JvmStatic external fun nDrawArray(array: FloatBuffer, count: Int, type: Int)
         @JvmStatic external fun nCreateTexture(width: Int, height: Int, channels: Int, data: ByteBuffer): Int
-        @JvmStatic external fun createEmptyTexture(width: Int, height: Int, channels: Int): Int
+        @JvmStatic external fun nCreateEmptyTexture(width: Int, height: Int, channels: Int): Int
         @JvmStatic external fun nSetLinearFiltering(tex: Int, linearFiltering: Boolean)
 
         // GL-Shader
         @JvmStatic external fun nCreateShaderProgram(vertexSource: ByteBuffer, fragmentSource: ByteBuffer): Int
-        @JvmStatic external fun nSetShaderVariable4f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float, val4: Float)
-        @JvmStatic external fun nSetShaderVariable3f(program: Int, name: ByteBuffer, val1: Float, val2: Float, val3: Float)
-        @JvmStatic external fun nSetShaderVariable1f(program: Int, name: ByteBuffer, val1: Float)
-        @JvmStatic external fun nSetShaderMatrixVariable(program: Int, name: ByteBuffer, matrix: FloatBuffer)
+        @JvmStatic external fun glGetUniformLocation(program: Int, name: ByteBuffer): Int
+        @JvmStatic external fun nSetShaderVariable4f(program: Int, location: Int, val1: Float, val2: Float, val3: Float, val4: Float)
+        @JvmStatic external fun nSetShaderVariable3f(program: Int, location: Int, val1: Float, val2: Float, val3: Float)
+        @JvmStatic external fun nSetShaderVariable1f(program: Int, location: Int, val1: Float)
+        @JvmStatic external fun nSetShaderMatrixVariable(program: Int, location: Int, matrix: FloatBuffer)
     }
 
     private external fun nCreateWindow(shareWith: Long): Long
@@ -57,17 +58,25 @@ class GLPipeline: Pipeline.WindowPoll("gl") {
     override fun load() {
         super.load()
         MainThreadLocker.invoke {
-            window = Platform.current.createWindowInstance(nCreateWindow(0))
+            resourceWindow = nCreateWindow(0)
             resourceThread = thread(name = "Alter OpenGL resource", isDaemon = true) {
-                nMakeCurrent(window.handle)
+                nMakeCurrent(resourceWindow)
                 while(true)
-                    (resourcesQueue.poll(200, TimeUnit.MILLISECONDS) ?: continue).invoke()
+                    resourcesQueue.take().invoke()
             }
         }
     }
 
     override fun createGraphics(window: Window) = GLGraphics(window)
-    override fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?) = GLImage(type, width, height, data)
+    override fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?): Image {
+        var texId = 0
+        invokeOnResourceThread {
+            texId = if(data != null)
+                nCreateTexture(width, height, type.channels, data)
+            else nCreateEmptyTexture(width, height, type.channels)
+        }
+        return GLImage(texId, type, width, height)
+    }
 
     override fun isMainThreadRequired() = OS.current != OS.Windows
 
@@ -76,9 +85,9 @@ class GLPipeline: Pipeline.WindowPoll("gl") {
         invokeOnResourceThread {
             nMakeCurrent(0)
             MainThreadLocker.invoke {
-                newWindow = Platform.current.createWindowInstance(nCreateWindow(window.handle))
+                newWindow = Platform.current.createWindowInstance(nCreateWindow(resourceWindow))
             }
-            nMakeCurrent(window.handle)
+            nMakeCurrent(resourceWindow)
         }
         windows.add(newWindow)
         return newWindow

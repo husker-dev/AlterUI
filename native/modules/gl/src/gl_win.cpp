@@ -35,13 +35,9 @@ jlong nCreateWindow(jlong shareWith) {
     pfd.nSize = sizeof(pfd);
     pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
     pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 32;
-    pfd.cRedBits = 8;
-    pfd.cGreenBits = 8;
-    pfd.cBlueBits = 8;
-    pfd.cAlphaBits = 8;
-    pfd.cDepthBits = 32;
-    pfd.cStencilBits = 8;
+    pfd.cColorBits = 24;
+    pfd.cDepthBits = 16;
+    pfd.iLayerType = PFD_MAIN_PLANE;
 
     if (!openglInitialiased) {
         // Register window class
@@ -109,6 +105,7 @@ jlong nCreateWindow(jlong shareWith) {
         NULL, NULL,
         GetModuleHandle(NULL),
         NULL);
+    EnableNonClientDpiScaling(hwnd);
     HDC dc = GetDC(hwnd);
 
     // Create extended pixel format
@@ -119,13 +116,8 @@ jlong nCreateWindow(jlong shareWith) {
         WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
         WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
-        WGL_COLOR_BITS_ARB, 32,
-        WGL_RED_BITS_ARB, 8,
-        WGL_GREEN_BITS_ARB, 8,
-        WGL_BLUE_BITS_ARB, 8,
-        WGL_ALPHA_BITS_ARB, 8,
-        WGL_DEPTH_BITS_ARB, 24,
-        WGL_STENCIL_BITS_ARB, 8,
+        WGL_COLOR_BITS_ARB, 24,
+        WGL_DEPTH_BITS_ARB, 16,
         WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
         WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
         0
@@ -146,8 +138,9 @@ jlong nCreateWindow(jlong shareWith) {
     HGLRC rc;
     if (!(rc = wglCreateContextAttribsARB(dc, share_rc, context_attributes)))
         throwError("Failed to create context (WGL)");
-    wglSwapIntervalEXT(0);
 
+    wglSwapIntervalEXT(0);
+    
     // Save pointers
     rc_list[hwnd] = rc;
     dc_list[hwnd] = dc;
@@ -162,6 +155,7 @@ void nMakeCurrent(jlong hwnd) {
 
 void nSwapBuffers(jlong hwnd) {
     SwapBuffers(dc_list[(HWND)hwnd]);
+    
 }
 
 #endif

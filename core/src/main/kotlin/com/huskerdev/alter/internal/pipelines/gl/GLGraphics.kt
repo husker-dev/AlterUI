@@ -6,7 +6,6 @@ import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_COLOR_BUFFER_BIT
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_DEPTH_BUFFER_BIT
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glClear
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glClearColor
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glViewport
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nInitContext
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nMakeCurrent
@@ -21,7 +20,7 @@ class GLGraphics(window: Window): Graphics(window) {
 
     override fun beginImpl() {
         nMakeCurrent(window.handle)
-        glViewport(0, 0, window.physicalWidth, window.physicalHeight)
+        glViewport(0, 0, window.clientWidth, window.clientHeight)
         if(!initialized){
             initialized = true
             nInitContext()

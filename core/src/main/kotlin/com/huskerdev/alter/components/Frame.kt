@@ -11,6 +11,11 @@ open class Frame {
     var y by peer::y
     var width by peer::width
     var height by peer::height
+    val physicalWidth by peer::physicalWidth
+    val physicalHeight by peer::physicalHeight
+    val clientWidth by peer::clientWidth
+    val clientHeight by peer::clientHeight
+
     var title by peer::title
     var background by peer::background
     var visible by peer::visible
@@ -26,7 +31,9 @@ open class Frame {
     fun repaint() = peer.repaint()
 
     open fun paint(gr: Graphics){
-
+        gr.clear()
+        gr.color = background
+        gr.fillRect(0f, 0f, width, height)
     }
 
 }

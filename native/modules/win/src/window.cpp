@@ -11,17 +11,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     case WM_DPICHANGED:
     {
         callback(jvm, callbackObjects[hwnd], onDpiChangedCallback, (float)LOWORD(wParam) / 96);
-
-        RECT rcWindow;
-        GetClientRect(hwnd, &rcWindow);
-        InvalidateRect(hwnd, &rcWindow, FALSE);
-
+        
         RECT* prcNewWindow = (RECT*)lParam;
         int iWindowX = prcNewWindow->left;
         int iWindowY = prcNewWindow->top;
         int iWindowWidth = prcNewWindow->right - prcNewWindow->left;
         int iWindowHeight = prcNewWindow->bottom - prcNewWindow->top;
         SetWindowPos(hwnd, nullptr, iWindowX, iWindowY, iWindowWidth, iWindowHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+
+        SendMessage(hwnd, WM_PAINT, NULL, NULL);
 
         return 0;
     }
@@ -45,13 +43,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     }
     case WM_MOVE:
     {
-        callback(jvm, callbackObjects[hwnd], onMovedCallback, LOWORD(lParam), HIWORD(lParam));
+        RECT window;
+        GetWindowRect(hwnd, &window);
+        callback(jvm, callbackObjects[hwnd], onMovedCallback, window.left, window.top);
         break;
     }
     case WM_SIZE:
     {
-        callback(jvm, callbackObjects[hwnd], onResizedCallback, LOWORD(lParam), HIWORD(lParam));
-        //SendMessage(hwnd, WM_PAINT, NULL, NULL);
+        RECT window;
+        GetWindowRect(hwnd, &window);
+
+        callback(jvm, callbackObjects[hwnd], onResizedCallback, 
+            GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), 
+            window.right - window.left, window.bottom - window.top
+        );
         break;
     }
     case WM_SHOWWINDOW:
@@ -82,6 +87,33 @@ jfloat nGetDpi(jlong hwnd) {
 void nSetBackground(jlong hwnd, int color) {
     HBRUSH brush = CreateSolidBrush(color);
     SetClassLongPtr((HWND)hwnd, GCLP_HBRBACKGROUND, (LONG_PTR)brush);
+}
+
+// WindowsPlatform
+
+jobject nGetFontData(JNIEnv* env, char* name) {
+    LOGFONT logFont = {};
+    HGLOBAL hGlobal = NULL;
+    HDC hDC = NULL;
+    LPVOID ptr = NULL;
+
+    hDC = CreateDC(L"DISPLAY", NULL, NULL, NULL);
+
+    wcscpy_s(logFont.lfFaceName, (LPCWSTR)name);
+    HGDIOBJ hFont = CreateFontIndirect(&logFont);
+    SelectObject(hDC, hFont);
+
+    DWORD fontDataLen = GetFontData(hDC, 0, 0, NULL, 0);
+    if (fontDataLen == GDI_ERROR)
+        return NULL;
+
+    hGlobal = GlobalAlloc(GMEM_MOVEABLE, fontDataLen);
+    ptr = GlobalLock(hGlobal);
+
+    GetFontData(hDC, 0, 0, ptr, fontDataLen);
+    GlobalUnlock(hGlobal);
+
+    return env->NewDirectByteBuffer(ptr, fontDataLen);
 }
 
 void nRequestRepaint(jlong hwnd) {

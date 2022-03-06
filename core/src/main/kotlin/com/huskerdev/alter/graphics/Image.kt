@@ -36,7 +36,9 @@ abstract class Image(val width: Int, val height: Int, val type: ImageType) {
             return image
         }
 
-        fun create(width: Int, height: Int, type: ImageType = ImageType.RGBA) = Pipeline.current.createImage(type, width, height, null)
+        fun create(width: Int, height: Int, type: ImageType, bitmap: ByteBuffer) = Pipeline.current.createImage(type, width, height, bitmap)
+
+        fun createEmpty(width: Int, height: Int, type: ImageType = ImageType.RGBA) = Pipeline.current.createImage(type, width, height, null)
     }
 
     open var linearFiltered = true

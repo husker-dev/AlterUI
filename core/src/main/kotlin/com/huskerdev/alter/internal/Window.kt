@@ -8,7 +8,7 @@ import com.huskerdev.alter.internal.utils.MainThreadLocker
 abstract class Window(val handle: Long) {
 
     companion object {
-        private fun invokeOnMainIfRequired(run: () -> Unit){
+        private inline fun invokeOnMainIfRequired(crossinline run: () -> Unit){
             if(Pipeline.current.isMainThreadRequired())
                 MainThreadLocker.invoke(run)
             else run()
@@ -34,38 +34,42 @@ abstract class Window(val handle: Long) {
             invokeOnMainIfRequired { setTitleImpl(value) }
         }
 
-    private var _x = 0
-    var x: Int
+    private var _x = 0f
+    var x: Float
         get() = _x
         set(value) {
             _x = value
-            invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
+            invokeOnMainIfRequired { setSizeImpl((value * dpi).toInt(), physicalY, physicalWidth, physicalHeight) }
         }
 
-    private var _y = 0
-    var y: Int
+    private var _y = 0f
+    var y: Float
         get() = _y
         set(value) {
             _y = value
-            invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
+            invokeOnMainIfRequired { setSizeImpl(physicalX, (value * dpi).toInt(), physicalWidth, physicalHeight) }
         }
 
-    private var _width = 0
-    var width: Int
+    private var _width = 0f
+    var width: Float
         get() = _width
         set(value) {
             _width = value
-            invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
+            invokeOnMainIfRequired { setSizeImpl(physicalX, physicalY, (value * dpi).toInt(), physicalHeight) }
         }
 
-    private var _height = 0
-    var height: Int
+    private var _height = 0f
+    var height: Float
         get() = _height
         set(value) {
             _height = value
-            invokeOnMainIfRequired { setSizeImpl(x, y, width, height) }
+            invokeOnMainIfRequired { setSizeImpl(physicalX, physicalY, physicalWidth, (value * dpi).toInt()) }
         }
 
+    var clientWidth = 0
+        private set
+    var clientHeight = 0
+        private set
     var physicalWidth = 0
         private set
     var physicalHeight = 0
@@ -91,6 +95,15 @@ abstract class Window(val handle: Long) {
         dpi = getDpiImpl()
         graphics = Pipeline.current.createGraphics(this)
         onDrawCallback()
+
+        invokeOnMainIfRequired {
+            setSizeImpl(
+                (100f * dpi).toInt(),
+                (100f * dpi).toInt(),
+                (300f * dpi).toInt(),
+                (300f * dpi).toInt()
+            )
+        }
     }
 
     protected abstract fun initCallbacksImpl()
@@ -102,6 +115,7 @@ abstract class Window(val handle: Long) {
 
     fun repaint() = invokeOnMainIfRequired { requestRepaint() }
 
+    @ImplicitUsage
     private fun onDrawCallback(){
         if(!visible)
             return
@@ -117,18 +131,24 @@ abstract class Window(val handle: Long) {
     }
 
     @ImplicitUsage
-    private fun onResizedCallback(width: Int, height: Int){
-        _width = (width / dpi).toInt()
-        _height = (height / dpi).toInt()
-        physicalWidth = width
-        physicalHeight = height
+    private fun onResizedCallback(clientWidth: Int, clientHeight: Int, windowWidth: Int, windowHeight: Int){
+        if(windowWidth == physicalWidth && windowHeight == physicalHeight)
+            return
+        _width = clientWidth.toFloat() / dpi
+        _height = clientHeight.toFloat() / dpi
+        this.physicalWidth = windowWidth
+        this.physicalHeight = windowHeight
+        this.clientWidth = clientWidth
+        this.clientHeight = clientHeight
         onResizedListeners.forEach { it() }
     }
 
     @ImplicitUsage
     private fun onMovedCallback(x: Int, y: Int){
-        _x = (x / dpi).toInt()
-        _y = (y / dpi).toInt()
+        if(physicalX == x && physicalY == y)
+            return
+        _x = x / dpi
+        _y = y / dpi
         physicalX = x
         physicalY = y
         onMovedListeners.forEach { it() }

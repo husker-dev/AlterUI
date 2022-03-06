@@ -3,6 +3,7 @@ package com.huskerdev.alter.internal
 import com.huskerdev.alter.OS
 import com.huskerdev.alter.internal.platforms.win.WindowsPlatform
 import com.huskerdev.alter.internal.utils.LibraryLoader
+import java.nio.ByteBuffer
 
 val String.c_str: ByteArray
     get() = encodeToByteArray().c_str
@@ -30,9 +31,12 @@ abstract class Platform {
         }
     }
 
+    abstract val defaultFontFamily: String
+
     abstract fun load()
     abstract fun createWindowInstance(handle: Long): Window
     abstract fun pollEvents()
     abstract fun sendEmptyMessage(handle: Long)
+    abstract fun getFontData(name: String): ByteBuffer?
 
 }
