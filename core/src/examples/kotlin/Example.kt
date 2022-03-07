@@ -30,21 +30,19 @@ fun main() = AlterUI.takeMain {
         println("JVM shutdown")
     })
 
-    var firstImage: Image? = null
+    var firstImage: Image?
 
     val window = object: Frame(){
         override fun paint(gr: Graphics) {
             super.paint(gr)
 
             gr.color = Color.black
-            if(firstImage != null)
-                gr.drawImage(firstImage!!, 0f, 0f, width, height)
 
             var y = 0
-            for(i in 50..150 step 10){
+            for(i in 5..100 step 10){
                 gr.font = Font.get("lobster").derived(i.toFloat())
 
-                gr.drawText("Сыровое", 0f, 0f + y)
+                gr.drawText("This is example text", 20f, 20f + y, true)
                 y += i + 2
             }
         }

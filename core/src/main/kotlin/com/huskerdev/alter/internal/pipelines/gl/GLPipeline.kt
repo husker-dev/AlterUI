@@ -31,12 +31,17 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         const val GL_COLOR_BUFFER_BIT = 0x4000
         const val GL_DEPTH_BUFFER_BIT = 0x100
         const val GL_TEXTURE_2D = 0xDE1
+        const val GL_SRC_ALPHA = 0x0302
+        const val GL_ONE_MINUS_SRC_ALPHA = 0x0303
+        const val GL_SRC1_COLOR = 0x88F9
+        const val GL_ONE_MINUS_SRC1_COLOR = 0x88FA
 
         @JvmStatic external fun glClear(mask: Int)
         @JvmStatic external fun glClearColor(red: Float, green: Float, blue: Float, alpha: Float)
         @JvmStatic external fun glViewport(x: Int, y: Int, width: Int, height: Int)
         @JvmStatic external fun glUseProgram(program: Int)
         @JvmStatic external fun glBindTexture(target: Int, texture: Int)
+        @JvmStatic external fun glBlendFunc(sfactor: Int, dfactor: Int)
 
         @JvmStatic external fun nInitContext()
         @JvmStatic external fun nDrawArray(array: FloatBuffer, count: Int, type: Int)

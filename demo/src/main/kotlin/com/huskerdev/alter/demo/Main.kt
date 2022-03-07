@@ -20,7 +20,7 @@ fun main() = AlterUI.takeMain {
             for(i in 10..100 step 10){
                 gr.font = Font.get("lobster").derived(i.toFloat())
 
-                gr.drawText("This is sample text", 100f, 100f + y)
+                gr.drawText("This is sample text", 100f, 100f + y, false)
                 y += i + 2
             }
         }

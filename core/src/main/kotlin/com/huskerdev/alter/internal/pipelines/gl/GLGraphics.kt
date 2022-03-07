@@ -5,6 +5,11 @@ import com.huskerdev.alter.graphics.Painter
 import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_COLOR_BUFFER_BIT
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_DEPTH_BUFFER_BIT
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_ONE_MINUS_SRC1_COLOR
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_ONE_MINUS_SRC_ALPHA
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_SRC1_COLOR
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_SRC_ALPHA
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glBlendFunc
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glClear
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glViewport
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nInitContext

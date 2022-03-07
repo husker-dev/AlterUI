@@ -36,6 +36,12 @@ abstract class ImagePainter: Painter {
             sizeChanged = true
         }
 
+    var isLcd = false
+        set(value) {
+            field = value
+            lcdChanged = true
+        }
+
     var color = Color.black
         set(value) {
             field = value
@@ -45,6 +51,7 @@ abstract class ImagePainter: Painter {
     // States
     private var sizeChanged = true
     private var imageChanged = true
+    private var lcdChanged = true
     private var colorChanged = true
 
     override fun checkPropertyChanges() {
@@ -60,9 +67,14 @@ abstract class ImagePainter: Painter {
             imageChanged = false
             updateImage()
         }
+        if(lcdChanged){
+            lcdChanged = false
+            updateLcd()
+        }
     }
 
     protected abstract fun updateColor()
     protected abstract fun updateSize()
     protected abstract fun updateImage()
+    protected abstract fun updateLcd()
 }

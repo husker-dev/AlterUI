@@ -33,4 +33,7 @@ class D3D9ImagePainter: ImagePainter(), D3D9Painter {
         nSetTexture((image as D3D9Image).ptr)
     }
 
+    override fun updateLcd() = pixel.set("u_IsLCD", if(isLcd) 1f else 0f)
+
+
 }

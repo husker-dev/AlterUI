@@ -18,7 +18,7 @@ class Font private constructor(
 
         @JvmStatic private external fun nSetFaceSize(face: Long, size: Int)
         @JvmStatic private external fun nLoadChar(face: Long, charIndex: Int)
-        @JvmStatic private external fun nGetGlyphData(face: Long): ByteBuffer
+        @JvmStatic private external fun nGetGlyphData(face: Long, useSubpixel: Boolean): ByteBuffer
         @JvmStatic private external fun nGetGlyphWidth(face: Long): Int
         @JvmStatic private external fun nGetGlyphHeight(face: Long): Int
         @JvmStatic private external fun nGetBearingX(face: Long): Int
@@ -53,38 +53,42 @@ class Font private constructor(
         return Font(family, size)
     }
 
-    fun getRasterMetrics(text: String): FontRasterMetrics {
+    fun getRasterMetrics(text: String, useSubpixel: Boolean): FontRasterMetrics {
         if(size !in family.cachedRasterMetrics)
             family.cachedRasterMetrics[size] = hashMapOf()
 
         if(text !in family.cachedRasterMetrics[size]!!)
-            family.cachedRasterMetrics[size]!![text] = FontRasterMetrics(text, this)
+            family.cachedRasterMetrics[size]!![text] = FontRasterMetrics(text, this, useSubpixel)
 
         return family.cachedRasterMetrics[size]!![text]!!
     }
 
-    fun getGlyph(code: Int): Glyph {
-        if(size !in family.cachedGlyphs)
-            family.cachedGlyphs[size] = hashMapOf()
+    fun getGlyph(code: Int, useSubpixel: Boolean): Glyph {
+        val cacheContainer = if(useSubpixel) family.cachedSubpixelGlyphs else family.cachedGlyphs
+        if(size !in cacheContainer)
+            cacheContainer[size] = hashMapOf()
+        val cache = cacheContainer[size]!!
 
-        if(code !in family.cachedGlyphs[size]!!){
+        if(code !in cache){
             nSetFaceSize(family.face, size.toInt())
             nLoadChar(family.face, code)
-            val data = nGetGlyphData(family.face)
+            
+            val data = nGetGlyphData(family.face, useSubpixel)
             val width = nGetGlyphWidth(family.face)
+
             val height = nGetGlyphHeight(family.face)
             val bearingX = nGetBearingX(family.face)
             val bearingY = nGetBearingY(family.face)
             val image = if(width > 0 && height > 0) {
-                Image.create(width, height, ImageType.MONO, data).apply {
+                Image.create(width, height, if(useSubpixel) ImageType.RGB else ImageType.MONO, data).apply {
                     linearFiltered = false
                 }
             } else null
 
-            family.cachedGlyphs[size]!![code] = Glyph(image, width, height, bearingX, bearingY)
+            cache[code] = Glyph(image, width, height, bearingX, bearingY, useSubpixel)
         }
 
-        return family.cachedGlyphs[size]!![code]!!
+        return cache[code]!!
     }
 }
 

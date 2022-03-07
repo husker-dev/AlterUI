@@ -29,6 +29,7 @@ class FontFamily(
     val designerURL: String by lazy { getMetadata(12) }
 
     internal val cachedGlyphs = hashMapOf<Float, HashMap<Int, Glyph>>()
+    internal val cachedSubpixelGlyphs = hashMapOf<Float, HashMap<Int, Glyph>>()
     internal val cachedRasterMetrics = hashMapOf<Float, HashMap<String, FontRasterMetrics>>()
 
     fun getMetadata(propertyId: Int): String{

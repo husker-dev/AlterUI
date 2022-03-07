@@ -8,7 +8,8 @@ import kotlin.math.min
 
 class FontRasterMetrics(
     text: String,
-    font: Font
+    font: Font,
+    useSubpixel: Boolean
 ){
     companion object {
         @JvmStatic private external fun nHBSetBufferText(buffer: Long, text: ByteBuffer)
@@ -54,7 +55,7 @@ class FontRasterMetrics(
         var currentY = 0f
 
         glyphs = Array(count){ i ->
-            val glyph = font.getGlyph(nHBGetGlyphId(info, i))
+            val glyph = font.getGlyph(nHBGetGlyphId(info, i), useSubpixel)
 
             val glyphWidth = glyph.width
             val glyphHeight = glyph.height

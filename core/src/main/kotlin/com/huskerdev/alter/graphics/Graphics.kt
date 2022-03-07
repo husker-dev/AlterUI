@@ -5,7 +5,6 @@ import com.huskerdev.alter.graphics.font.Font
 import com.huskerdev.alter.graphics.painters.*
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
-import kotlin.math.roundToInt
 
 abstract class Graphics(var window: Window) {
 
@@ -19,6 +18,7 @@ abstract class Graphics(var window: Window) {
     protected open var painter: Painter? = null                 // Actual painter
         set(value){
             if(field != value) {
+                field?.disable()
                 value?.enable()
                 field = value
             }
@@ -91,16 +91,19 @@ abstract class Graphics(var window: Window) {
                 this.width = width
                 this.height = height
                 this.color = color
+                this.isLcd = false
             }
             painter!!.checkPropertyChanges()
             painter!!.fillRect(x, y, width, height)
         }
     }
 
-    fun drawText(text: String, x: Float, y: Float){
-        val rasterInfo = font.derived(font.size * dpi).getRasterMetrics(text)
-        painter = getImagePainter()
-        (painter as ImagePainter).color = color
+    open fun drawText(text: String, x: Float, y: Float, useSubpixel: Boolean = false){
+        val rasterInfo = font.derived(font.size * dpi).getRasterMetrics(text, useSubpixel)
+        painter = getImagePainter().apply {
+            this.color = this@Graphics.color
+            this.isLcd = useSubpixel
+        }
 
         for(i in 0 until rasterInfo.count) {
             val glyph = rasterInfo.glyphs[i]

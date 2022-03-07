@@ -40,6 +40,10 @@ extern "C" {
 		glBindTexture(target, texture);
 	}
 
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glBlendFunc(JNIEnv*, jobject, jint sfactor, jint dfactor) {
+		glBlendFunc(sfactor, dfactor);
+	}
+
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nInitContext(JNIEnv*, jobject) {
 		unsigned int vao, vbo = 0;
 		// VAO

@@ -7,5 +7,6 @@ class Glyph(
     val width: Int,
     val height: Int,
     val bearingX: Int,
-    val bearingY: Int
+    val bearingY: Int,
+    val isSubpixel: Boolean
 )
