@@ -13,4 +13,11 @@ class D3D9Image(width: Int, height: Int, type: ImageType, data: ByteBuffer?): Im
     init {
         ptr = nCreateTexture(width, height, type.channels, data!!)
     }
+
+    override val data: ByteBuffer
+        get() = TODO("Not yet implemented")
+
+    override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int): Image {
+        TODO("Not yet implemented")
+    }
 }

@@ -54,6 +54,7 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         @JvmStatic external fun nCreateEmptyTexture(width: Int, height: Int, channels: Int): Int
         @JvmStatic external fun nBindTextureBuffer(texId: Int): Int
         @JvmStatic external fun nSetLinearFiltering(tex: Int, linearFiltering: Boolean)
+        @JvmStatic external fun nReadPixels(framebuffer: Int, channels: Int, x: Int, y: Int, width: Int, height: Int): ByteBuffer
 
         // GL-Shader
         @JvmStatic external fun nCreateShaderProgram(vertexSource: ByteBuffer, fragmentSource: ByteBuffer): Int

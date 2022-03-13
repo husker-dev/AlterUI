@@ -19,6 +19,7 @@ open class Frame {
     var title by peer::title
     var background by peer::background
     var visible by peer::visible
+    var icon by peer::icon
 
     fun onClosed(listener: () -> Unit) = peer.onClosedListeners.add(listener)
     fun onResized(listener: () -> Unit) = peer.onResizedListeners.add(listener)

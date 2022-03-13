@@ -27,6 +27,8 @@ void nSetVisible(jlong hwnd, jboolean visible);
 void nSetTitle(jlong hwnd, jbyte* title);
 void nSetSize(jlong hwnd, jint x, jint y, jint width, jint height);
 jfloat nGetDpi(jlong hwnd);
+void nSetIcon(jlong hwnd, jint width, jint height, jint channels, char* data);
+void nSetDefaultIcon(jlong hwnd);
 
 // WindowsPlatform
 jobject nGetFontData(JNIEnv* env, char* name);
@@ -72,6 +74,14 @@ extern "C" {
 
 	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nGetDpi(JNIEnv*, jobject, jlong hwnd) {
 		return nGetDpi(hwnd);
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIcon(JNIEnv* env, jobject, jlong hwnd, jint width, jint height, jint channels, jobject data) {
+		nSetIcon(hwnd, width, height, channels, (char*)env->GetDirectBufferAddress(data));
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetDefaultIcon(JNIEnv*, jobject, jlong hwnd) {
+		nSetDefaultIcon(hwnd);
 	}
 
 	/*

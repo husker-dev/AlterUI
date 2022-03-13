@@ -1,7 +1,9 @@
 package com.huskerdev.alter.internal.platforms.win
 
+import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.internal.Window
-import com.huskerdev.alter.internal.utils.MainThreadLocker
+import com.huskerdev.alter.internal.utils.BufferUtils
+import java.nio.ByteBuffer
 
 class WWindow(hwnd: Long): Window(hwnd) {
 
@@ -12,6 +14,8 @@ class WWindow(hwnd: Long): Window(hwnd) {
         @JvmStatic external fun nSetSize(hwnd: Long, x: Int, y: Int, width: Int, height: Int)
         @JvmStatic external fun nRequestRepaint(hwnd: Long)
         @JvmStatic external fun nGetDpi(hwnd: Long): Float
+        @JvmStatic external fun nSetIcon(hwnd: Long, width: Int, height: Int, channels: Int, data: ByteBuffer)
+        @JvmStatic external fun nSetDefaultIcon(hwnd: Long)
 
         @JvmStatic external fun nPollEvents()
         @JvmStatic external fun nSendEmptyMessage(handle: Long)
@@ -22,6 +26,11 @@ class WWindow(hwnd: Long): Window(hwnd) {
     override fun setVisibleImpl(visible: Boolean) = nSetVisible(handle, visible)
     override fun setTitleImpl(title: String) = nSetTitle(handle, title.c_wideBytes)
     override fun setSizeImpl(x: Int, y: Int, width: Int, height: Int) = nSetSize(handle, x, y, width, height)
+    override fun setIconImpl(image: Image?) {
+        if(image != null)
+            nSetIcon(handle, image.width, image.height, image.type.channels, image.data)
+        else nSetDefaultIcon(handle)
+    }
 
     override fun requestRepaint() = nRequestRepaint(handle)
 

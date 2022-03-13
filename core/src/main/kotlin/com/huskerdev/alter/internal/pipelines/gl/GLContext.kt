@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
+import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.VertexPaintHelper
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_COLOR_BUFFER_BIT
@@ -15,10 +16,13 @@ import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glViewport
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.invokeOnResourceThread
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nCreateShaderProgram
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nMakeCurrent
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nReadPixels
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetLinearFiltering
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetShaderVariable1f
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetShaderVariable3f
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetShaderVariable4f
 import com.huskerdev.alter.internal.utils.BufferUtils
+import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 
 open class GLContext(val window: Long) {
@@ -169,4 +173,15 @@ class GLResourcesContext(window: Long): GLContext(window){
         super.clear()
     }
 
+    fun setLinearFiltering(texId: Int, linear: Boolean) = invokeOnResourceThread {
+        nSetLinearFiltering(texId, linear)
+    }
+
+    fun readPixels(image: Image, x: Int, y: Int, width: Int, height: Int): ByteBuffer {
+        var result: ByteBuffer? = null
+        invokeOnResourceThread {
+            result = nReadPixels((image as GLImage).framebuffer, image.type.channels, x, y, width, height)
+        }
+        return result!!
+    }
 }

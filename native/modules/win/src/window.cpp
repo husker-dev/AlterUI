@@ -84,6 +84,50 @@ jfloat nGetDpi(jlong hwnd) {
     return (float)GetDpiForWindow((HWND)hwnd) / 96;
 }
 
+void nSetIcon(jlong hwnd, jint width, jint height, jint channels, char* data) {
+    
+    HICON hIcon = NULL;
+
+    ICONINFO iconInfo = {
+        TRUE, // fIcon, set to true if this is an icon, set to false if this is a cursor
+        NULL, // xHotspot, set to null for icons
+        NULL, // yHotspot, set to null for icons
+        NULL, // Monochrome bitmap mask, set to null initially
+        NULL  // Color bitmap mask, set to null initially
+    };
+
+    char* rawBitmap = new char[width * height * 4];
+
+    for (unsigned int i = 0, s = 0;
+        i < width * height * 4;
+        i += 4, s += channels
+    ) {
+        rawBitmap[i] = data[s + 2];
+        rawBitmap[i + 1] = data[s + 1];
+        rawBitmap[i + 2] = data[s];
+        rawBitmap[i + 3] = channels == 3 ? 255 : data[s + 3];
+    }
+
+    iconInfo.hbmColor = CreateBitmap(width, height, 1, 32, rawBitmap);
+    iconInfo.hbmMask = CreateCompatibleBitmap(GetDC((HWND)hwnd), width, height);
+    hIcon = CreateIconIndirect(&iconInfo);
+
+    DeleteObject(iconInfo.hbmMask);
+    DeleteObject(iconInfo.hbmColor);
+    delete[] rawBitmap;
+
+    SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    SendMessage((HWND)hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, (LPARAM)hIcon);
+}
+
+void nSetDefaultIcon(jlong hwnd) {
+    LPARAM icon = (LPARAM)LoadIcon(NULL, IDI_APPLICATION);
+    SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL, icon);
+    SendMessage((HWND)hwnd, WM_SETICON, ICON_BIG, icon);
+    SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, icon);
+}
+
 void nSetBackground(jlong hwnd, int color) {
     HBRUSH brush = CreateSolidBrush(color);
     SetClassLongPtr((HWND)hwnd, GCLP_HBRBACKGROUND, (LONG_PTR)brush);

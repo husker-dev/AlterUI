@@ -2,6 +2,7 @@ package com.huskerdev.alter.internal
 
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
+import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 
@@ -32,6 +33,12 @@ abstract class Window(val handle: Long) {
         set(value) {
             field = value
             invokeOnMainIfRequired { setTitleImpl(value) }
+        }
+
+    var icon: Image? = null
+        set(value) {
+            field = value
+            invokeOnMainIfRequired { setIconImpl(value) }
         }
 
     private var _x = 0f
@@ -111,6 +118,7 @@ abstract class Window(val handle: Long) {
     protected abstract fun setVisibleImpl(visible: Boolean)
     protected abstract fun setTitleImpl(title: String)
     protected abstract fun setSizeImpl(x: Int, y: Int, width: Int, height: Int)
+    protected abstract fun setIconImpl(image: Image?)
     protected abstract fun requestRepaint()
 
     fun repaint() = invokeOnMainIfRequired { requestRepaint() }

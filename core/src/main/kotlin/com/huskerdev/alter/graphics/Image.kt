@@ -47,5 +47,17 @@ abstract class Image(val width: Int, val height: Int, val type: ImageType) {
 
     open var linearFiltered = true
     open val graphics: Graphics by lazy { Pipeline.current.createGraphics(this) }
+    abstract val data: ByteBuffer
+
+    fun getSubImage(x: Int, y: Int, width: Int, height: Int): Image {
+        if(x + width >= this.width || y + height >= this.height)
+            throw UnsupportedOperationException("Out of bounds")
+        return getSubImageImpl(x, y, width, height)
+    }
+
+    fun getSubImage(width: Int, height: Int) = getSubImage(0, 0, width, height)
+
+    protected abstract fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int): Image
+
 }
 

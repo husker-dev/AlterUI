@@ -7,6 +7,7 @@ import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import java.io.File
+import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
 fun main() = AlterUI.takeMain {
@@ -26,10 +27,6 @@ fun main() = AlterUI.takeMain {
     val start = System.nanoTime()
     AlterUI.load()
 
-    Runtime.getRuntime().addShutdownHook(Thread{
-        println("JVM shutdown")
-    })
-
     var firstImage: Image? = null
 
     val window = object: Frame(){
@@ -42,7 +39,7 @@ fun main() = AlterUI.takeMain {
             gr.color = Color.white
 
             if(firstImage != null)
-                gr.drawImage(firstImage!!, 0f, 0f, 100f, 100f)
+                gr.drawImage(firstImage!!, 0f, 0f, width, height)
         }
     }
     window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
@@ -51,14 +48,21 @@ fun main() = AlterUI.takeMain {
     window.visible = true
 
     thread {
-        firstImage = Image.create("C:\\Users\\redfa\\Desktop\\Td7NHeUSZ9E.jpg")
+        firstImage = Image.create("C:\\Users\\redfa\\Desktop\\avatar_transparent.png")
         firstImage!!.linearFiltered = false
-        window.repaint()
 
+        //firstImage = firstImage!!.getSubImage(0, 0, firstImage!!.width / 2, firstImage!!.height / 2)
+        window.icon = firstImage
+
+        //window.repaint()
+
+        /*
         val graphics = firstImage!!.graphics
         graphics.color = Color.red
         graphics.fillRect(0f, 0f, firstImage!!.width / 2f, firstImage!!.height / 2f)
         graphics.flush()
+
+         */
 
         window.repaint()
     }

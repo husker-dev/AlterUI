@@ -62,9 +62,13 @@ extern "C" {
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+		// Configuration
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nDrawArray(JNIEnv* env, jobject, jobject _array, jint count, jint type) {
@@ -90,7 +94,6 @@ extern "C" {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, 0);
 		glFlush();
 		return tex;
@@ -112,7 +115,6 @@ extern "C" {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, data);
 		glFlush();
 		return tex;
@@ -134,6 +136,21 @@ extern "C" {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
 		glFlush();
+	}
+
+	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nReadPixels(JNIEnv* env, jobject, jint framebuffer, jint channels, jint x, jint y, jint width, jint height) {
+		char* pixels = new char[width * height * channels];
+		int type = GL_RED;
+		if (channels == 3)
+			type = GL_RGB;
+		if (channels == 4)
+			type = GL_RGBA;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glViewport(x, y, width, height);
+		glReadPixels(x, y, width, height, type, GL_UNSIGNED_BYTE, pixels);
+
+		return env->NewDirectByteBuffer(pixels, width * height * channels);
 	}
 
 	/* ================
