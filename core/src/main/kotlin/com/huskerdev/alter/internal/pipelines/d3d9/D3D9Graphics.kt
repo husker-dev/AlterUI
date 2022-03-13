@@ -11,8 +11,9 @@ import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ColorPainter
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ImagePainter
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9Painter
 
-class D3D9Graphics(window: Window): Graphics(window) {
+class D3D9Graphics(window: Window): Graphics() {
 
+    /*
     private val colorPainterInstance by lazy { D3D9ColorPainter() }
     private val imagePainterInstance by lazy { D3D9ImagePainter() }
 
@@ -33,23 +34,43 @@ class D3D9Graphics(window: Window): Graphics(window) {
     }
 
     override fun updateTransforms() {
-        if(painter is D3D9Painter)
-            (painter as D3D9Painter).updateMatrix(matrix)
+        //if(painter is D3D9Painter)
+        //    (painter as D3D9Painter).updateMatrix(matrix)
     }
 
+     */
+
+    override val width: Float
+        get() = TODO("Not yet implemented")
+    override val height: Float
+        get() = TODO("Not yet implemented")
+    override val physicalHeight: Int
+        get() = TODO("Not yet implemented")
+    override val physicalWidth: Int
+        get() = TODO("Not yet implemented")
+    override val dpi: Float
+        get() = TODO("Not yet implemented")
+
+    override fun flush() {
+        TODO("Not yet implemented")
+    }
+
+    /*
     override var painter: Painter?
         get() = super.painter
         set(value) {
             super.painter = value
             if(value is D3D9Painter) {
-                value.updateMatrix(matrix)
+                //value.updateMatrix(matrix)
                 value.updateHeight(oldHeight.toFloat())
                 value.updateDpi(dpi)
             }
         }
+*/
+    //override fun clear() = nClear()
 
-    override fun clear() = nClear()
+    override fun getColorPainter() = null!!
+    override fun getImagePainter() = null!!
 
-    override fun getColorPainter() = colorPainterInstance
-    override fun getImagePainter() = imagePainterInstance
+
 }

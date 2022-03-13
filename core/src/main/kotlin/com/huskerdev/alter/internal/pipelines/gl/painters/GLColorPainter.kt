@@ -1,19 +1,41 @@
 package com.huskerdev.alter.internal.pipelines.gl.painters
 
-import com.huskerdev.alter.geom.Matrix4
+import com.huskerdev.alter.graphics.Graphics
+import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.ColorPainter
 import com.huskerdev.alter.internal.pipelines.gl.GLShader
 
-object GLColorPainter: ColorPainter(), GLPainter {
+object GLColorPainter: ColorPainter() {
 
-    override val shader = GLShader.fromResources(
-        "/com/huskerdev/alter/resources/gl/shaders/defaultVertex.glsl",
-        "/com/huskerdev/alter/resources/gl/shaders/colorFragment.glsl"
-    )
-    override var matrix = Matrix4.identity
+    private val descriptor = object: GLPainterDescriptor(){
+        var colorVar = 0
 
-    override fun enable() = shader.use()
-    override fun disable() {}
+        override fun initShader() {
+            shader = GLShader.fromResources(
+                "/com/huskerdev/alter/resources/gl/shaders/defaultVertex.glsl",
+                "/com/huskerdev/alter/resources/gl/shaders/colorFragment.glsl"
+            )
+            shader.compile(context)
+            colorVar = shader[context, "u_Color"]
+        }
+    }
 
-    override fun updateColor() = shader.set4f("u_Color", color.r, color.g, color.b, color.a)
+    override fun onBeginPaint(graphics: Graphics) {
+        descriptor.onBeginPaint(graphics)
+        super.onBeginPaint(graphics)
+    }
+
+    override fun onEndPaint() {
+        descriptor.onEndPaint()
+        super.onEndPaint()
+    }
+
+    override fun updateColor() {
+        descriptor.shader.set4f(descriptor.context, descriptor.colorVar, color.r, color.g, color.b, color.a)
+    }
+
+    override fun clear() = descriptor.clear()
+    override fun fillRect(x: Float, y: Float, width: Float, height: Float) = descriptor.fillRect(x, y, width, height)
+    override fun drawRect(x: Float, y: Float, width: Float, height: Float) = descriptor.drawRect(x, y, width, height)
+    override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) = descriptor.drawImage(image, x, y, width, height)
 }

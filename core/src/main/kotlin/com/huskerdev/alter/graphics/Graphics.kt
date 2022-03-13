@@ -1,103 +1,88 @@
 package com.huskerdev.alter.graphics
 
-import com.huskerdev.alter.geom.Matrix4
 import com.huskerdev.alter.graphics.font.Font
 import com.huskerdev.alter.graphics.painters.*
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
 
-abstract class Graphics(var window: Window) {
+abstract class Graphics {
 
-    protected var matrix = Matrix4.identity
-    private var lastMatrix = Matrix4.identity
-    var width = -1f
-    var height = -1f
-    var dpi = 1f
+    //protected var matrix = Matrix4.identity
 
-    open var requiredPainter: Painter? = null                   // Preferred painter
-    protected open var painter: Painter? = null                 // Actual painter
-        set(value){
-            if(field != value) {
-                field?.disable()
-                value?.enable()
-                field = value
-            }
-        }
+    abstract val width: Float
+    abstract val height: Float
 
-    var color: Color
-        get() {
-            if(requiredPainter is ColorPainter)
-                return (requiredPainter as ColorPainter).color
-            else throw UnsupportedOperationException("Painter is not ColorPainter")
-        }
+    abstract val physicalHeight: Int
+    abstract val physicalWidth: Int
+
+    abstract val dpi: Float
+
+    // ColorPainter is default
+    open var painter: Painter? = null
         set(value) {
-            setColorPainter(value)
+            field?.onDisable()
+            field = value ?: getColorPainter()
+            field!!.onEnable()
         }
 
+    var color = Color.black
     var font = Font.get(Platform.current.defaultFontFamily)
 
-    fun begin() {
-        beginImpl()
+    init {
+        reset()
+    }
 
-        setColorPainter(Color.black)
-        checkPainter()
-        if(width !=  window.width ||
-            height != window.height ||
-            dpi != window.dpi
-        ) {
-            width = window.width
-            height = window.height
-            dpi = window.dpi
-            lastMatrix = Matrix4.ortho(window.clientWidth / dpi, window.clientHeight / dpi)
+    open fun reset(){
+        color = Color.black
+        painter = null
+        font = Font.get(Platform.current.defaultFontFamily)
+    }
+
+    abstract fun flush()
+
+    private fun isValidRect(x: Float, y: Float, width: Float, height: Float): Boolean {
+        return (width > 0) && (height > 0) &&
+                (x + width > 0) && (y + height > 0) &&
+                (x <= this.width) && (y <= this.height)
+    }
+
+    fun clear() {
+        painter!!.runPaint {
+            clear()
         }
-        matrix = lastMatrix
-        updateTransforms()
     }
-    fun end() = endImpl()
-
-    private fun checkPainter(){
-        if(painter != requiredPainter)
-            painter = requiredPainter
-    }
-
-    protected abstract fun beginImpl()
-    protected abstract fun endImpl()
-    protected abstract fun updateTransforms()
-    abstract fun clear()
 
     fun fillRect(x: Float, y: Float, width: Float, height: Float) {
-        if(width > 0 && height > 0) {
-            checkPainter()
-            painter!!.checkPropertyChanges()
-            painter!!.fillRect(x, y, width, height)
+        if(isValidRect(x, y, width, height)) {
+            painter!!.runPaint {
+                fillRect(x, y, width, height)
+            }
         }
     }
 
     fun drawRect(x: Float, y: Float, width: Float, height: Float) {
-        if(width > 0 && height > 0) {
-            checkPainter()
-            painter!!.checkPropertyChanges()
-            painter!!.drawRect(x, y, width, height)
-        }
-    }
-
-    fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float, color: Color = Color.white) {
-        if(width > 0 && height > 0) {
-            painter = getImagePainter()
-            (painter as ImagePainter).apply {
-                this.image = image
-                this.x = x
-                this.y = y
-                this.width = width
-                this.height = height
-                this.color = color
-                this.isLcd = false
+        if(isValidRect(x, y, width, height)) {
+            painter!!.runPaint {
+                drawRect(x, y, width, height)
             }
-            painter!!.checkPropertyChanges()
-            painter!!.fillRect(x, y, width, height)
         }
     }
 
+    fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
+        if(isValidRect(x, y, width, height)) {
+            painter!!.runPaint {
+                drawImage(image, x, y, width, height)
+            }
+        }
+    }
+
+    private inline fun Painter.runPaint(block: Painter.() -> Unit){
+        onBeginPaint(this@Graphics)
+        block()
+        onEndPaint()
+    }
+
+/*
     open fun drawText(text: String, x: Float, y: Float, useSubpixel: Boolean = false){
         val rasterInfo = font.derived(font.size * dpi).getRasterMetrics(text, useSubpixel)
         painter = getImagePainter().apply {
@@ -122,12 +107,13 @@ abstract class Graphics(var window: Window) {
                 this.width = width
                 this.height = height
             }
-            painter!!.checkPropertyChanges()
+            //painter!!.checkPropertyChanges()
             painter!!.fillRect(rx, ry, width, height)
         }
     }
 
     // Painters
+
     fun setColorPainter(color: Color){
         requiredPainter = getColorPainter()
         (requiredPainter as ColorPainter).apply {
@@ -146,6 +132,8 @@ abstract class Graphics(var window: Window) {
             this.color = color
         }
     }
+
+     */
 
     protected abstract fun getColorPainter(): ColorPainter
     protected abstract fun getImagePainter(): ImagePainter

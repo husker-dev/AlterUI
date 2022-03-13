@@ -30,21 +30,19 @@ fun main() = AlterUI.takeMain {
         println("JVM shutdown")
     })
 
-    var firstImage: Image?
+    var firstImage: Image? = null
 
     val window = object: Frame(){
         override fun paint(gr: Graphics) {
             super.paint(gr)
 
-            gr.color = Color.black
+            //gr.color = Color.black
+            //gr.fillRect(0f, 0f, 200f, 200f)
 
-            var y = 0
-            for(i in 5..100 step 10){
-                gr.font = Font.get("lobster").derived(i.toFloat())
+            gr.color = Color.white
 
-                gr.drawText("This is example text", 20f, 20f + y, true)
-                y += i + 2
-            }
+            if(firstImage != null)
+                gr.drawImage(firstImage!!, 0f, 0f, 100f, 100f)
         }
     }
     window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
@@ -57,6 +55,12 @@ fun main() = AlterUI.takeMain {
         firstImage!!.linearFiltered = false
         window.repaint()
 
+        val graphics = firstImage!!.graphics
+        graphics.color = Color.red
+        graphics.fillRect(0f, 0f, firstImage!!.width / 2f, firstImage!!.height / 2f)
+        graphics.flush()
+
+        window.repaint()
     }
 
     val current = System.nanoTime()

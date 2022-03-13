@@ -1,43 +1,57 @@
 package com.huskerdev.alter.internal.pipelines.gl.painters
 
-import com.huskerdev.alter.geom.Matrix4
+import com.huskerdev.alter.graphics.Graphics
+import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.pipelines.gl.GLImage
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_ONE_MINUS_SRC1_COLOR
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_ONE_MINUS_SRC_ALPHA
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_SRC1_COLOR
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_SRC_ALPHA
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_TEXTURE_2D
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glBindTexture
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glBlendFunc
 import com.huskerdev.alter.internal.pipelines.gl.GLShader
 
-object GLImagePainter: ImagePainter(), GLPainter {
+object GLImagePainter: ImagePainter() {
 
-    override val shader = GLShader.fromResources(
-        "/com/huskerdev/alter/resources/gl/shaders/defaultVertex.glsl",
-        "/com/huskerdev/alter/resources/gl/shaders/textureFragment.glsl"
-    )
-    override var matrix = Matrix4.identity
+    private val descriptor = object: GLPainterDescriptor(){
+        var colorVar = 0
+        var boundsVar = 0
+        var textureColorsVar = 0
 
-    override fun enable() = shader.use()
-    override fun disable() {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        override fun initShader() {
+            shader = GLShader.fromResources(
+                "/com/huskerdev/alter/resources/gl/shaders/defaultVertex.glsl",
+                "/com/huskerdev/alter/resources/gl/shaders/textureFragment.glsl"
+            )
+            shader.compile(context)
+            context.shader = shader // TODO: Is it necessary?
+            shader.defineTextureVariable(context, "u_Texture1", 1)
+            colorVar = shader[context, "u_Color"]
+            boundsVar = shader[context, "u_Bounds"]
+            textureColorsVar = shader[context, "u_TextureColors"]
+        }
     }
 
-    override fun updateColor() = shader.set4f("u_Color", color.r, color.g, color.b, color.a)
-    override fun updateSize() = shader.set4f("u_Bounds", x, y, width, height)
+    override fun onEnable() {
+        isImageChanged = true
+    }
+
+    override fun onBeginPaint(graphics: Graphics) {
+        descriptor.onBeginPaint(graphics)
+        super.onBeginPaint(graphics)
+    }
+
+    override fun onEndPaint() {
+        descriptor.onEndPaint()
+        super.onEndPaint()
+    }
+
+    override fun updateColor() = descriptor.shader.set4f(descriptor.context, descriptor.colorVar, color.r, color.g, color.b, color.a)
+    override fun updateSize() = descriptor.shader.set4f(descriptor.context, descriptor.boundsVar, x, y, width, height)
     override fun updateImage() {
-        shader.set("u_TextureColors", image!!.type.channels.toFloat())
-        glBindTexture(GL_TEXTURE_2D, (image as GLImage).texId)
+        descriptor.shader[descriptor.context, descriptor.textureColorsVar] = image!!.type.channels.toFloat()
+        descriptor.context.bindTexture(1, (image as GLImage).texId)
     }
 
-    override fun updateLcd() {
-        if(isLcd)
-            glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR)
-        else glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        shader.set("u_IsLCD", if(isLcd) 1f else 0f)
-    }
-
+    override fun clear() = descriptor.clear()
+    override fun fillRect(x: Float, y: Float, width: Float, height: Float) = descriptor.fillRect(x, y, width, height)
+    override fun drawRect(x: Float, y: Float, width: Float, height: Float) = descriptor.drawRect(x, y, width, height)
+    override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) = descriptor.drawImage(image, x, y, width, height)
 }

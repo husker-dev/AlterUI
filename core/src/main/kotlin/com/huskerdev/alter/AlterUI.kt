@@ -24,6 +24,6 @@ class AlterUI {
         }
 
         @JvmStatic fun invokeOnMainThreadAsync(toInvoke: () -> Unit) = MainThreadLocker.invokeAsync(toInvoke)
-        @JvmStatic fun invokeOnMainThread(toInvoke: () -> Unit) = MainThreadLocker.invoke(toInvoke)
+        @JvmStatic inline fun invokeOnMainThread(crossinline toInvoke: () -> Unit) = MainThreadLocker.invoke(toInvoke)
     }
 }

@@ -24,10 +24,6 @@ extern "C" {
 		glClear(mask);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glClearColor(JNIEnv*, jobject, jfloat red, jfloat green, jfloat blue, jfloat alpha) {
-		glClearColor(red, green, blue, alpha);
-	}
-
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glViewport(JNIEnv*, jobject, jint x, jint y, jint width, jint height) {
 		glViewport(x, y, width, height);
 	}
@@ -42,6 +38,14 @@ extern "C" {
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glBlendFunc(JNIEnv*, jobject, jint sfactor, jint dfactor) {
 		glBlendFunc(sfactor, dfactor);
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glBindFramebuffer(JNIEnv*, jobject, jint n, jint buffer) {
+		glBindFramebuffer(n, buffer);
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glFlush(JNIEnv*, jobject) {
+		glFlush();
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nInitContext(JNIEnv*, jobject) {
@@ -114,6 +118,17 @@ extern "C" {
 		return tex;
 	}
 
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nBindTextureBuffer(JNIEnv* env, jobject, jint texId) {
+		GLuint framebuffer = 0;
+		glGenFramebuffers(1, &framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		//glBindTexture(GL_TEXTURE_2D, texId);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texId, 0);
+		return framebuffer;
+	}
+
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetLinearFiltering(JNIEnv* env, jobject, jint tex, jboolean linearFiltering) {
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
@@ -153,9 +168,9 @@ extern "C" {
 		glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			GLint infoLen = 0;
-			glGetShaderiv(vertex, GL_INFO_LOG_LENGTH, &infoLen);
+			glGetShaderiv(fragment, GL_INFO_LOG_LENGTH, &infoLen);
 			char* infoLog = new char[infoLen];
-			glGetShaderInfoLog(vertex, infoLen, NULL, infoLog);
+			glGetShaderInfoLog(fragment, infoLen, NULL, infoLog);
 
 			throwJavaException(env, "java/lang/RuntimeException", infoLog);
 			delete[] infoLog;
@@ -206,6 +221,10 @@ extern "C" {
 		float* matrix = (float*)env->GetDirectBufferAddress(_matrix);
 
 		glUniformMatrix4fv(location, 1, GL_TRUE, &matrix[0]);
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glUniform1i(JNIEnv* env, jobject, jint location, jint v0) {
+		glUniform1i(location, v0);
 	}
 
 	/* ================

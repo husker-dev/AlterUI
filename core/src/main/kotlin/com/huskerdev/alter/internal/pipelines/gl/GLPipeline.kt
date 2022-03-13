@@ -1,6 +1,7 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.OS
+import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.ImageType
 import com.huskerdev.alter.internal.Pipeline
@@ -23,6 +24,8 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
 
         val resourcesQueue = LinkedBlockingQueue<() -> Unit>()
 
+        lateinit var resourcesContext: GLResourcesContext
+
         // Platform-specific
         @JvmStatic external fun nMakeCurrent(handle: Long)
         @JvmStatic external fun nSwapBuffers(handle: Long)
@@ -31,22 +34,25 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         const val GL_COLOR_BUFFER_BIT = 0x4000
         const val GL_DEPTH_BUFFER_BIT = 0x100
         const val GL_TEXTURE_2D = 0xDE1
+        const val GL_FRAMEBUFFER = 0x8D40
         const val GL_SRC_ALPHA = 0x0302
         const val GL_ONE_MINUS_SRC_ALPHA = 0x0303
         const val GL_SRC1_COLOR = 0x88F9
         const val GL_ONE_MINUS_SRC1_COLOR = 0x88FA
 
         @JvmStatic external fun glClear(mask: Int)
-        @JvmStatic external fun glClearColor(red: Float, green: Float, blue: Float, alpha: Float)
         @JvmStatic external fun glViewport(x: Int, y: Int, width: Int, height: Int)
         @JvmStatic external fun glUseProgram(program: Int)
         @JvmStatic external fun glBindTexture(target: Int, texture: Int)
         @JvmStatic external fun glBlendFunc(sfactor: Int, dfactor: Int)
+        @JvmStatic external fun glBindFramebuffer(n: Int, buffer: Int)
+        @JvmStatic external fun glFlush()
 
         @JvmStatic external fun nInitContext()
         @JvmStatic external fun nDrawArray(array: FloatBuffer, count: Int, type: Int)
         @JvmStatic external fun nCreateTexture(width: Int, height: Int, channels: Int, data: ByteBuffer): Int
         @JvmStatic external fun nCreateEmptyTexture(width: Int, height: Int, channels: Int): Int
+        @JvmStatic external fun nBindTextureBuffer(texId: Int): Int
         @JvmStatic external fun nSetLinearFiltering(tex: Int, linearFiltering: Boolean)
 
         // GL-Shader
@@ -56,6 +62,26 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         @JvmStatic external fun nSetShaderVariable3f(program: Int, location: Int, val1: Float, val2: Float, val3: Float)
         @JvmStatic external fun nSetShaderVariable1f(program: Int, location: Int, val1: Float)
         @JvmStatic external fun nSetShaderMatrixVariable(program: Int, location: Int, matrix: FloatBuffer)
+        @JvmStatic external fun glUniform1i(location: Int, v0: Int)
+
+        inline fun invokeOnResourceThread(crossinline run: () -> Unit){
+            if(Thread.currentThread() == resourceThread)
+                run()
+            else {
+                val trigger = Trigger()
+                resourcesQueue.offer {
+                    run()
+                    trigger.ready()
+                }
+                trigger.waitForReady()
+            }
+        }
+
+        fun invokeOnResourceThreadAsync(run: () -> Unit){
+            if(Thread.currentThread() == resourceThread)
+                run()
+            else resourcesQueue.offer(run)
+        }
     }
 
     private external fun nCreateWindow(shareWith: Long): Long
@@ -66,21 +92,29 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
             resourceWindow = nCreateWindow(0)
             resourceThread = thread(name = "Alter OpenGL resource", isDaemon = true) {
                 nMakeCurrent(resourceWindow)
-                while(true)
+                nInitContext()
+                resourcesContext = GLResourcesContext(resourceWindow)
+                while(true) {
+                    //nMakeCurrent(resourceWindow)
                     resourcesQueue.take().invoke()
+                }
             }
         }
     }
 
-    override fun createGraphics(window: Window) = GLGraphics(window)
+    override fun createGraphics(window: Window) = WindowGLGraphics(window)
+    override fun createGraphics(image: Image) = ImageGLGraphics(image as GLImage)
+
     override fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?): Image {
         var texId = 0
+        var framebuffer = 0
         invokeOnResourceThread {
             texId = if(data != null)
                 nCreateTexture(width, height, type.channels, data)
             else nCreateEmptyTexture(width, height, type.channels)
+            framebuffer = nBindTextureBuffer(texId)
         }
-        return GLImage(texId, type, width, height)
+        return GLImage(texId, framebuffer, type, width, height)
     }
 
     override fun isMainThreadRequired() = OS.current != OS.Windows
@@ -91,30 +125,13 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
             nMakeCurrent(0)
             MainThreadLocker.invoke {
                 newWindow = Platform.current.createWindowInstance(nCreateWindow(resourceWindow))
+                nMakeCurrent(newWindow.handle)
+                nInitContext()
             }
             nMakeCurrent(resourceWindow)
         }
         windows.add(newWindow)
         return newWindow
-    }
-
-    inline fun invokeOnResourceThread(crossinline run: () -> Unit){
-        if(Thread.currentThread() == resourceThread)
-            run()
-        else {
-            val trigger = Trigger()
-            resourcesQueue.offer {
-                run()
-                trigger.ready()
-            }
-            trigger.waitForReady()
-        }
-    }
-
-    fun invokeOnResourceThreadAsync(run: () -> Unit){
-        if(Thread.currentThread() == resourceThread)
-            run()
-        else resourcesQueue.offer(run)
     }
 
 }

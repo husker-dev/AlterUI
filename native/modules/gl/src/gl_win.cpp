@@ -44,13 +44,9 @@ jlong nCreateWindow(jlong shareWith) {
         WNDCLASS wc = {};
         wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
         wc.lpfnWndProc = (WNDPROC)WndProc;
-        wc.cbClsExtra = 0;
-        wc.cbWndExtra = 0;
         wc.hInstance = GetModuleHandle(NULL);
-        wc.hIcon = NULL;
+        wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.hbrBackground = (HBRUSH)CreateSolidBrush(0xFF00FF);
-        wc.lpszMenuName = NULL;
         wc.lpszClassName = L"alterui_gl";
         RegisterClass(&wc);
 
@@ -150,12 +146,13 @@ jlong nCreateWindow(jlong shareWith) {
 }
 
 void nMakeCurrent(jlong hwnd) {
-    wglMakeCurrent(dc_list[(HWND)hwnd], rc_list[(HWND)hwnd]);
+    if(hwnd != 0)
+        wglMakeCurrent(dc_list[(HWND)hwnd], rc_list[(HWND)hwnd]);
+    else wglMakeCurrent(0, 0);
 }
 
 void nSwapBuffers(jlong hwnd) {
     SwapBuffers(dc_list[(HWND)hwnd]);
-    
 }
 
 #endif

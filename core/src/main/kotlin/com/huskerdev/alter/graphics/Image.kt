@@ -3,9 +3,9 @@ package com.huskerdev.alter.graphics
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.utils.BufferUtils
-import java.io.File
 import java.net.URL
 import java.nio.ByteBuffer
+import java.nio.channels.Pipe
 
 enum class ImageType(val channels: Int) {
     MONO(1),
@@ -46,5 +46,6 @@ abstract class Image(val width: Int, val height: Int, val type: ImageType) {
     }
 
     open var linearFiltered = true
+    open val graphics: Graphics by lazy { Pipeline.current.createGraphics(this) }
 }
 

@@ -7,6 +7,7 @@ import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetLinear
 
 class GLImage(
     val texId: Int,
+    val framebuffer: Int,
     type: ImageType,
     width: Int,
     height: Int
@@ -17,7 +18,7 @@ class GLImage(
         get() = _linearFiltering
         set(value) {
             _linearFiltering = value
-            (Pipeline.current as GLPipeline).invokeOnResourceThread {
+            GLPipeline.invokeOnResourceThread {
                 nSetLinearFiltering(texId, value)
             }
         }

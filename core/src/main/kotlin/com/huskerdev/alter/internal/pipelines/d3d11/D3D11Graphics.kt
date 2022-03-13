@@ -5,26 +5,35 @@ import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.pipelines.d3d11.painters.D3D11ColorPainter
 
-class D3D11Graphics(window: Window): Graphics(window) {
+class D3D11Graphics(window: Window): Graphics() {
 
     private val colorPainterInstance = D3D11ColorPainter()
 
-    override fun beginImpl() {
-        //D3D11Pipeline.setRenderTarget(window.handle)
-        //D3D11Pipeline.setViewport(window.width.toInt(), window.height.toInt())
+
+
+
+
+    override val width: Float
+        get() = TODO("Not yet implemented")
+    override val height: Float
+        get() = TODO("Not yet implemented")
+    override val physicalHeight: Int
+        get() = TODO("Not yet implemented")
+    override val physicalWidth: Int
+        get() = TODO("Not yet implemented")
+    override val dpi: Float
+        get() = TODO("Not yet implemented")
+
+    override fun flush() {
+        TODO("Not yet implemented")
     }
 
-    override fun endImpl() {
-        D3D11Pipeline.nPresent(window.handle)
-    }
-
-    override fun updateTransforms() {
-
-    }
-
+    /*
     override fun clear() {
         D3D11Pipeline.nClear(window.handle)
     }
+
+     */
 
 
     override fun getColorPainter() = colorPainterInstance

@@ -1,24 +1,21 @@
 package com.huskerdev.alter.graphics.painters
 
 import com.huskerdev.alter.graphics.Color
+import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Painter
 
-abstract class ColorPainter: Painter {
+abstract class ColorPainter: Painter() {
 
-    private var colorChanged = true
+    var color = Color.rgba(-1f, -1f, -1f, -1f)
 
-    open var color = Color.black
-        set(value) {
-            field = value
-            colorChanged = true
-        }
+    abstract fun updateColor()
 
-    override fun checkPropertyChanges() {
-        if(colorChanged){
-            colorChanged = false
+    override fun onBeginPaint(graphics: Graphics) {
+        super.onBeginPaint(graphics)
+
+        if(color != graphics.color){
+            color = graphics.color
             updateColor()
         }
     }
-
-    protected abstract fun updateColor()
 }

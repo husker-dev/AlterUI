@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.d3d11
 
+import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.ImageType
 import com.huskerdev.alter.internal.Pipeline
@@ -49,6 +50,10 @@ class D3D11Pipeline: Pipeline.DefaultEventPoll("d3d11") {
     }
 
     override fun createGraphics(window: Window) = D3D11Graphics(window)
+    override fun createGraphics(image: Image): Graphics {
+        TODO("Not yet implemented")
+    }
+
     override fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?): Image {
         TODO("Not yet implemented")
     }

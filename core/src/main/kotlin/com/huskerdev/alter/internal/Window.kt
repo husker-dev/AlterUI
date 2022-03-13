@@ -119,9 +119,9 @@ abstract class Window(val handle: Long) {
     private fun onDrawCallback(){
         if(!visible)
             return
-        graphics.begin()
+        graphics.reset()
         onPaintEvent(graphics)
-        graphics.end()
+        graphics.flush()
     }
 
     @ImplicitUsage

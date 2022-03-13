@@ -24,6 +24,7 @@ abstract class Pipeline {
     abstract fun load()
     abstract fun createWindow(): Window
     abstract fun createGraphics(window: Window): Graphics
+    abstract fun createGraphics(image: Image): Graphics
     abstract fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?): Image
     abstract fun isMainThreadRequired(): Boolean
 
