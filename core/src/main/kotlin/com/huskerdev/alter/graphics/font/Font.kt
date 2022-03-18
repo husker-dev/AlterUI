@@ -1,7 +1,7 @@
 package com.huskerdev.alter.graphics.font
 
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.ImageType
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.utils.BufferUtils
 import java.io.File
@@ -80,7 +80,7 @@ class Font private constructor(
             val bearingX = nGetBearingX(family.face)
             val bearingY = nGetBearingY(family.face)
             val image = if(width > 0 && height > 0) {
-                Image.create(width, height, if(useSubpixel) ImageType.RGB else ImageType.MONO, data).apply {
+                Image.create(width, height, if(useSubpixel) PixelType.RGB else PixelType.MONO, data).apply {
                     linearFiltered = false
                 }
             } else null

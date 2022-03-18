@@ -15,7 +15,6 @@ import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glUseProgr
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glViewport
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.invokeOnResourceThread
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nCreateShaderProgram
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nMakeCurrent
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nReadPixels
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetLinearFiltering
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetShaderVariable1f
@@ -180,7 +179,7 @@ class GLResourcesContext(window: Long): GLContext(window){
     fun readPixels(image: Image, x: Int, y: Int, width: Int, height: Int): ByteBuffer {
         var result: ByteBuffer? = null
         invokeOnResourceThread {
-            result = nReadPixels((image as GLImage).framebuffer, image.type.channels, x, y, width, height)
+            result = nReadPixels((image as GLImage).framebuffer, image.pixelType.channels, x, y, width, height)
         }
         return result!!
     }

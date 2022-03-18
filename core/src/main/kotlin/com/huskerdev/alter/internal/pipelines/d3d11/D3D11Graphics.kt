@@ -1,6 +1,7 @@
 package com.huskerdev.alter.internal.pipelines.d3d11
 
 import com.huskerdev.alter.graphics.Graphics
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.pipelines.d3d11.painters.D3D11ColorPainter
@@ -22,6 +23,8 @@ class D3D11Graphics(window: Window): Graphics() {
     override val physicalWidth: Int
         get() = TODO("Not yet implemented")
     override val dpi: Float
+        get() = TODO("Not yet implemented")
+    override val pixelType: PixelType
         get() = TODO("Not yet implemented")
 
     override fun flush() {

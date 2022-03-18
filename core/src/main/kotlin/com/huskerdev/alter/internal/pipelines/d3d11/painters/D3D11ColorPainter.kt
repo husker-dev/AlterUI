@@ -26,5 +26,9 @@ class D3D11ColorPainter: ColorPainter() {
         TODO("Not yet implemented")
     }
 
+    override fun drawText(textImage: Image, x: Float, y: Float, width: Float, height: Float) {
+        TODO("Not yet implemented")
+    }
+
 
 }

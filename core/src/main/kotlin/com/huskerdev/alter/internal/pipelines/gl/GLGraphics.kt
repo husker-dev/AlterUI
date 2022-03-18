@@ -1,12 +1,8 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.graphics.Graphics
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Window
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_COLOR_BUFFER_BIT
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_DEPTH_BUFFER_BIT
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glClear
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glFlush
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nMakeCurrent
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSwapBuffers
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.resourcesContext
 import com.huskerdev.alter.internal.pipelines.gl.painters.GLColorPainter
@@ -34,6 +30,8 @@ class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourc
         get() = image.width
     override val dpi: Float
         get() = 1f
+    override val pixelType: PixelType
+        get() = image.pixelType
 }
 
 class WindowGLGraphics(val window: Window): GLGraphics(0, GLContext(window.handle)) {
@@ -47,6 +45,8 @@ class WindowGLGraphics(val window: Window): GLGraphics(0, GLContext(window.handl
         get() = window.clientWidth
     override val dpi: Float
         get() = window.dpi
+    override val pixelType: PixelType
+        get() = PixelType.RGBA
 
     override fun flush() {
         nSwapBuffers(window.handle)

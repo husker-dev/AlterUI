@@ -3,7 +3,12 @@ package com.huskerdev.alter.graphics
 import com.huskerdev.alter.graphics.font.Font
 import com.huskerdev.alter.graphics.painters.*
 import com.huskerdev.alter.internal.Platform
-import com.huskerdev.alter.internal.Window
+
+enum class PixelType(val channels: Int) {
+    MONO(1),
+    RGB(3),
+    RGBA(4)
+}
 
 abstract class Graphics {
 
@@ -11,11 +16,11 @@ abstract class Graphics {
 
     abstract val width: Float
     abstract val height: Float
-
     abstract val physicalHeight: Int
     abstract val physicalWidth: Int
 
     abstract val dpi: Float
+    abstract val pixelType: PixelType
 
     // ColorPainter is default
     open var painter: Painter? = null
@@ -73,6 +78,13 @@ abstract class Graphics {
             painter!!.runPaint {
                 drawImage(image, x, y, width, height)
             }
+        }
+    }
+
+    fun drawText(text: String, x: Float, y: Float) {
+        val rasterizer = font.derived(font.size * dpi).getRasterMetrics(text, false)
+        painter!!.runPaint {
+            drawText(rasterizer.rasterImage, x, y, rasterizer.width / dpi, rasterizer.height / dpi)
         }
     }
 

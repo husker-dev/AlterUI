@@ -41,7 +41,7 @@ object D3D9ImagePainter: ImagePainter(), D3D9Painter {
     //override fun updateColor() = pixel.set4f("u_Color", color.r, color.g, color.b, color.a)
     override fun updateSize() = pixel.set4f("u_Bounds", x, y, width, height)
     override fun updateImage() {
-        pixel.set("u_TextureColors", image!!.type.channels.toFloat())
+        pixel.set("u_TextureColors", image!!.pixelType.channels.toFloat())
         nSetTexture((image as D3D9Image).ptr)
     }
 
@@ -59,5 +59,9 @@ object D3D9ImagePainter: ImagePainter(), D3D9Painter {
     override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
         pixel.set("u_RenderType", 3f)
         VertexPaintHelper.fillRect(x, y, width, height, ::drawVertices)
+    }
+
+    override fun drawText(textImage: Image, x: Float, y: Float, width: Float, height: Float) {
+        TODO("Not yet implemented")
     }
 }

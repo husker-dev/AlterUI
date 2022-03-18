@@ -13,5 +13,5 @@ void main(){
    );
    ortho = transpose(ortho);
 
-   gl_Position = ortho * vec4(a_Position.xyz, 1.0);
+   gl_Position = ortho * vec4(a_Position.x, u_ViewportHeight - a_Position.y, a_Position.z, 1.0);
 }

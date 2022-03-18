@@ -3,7 +3,7 @@ package com.huskerdev.alter.internal
 import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.ImageType
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import java.nio.ByteBuffer
@@ -25,7 +25,7 @@ abstract class Pipeline {
     abstract fun createWindow(): Window
     abstract fun createGraphics(window: Window): Graphics
     abstract fun createGraphics(image: Image): Graphics
-    abstract fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?): Image
+    abstract fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?): Image
     abstract fun isMainThreadRequired(): Boolean
 
     abstract class DefaultEventPoll(private val libName: String): Pipeline() {

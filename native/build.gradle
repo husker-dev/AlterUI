@@ -42,11 +42,18 @@ void buildProject(String project, String... defs){
         String msbuildPath = getCommandOut("${projectDir}\\vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe")
         println("Compiling native module \"${project.split("/").last()}\":")
         for (i in ["x86", "x64", "ARM64"]) {
-            String result = runCommand(
-                    "${defs.length > 0? "set CL=/D${String.join(";", defs)} &&": ""} " +                                                // Definitions
-                    "\"${msbuildPath}\" \"${project}\" /t:Rebuild /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")  // Compilation script
-                    ? "OK" : "ERROR"
-            println("\t- $i${".".repeat(15 - i.length())}[${result}]")
+            ConsoleOutput output = runCommand(
+                    "${defs.length > 0 ? "set CL=/D${String.join(";", defs)} && ": ""}" +                                                // Definitions
+                    "\"${msbuildPath}\" \"${project}\" /t:Rebuild /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")   // Compilation script
+
+            String status
+            if(output.code != 0){
+                if(output.text.contains("error MSB4126"))
+                    status = "NO MODULE"
+                else status = "ERROR"
+            }else status = "OK"
+
+            println("\t- $i${".".repeat(15 - i.length())}[${status}]")
         }
     }
 }
@@ -57,19 +64,16 @@ static String getCommandOut(String command) {
     return new BufferedReader(new InputStreamReader(p.inputStream)).lines().collect(Collectors.joining("\n"));
 }
 
-boolean runCommand(String command){
+ConsoleOutput runCommand(String command){
     if(DEBUG)
         println ">> ${command}"
-    String suffix = isWin() ? "cmd /c " : ""
+    String suffix = (isWin() && command.contains("&&")) ? "cmd /c " : ""
 
     Process p = Runtime.runtime.exec("${suffix}${command}")
     String out = new BufferedReader(new InputStreamReader(p.inputStream)).lines().collect(Collectors.joining("\n"))
-    boolean result = p.waitFor() == 0
+    int code = p.waitFor()
 
-    if(!result && DEBUG)
-        System.out.println(out)
-
-    return result
+    return new ConsoleOutput(code, out)
 }
 
 static boolean isWin(){
@@ -79,4 +83,14 @@ static boolean isWin(){
 static String getPlatformName(){
     if(isWin())
         return "win"
+}
+
+class ConsoleOutput {
+    int code
+    String text
+
+    ConsoleOutput(int code, String text){
+        this.code = code
+        this.text = text
+    }
 }

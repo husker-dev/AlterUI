@@ -29,4 +29,8 @@ class D3D9ColorPainter: ColorPainter(), D3D9Painter {
     override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
         TODO("Not yet implemented")
     }
+
+    override fun drawText(textImage: Image, x: Float, y: Float, width: Float, height: Float) {
+        TODO("Not yet implemented")
+    }
 }

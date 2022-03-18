@@ -19,8 +19,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         int iWindowHeight = prcNewWindow->bottom - prcNewWindow->top;
         SetWindowPos(hwnd, nullptr, iWindowX, iWindowY, iWindowWidth, iWindowHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 
-        SendMessage(hwnd, WM_PAINT, NULL, NULL);
-
         return 0;
     }
     case WM_DESTROY:
@@ -31,7 +29,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         baseProcs[hwnd](hwnd, uMsg, wParam, lParam);
         baseProcs.erase(baseProcs.find(hwnd));
 
-        // Clear all maps
+        // Clear callbacks
         callbackObjects.erase(callbackObjects.find(hwnd));
 
         return 0;
@@ -53,8 +51,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         RECT window;
         GetWindowRect(hwnd, &window);
 
-        callback(jvm, callbackObjects[hwnd], onResizedCallback, 
-            GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), 
+        callback(jvm, callbackObjects[hwnd], onResizedCallback,
+            GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),
             window.right - window.left, window.bottom - window.top
         );
         break;
@@ -64,7 +62,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         //SendMessage(hwnd, WM_PAINT, NULL, NULL);
         return TRUE;
     }
-    
+
     return baseProcs[hwnd](hwnd, uMsg, wParam, lParam);
 }
 
@@ -84,45 +82,44 @@ jfloat nGetDpi(jlong hwnd) {
     return (float)GetDpiForWindow((HWND)hwnd) / 96;
 }
 
-void nSetIcon(jlong hwnd, jint width, jint height, jint channels, char* data) {
-    
-    HICON hIcon = NULL;
+void nSetIcon(jlong hwnd, jint width, jint height, jint channels, char* data, boolean isBig) {
+    int size = width > height ? width : height;
 
-    ICONINFO iconInfo = {
-        TRUE, // fIcon, set to true if this is an icon, set to false if this is a cursor
-        NULL, // xHotspot, set to null for icons
-        NULL, // yHotspot, set to null for icons
-        NULL, // Monochrome bitmap mask, set to null initially
-        NULL  // Color bitmap mask, set to null initially
-    };
-
-    char* rawBitmap = new char[width * height * 4];
+    char* bitmap = new char[width * height * 4];
 
     for (unsigned int i = 0, s = 0;
         i < width * height * 4;
         i += 4, s += channels
     ) {
-        rawBitmap[i] = data[s + 2];
-        rawBitmap[i + 1] = data[s + 1];
-        rawBitmap[i + 2] = data[s];
-        rawBitmap[i + 3] = channels == 3 ? 255 : data[s + 3];
+        bitmap[i] = data[s + 2];
+        bitmap[i + 1] = data[s + 1];
+        bitmap[i + 2] = data[s];
+        bitmap[i + 3] = channels == 3 ? 255 : data[s + 3];
     }
 
-    iconInfo.hbmColor = CreateBitmap(width, height, 1, 32, rawBitmap);
+    ICONINFO iconInfo = {};
+    iconInfo.hbmColor = CreateBitmap(width, height, 1, 32, bitmap);
     iconInfo.hbmMask = CreateCompatibleBitmap(GetDC((HWND)hwnd), width, height);
-    hIcon = CreateIconIndirect(&iconInfo);
+    HICON hIcon = CreateIconIndirect(&iconInfo);
 
     DeleteObject(iconInfo.hbmMask);
     DeleteObject(iconInfo.hbmColor);
-    delete[] rawBitmap;
+    delete[] bitmap;
 
-    SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-    SendMessage((HWND)hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-    SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, (LPARAM)hIcon);
+    if (isBig) {
+        SendMessage((HWND)hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    } else {
+        SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+        SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, (LPARAM)hIcon);
+    }
 }
 
 void nSetDefaultIcon(jlong hwnd) {
-    LPARAM icon = (LPARAM)LoadIcon(NULL, IDI_APPLICATION);
+    SHSTOCKICONINFO sii;
+    sii.cbSize = sizeof(sii);
+    SHGetStockIconInfo(SIID_APPLICATION, SHGSI_ICON | SHGSI_LARGEICON, &sii);
+
+    LPARAM icon = (LPARAM)sii.hIcon;
     SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL, icon);
     SendMessage((HWND)hwnd, WM_SETICON, ICON_BIG, icon);
     SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, icon);

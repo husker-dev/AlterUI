@@ -1,21 +1,14 @@
 package com.huskerdev.alter.internal.platforms.win
 
 import com.huskerdev.alter.internal.Platform
+import com.huskerdev.alter.internal.c_wideBytes
 import com.huskerdev.alter.internal.utils.BufferUtils
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-val String.wideBytes: ByteArray
-    get() = encodeToByteArray().wideBytes
-val String.c_wideBytes: ByteArray
-    get() = encodeToByteArray().wideBytes.c_wstr
-val ByteArray.wideBytes: ByteArray
-    get() = String(this, StandardCharsets.UTF_8).toByteArray(StandardCharsets.UTF_16LE)
-val ByteArray.utf8Bytes: ByteArray
-    get() = String(this, StandardCharsets.UTF_16LE).toByteArray(StandardCharsets.UTF_8)
-val ByteArray.utf8Text: String
-    get() = String(this, StandardCharsets.UTF_16LE)
+
+
 
 val ByteArray.c_wstr: ByteArray
     get() {

@@ -17,6 +17,7 @@ abstract class GLPainterDescriptor {
     private var varDpi = 0
     private var varTextureBounds = 0
     private var varTextureColors = 0
+    private var varColorChannels = 0
 
     private var lastViewportWidth = 0f
     private var lastViewportHeight = 0f
@@ -43,11 +44,13 @@ abstract class GLPainterDescriptor {
             varDpi = shader[context, "u_Dpi"]
             varTextureBounds = shader[context, "u_TextureBounds"]
             varTextureColors = shader[context, "u_TextureColors"]
+            varColorChannels = shader[context, "u_ColorChannels"]
         }
         context.shader = shader
         context.boundFramebuffer = graphics.framebuffer
         context.setViewport(graphics.physicalWidth, graphics.physicalHeight)
         updateShaderViewport(graphics)
+        shader[context, varColorChannels] = graphics.pixelType.channels.toFloat()
     }
 
     fun onEndPaint(){
@@ -83,9 +86,17 @@ abstract class GLPainterDescriptor {
 
     fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
         shader[context, varRenderType] = 3f
-        shader[context, varTextureColors] = image.type.channels.toFloat()
+        shader[context, varTextureColors] = image.pixelType.channels.toFloat()
         shader.set4f(context, varTextureBounds, x, y, width, height)
         context.bindTexture(0, (image as GLImage).texId)
+        VertexPaintHelper.fillRect(x, y, width, height, context::drawArray)
+    }
+
+    fun drawText(textImage: Image, x: Float, y: Float, width: Float, height: Float) {
+        shader[context, varRenderType] = 4f
+        shader[context, varTextureColors] = textImage.pixelType.channels.toFloat()
+        shader.set4f(context, varTextureBounds, x, y, width, height)
+        context.bindTexture(0, (textImage as GLImage).texId)
         VertexPaintHelper.fillRect(x, y, width, height, context::drawArray)
     }
 

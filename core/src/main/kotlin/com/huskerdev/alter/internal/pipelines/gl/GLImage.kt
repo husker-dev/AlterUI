@@ -1,14 +1,14 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.ImageType
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.resourcesContext
 import java.nio.ByteBuffer
 
 class GLImage(
     val texId: Int,
     val framebuffer: Int,
-    type: ImageType,
+    type: PixelType,
     width: Int,
     height: Int
 ): Image(width, height, type) {
@@ -25,6 +25,6 @@ class GLImage(
         get() = resourcesContext.readPixels(this, 0, 0, width, height)
 
     override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int) =
-        create(width, height, type, resourcesContext.readPixels(this, x, y, width, height))
+        create(width, height, pixelType, resourcesContext.readPixels(this, x, y, width, height))
 
 }

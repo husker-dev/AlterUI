@@ -2,7 +2,7 @@ package com.huskerdev.alter.internal.pipelines.d3d9
 
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.ImageType
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
@@ -62,7 +62,7 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
         TODO("Not yet implemented")
     }
 
-    override fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?) = D3D9Image(width, height, type, data)
+    override fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?) = D3D9Image(width, height, type, data)
 
     override fun isMainThreadRequired() = true
 

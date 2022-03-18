@@ -3,6 +3,8 @@ out vec4 color;
 
 uniform float u_Dpi;
 uniform float u_RenderType;
+uniform float u_ColorChannels;
+uniform float u_ViewportHeight;
 
 uniform vec4 u_Color;
 
@@ -11,6 +13,7 @@ uniform vec4 u_TextureBounds;
 uniform float u_TextureColors;
 
 vec2 getTextureCoord(vec4 bounds, float dpi){
+    bounds.y = u_ViewportHeight - bounds.y - bounds.w;
     bounds *= vec4(u_Dpi, u_Dpi, u_Dpi, u_Dpi);
     bounds.y -= 0.1;    // 0.1 - for pixel-perfect on HiDPI (idk why)
 
@@ -23,10 +26,18 @@ vec2 getTextureCoord(vec4 bounds, float dpi){
 void main(){
     if(u_RenderType == 1)
         color = u_Color;
-    if(u_RenderType == 3)
+    if(u_RenderType == 3){
+        /*
+        if(u_ColorChannels == 1)
+            color = vec4(texture(u_Texture, getTextureCoord(u_TextureBounds, u_Dpi)).r, 1, 1, 1);
+        else
+        */
         color = texture(u_Texture, getTextureCoord(u_TextureBounds, u_Dpi)) * u_Color;
-
+    }
+    if(u_RenderType == 4){
+        if(u_ColorChannels == 1)
+            color = vec4(texture(u_Texture, getTextureCoord(u_TextureBounds, u_Dpi)).r, 1, 1, 1);
+        else
+            color = vec4(1, 1, 1, texture(u_Texture, getTextureCoord(u_TextureBounds, u_Dpi)).r);
+    }
 }
-
-
-

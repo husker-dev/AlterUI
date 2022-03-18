@@ -2,8 +2,10 @@ package com.huskerdev.alter.internal
 
 import com.huskerdev.alter.OS
 import com.huskerdev.alter.internal.platforms.win.WindowsPlatform
+import com.huskerdev.alter.internal.platforms.win.c_wstr
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 val String.c_str: ByteArray
     get() = encodeToByteArray().c_str
@@ -14,6 +16,18 @@ val ByteArray.c_str: ByteArray
         System.arraycopy(this, 0, cBytes, 0, this.size)
         return cBytes
     }
+
+// For windows platform
+val String.wideBytes: ByteArray
+    get() = encodeToByteArray().wideBytes
+val String.c_wideBytes: ByteArray
+    get() = encodeToByteArray().wideBytes.c_wstr
+val ByteArray.wideBytes: ByteArray
+    get() = String(this, StandardCharsets.UTF_8).toByteArray(StandardCharsets.UTF_16LE)
+val ByteArray.utf8BytesFromWide: ByteArray
+    get() = String(this, StandardCharsets.UTF_16LE).toByteArray(StandardCharsets.UTF_8)
+val ByteArray.utf8TextFromWide: String
+    get() = String(this, StandardCharsets.UTF_16LE)
 
 abstract class Platform {
 

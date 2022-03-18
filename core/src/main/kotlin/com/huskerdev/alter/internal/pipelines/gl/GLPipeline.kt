@@ -1,9 +1,8 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.OS
-import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.ImageType
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.Window
@@ -106,7 +105,7 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
     override fun createGraphics(window: Window) = WindowGLGraphics(window)
     override fun createGraphics(image: Image) = ImageGLGraphics(image as GLImage)
 
-    override fun createImage(type: ImageType, width: Int, height: Int, data: ByteBuffer?): Image {
+    override fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?): Image {
         var texId = 0
         var framebuffer = 0
         invokeOnResourceThread {

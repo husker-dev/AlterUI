@@ -3,23 +3,35 @@ package com.huskerdev.alter.graphics
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.utils.BufferUtils
+import java.io.File
 import java.net.URL
 import java.nio.ByteBuffer
-import java.nio.channels.Pipe
 
-enum class ImageType(val channels: Int) {
-    MONO(1),
-    RGB(3),
-    RGBA(4)
+enum class ResizeAlgorithm(val index: Int){
+    Default(0),
+    Box(1),
+    Triangle(2),
+    CubicSpline(3),
+    CatmullRom(4),
+    Mitchell(5)
 }
 
-abstract class Image(val width: Int, val height: Int, val type: ImageType) {
+enum class ImageFileType(val index: Int){
+    PNG(0),
+    JPEG(1),
+    BMP(2),
+    TGA(3)
+}
+
+abstract class Image(val width: Int, val height: Int, val pixelType: PixelType) {
 
     companion object {
 
         @JvmStatic private external fun nGetBitmap(data: ByteBuffer): ByteBuffer
         @JvmStatic private external fun nGetBitmapFromFile(path: ByteBuffer): ByteBuffer
         @JvmStatic private external fun nReleaseBitmap(data: ByteBuffer)
+        @JvmStatic private external fun nResize(data: ByteBuffer, oldWidth: Int, oldHeight: Int, components: Int, newWidth: Int, newHeight: Int, type: Int): ByteBuffer
+        @JvmStatic private external fun nWriteToFile(type: Int, path: ByteBuffer, data: ByteBuffer, width: Int, height: Int, components: Int, quality: Int)
 
         fun create(data: ByteArray) = create(BufferUtils.createByteBuffer(*data))
         fun create(data: ByteBuffer): Image{
@@ -40,9 +52,9 @@ abstract class Image(val width: Int, val height: Int, val type: ImageType) {
             return image
         }
 
-        fun create(width: Int, height: Int, type: ImageType, bitmap: ByteBuffer) = Pipeline.current.createImage(type, width, height, bitmap)
+        fun create(width: Int, height: Int, type: PixelType, bitmap: ByteBuffer) = Pipeline.current.createImage(type, width, height, bitmap)
 
-        fun createEmpty(width: Int, height: Int, type: ImageType = ImageType.RGBA) = Pipeline.current.createImage(type, width, height, null)
+        fun createEmpty(width: Int, height: Int, type: PixelType = PixelType.RGBA) = Pipeline.current.createImage(type, width, height, null)
     }
 
     open var linearFiltered = true
@@ -56,8 +68,28 @@ abstract class Image(val width: Int, val height: Int, val type: ImageType) {
     }
 
     fun getSubImage(width: Int, height: Int) = getSubImage(0, 0, width, height)
+    fun getResized(newWidth: Int, newHeight: Int, resizeType: ResizeAlgorithm = ResizeAlgorithm.Box) =
+        create(newWidth, newHeight, pixelType, nResize(data, width, height, pixelType.channels, newWidth, newHeight, resizeType.index))
 
     protected abstract fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int): Image
 
+    /**
+     *   quality -
+     *      - For JPEG 1..100 (higher is better quality)
+     *      - For PNG 1..999 (higher is better compression)
+     */
+    fun writeToFile(file: File, type: ImageFileType = ImageFileType.PNG, quality: Int = -1){
+        val path = file.absolutePath.c_str
+
+
+        nWriteToFile(type.index, BufferUtils.createByteBuffer(*path), data, width, height, pixelType.channels, quality)
+    }
+
+    /**
+     *   quality -
+     *      - For JPEG 0..100 (higher is better quality)
+     *      - For PNG 1..999 (higher is better compression)
+     */
+    fun writeToFile(filePath: String, type: ImageFileType = ImageFileType.PNG, quality: Int = -1) = writeToFile(File(filePath), type, quality)
 }
 

@@ -1,5 +1,7 @@
 package com.huskerdev.alter.graphics.font
 
+import com.huskerdev.alter.graphics.Image
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.utils.BufferUtils
 import java.nio.ByteBuffer
@@ -34,6 +36,8 @@ class FontRasterMetrics(
     val glyphs: Array<Glyph>
     private val glyphX = hashMapOf<Int, Int>()
     private val glyphY = hashMapOf<Int, Int>()
+
+    val rasterImage: Image
 
     init {
         val family = font.family
@@ -83,6 +87,22 @@ class FontRasterMetrics(
 
         width = (maxX - minX).toInt()
         height = (maxY - minY).toInt()
+
+        println("$width $height")
+
+        rasterImage = Image.createEmpty(width, height, PixelType.MONO)
+        val rasterGraphics = rasterImage.graphics
+
+        for(i in 0 until count){
+            if(glyphs[i].image != null) {
+                rasterGraphics.drawImage(glyphs[i].image!!,
+                    getGlyphX(i).toFloat(), getGlyphY(i).toFloat(),
+                    glyphs[i].width.toFloat(), glyphs[i].height.toFloat()
+                )
+            }
+        }
+
+
     }
 
     fun getGlyphX(index: Int) = glyphX[index]!!

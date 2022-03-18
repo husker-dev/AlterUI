@@ -2,6 +2,7 @@ package com.huskerdev.alter.internal.pipelines.d3d9
 
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Painter
+import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Window
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nBeginScene
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nClear
@@ -49,6 +50,8 @@ class D3D9Graphics(window: Window): Graphics() {
     override val physicalWidth: Int
         get() = TODO("Not yet implemented")
     override val dpi: Float
+        get() = TODO("Not yet implemented")
+    override val pixelType: PixelType
         get() = TODO("Not yet implemented")
 
     override fun flush() {

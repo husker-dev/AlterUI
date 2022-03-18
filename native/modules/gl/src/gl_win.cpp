@@ -45,7 +45,13 @@ jlong nCreateWindow(jlong shareWith) {
         wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
         wc.lpfnWndProc = (WNDPROC)WndProc;
         wc.hInstance = GetModuleHandle(NULL);
-        wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+
+        // Set default application icon
+        SHSTOCKICONINFO sii;
+        sii.cbSize = sizeof(sii);
+        SHGetStockIconInfo(SIID_APPLICATION, SHGSI_ICON | SHGSI_LARGEICON, &sii);
+        wc.hIcon = sii.hIcon;
+        
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         wc.lpszClassName = L"alterui_gl";
         RegisterClass(&wc);
@@ -135,6 +141,8 @@ jlong nCreateWindow(jlong shareWith) {
     if (!(rc = wglCreateContextAttribsARB(dc, share_rc, context_attributes)))
         throwError("Failed to create context (WGL)");
 
+    // Disable V-Sync
+    wglMakeCurrent(dc, rc);
     wglSwapIntervalEXT(0);
     
     // Save pointers

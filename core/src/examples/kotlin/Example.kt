@@ -2,13 +2,13 @@ import com.huskerdev.alter.AlterUI
 import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.components.Frame
 import com.huskerdev.alter.graphics.Color
-import com.huskerdev.alter.graphics.font.Font
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
+import com.huskerdev.alter.graphics.ResizeAlgorithm
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import java.io.File
-import java.lang.Thread.sleep
 import kotlin.concurrent.thread
+import kotlin.math.sin
 
 fun main() = AlterUI.takeMain {
     LibraryLoader.alternativePaths["com/huskerdev/alter/resources/gl/gl_x64.dll"] =
@@ -37,24 +37,30 @@ fun main() = AlterUI.takeMain {
             //gr.fillRect(0f, 0f, 200f, 200f)
 
             gr.color = Color.white
+            //gr.font = gr.font.derived(100f)
+
+            //gr.drawText("Test", 50f, 50f)
 
             if(firstImage != null)
-                gr.drawImage(firstImage!!, 0f, 0f, width, height)
+                gr.drawImage(firstImage!!, 50f, 50f, 100f, 100f)
         }
     }
     window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
-
-    window.background = Color.white
+    //window.icon = Image.create("C:\\Users\\redfa\\Desktop\\Check_green_icon.svg.png")
+    window.background = Color.blue
     window.visible = true
 
     thread {
-        firstImage = Image.create("C:\\Users\\redfa\\Desktop\\avatar_transparent.png")
-        firstImage!!.linearFiltered = false
-
-        //firstImage = firstImage!!.getSubImage(0, 0, firstImage!!.width / 2, firstImage!!.height / 2)
+        firstImage = Image.create("C:\\Users\\redfa\\Desktop\\15104f78cb83e3cefaf63ecc718a2a43.jpg")
+        firstImage!!.writeToFile("aboba.png")
         window.icon = firstImage
 
-        //window.repaint()
+        //firstImage = firstImage!!.getResized((32 * 1.75).toInt(), (32 * 1.75).toInt(), ResizeType.Mitchell)
+        //firstImage!!.linearFiltered = false
+        //firstImage = firstImage!!.getSubImage(0, 0, firstImage!!.width / 2, firstImage!!.height / 2)
+        //window.icon = firstImage
+
+        window.repaint()
 
         /*
         val graphics = firstImage!!.graphics
@@ -64,7 +70,7 @@ fun main() = AlterUI.takeMain {
 
          */
 
-        window.repaint()
+
     }
 
     val current = System.nanoTime()

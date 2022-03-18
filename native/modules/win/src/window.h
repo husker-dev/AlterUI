@@ -27,7 +27,7 @@ void nSetVisible(jlong hwnd, jboolean visible);
 void nSetTitle(jlong hwnd, jbyte* title);
 void nSetSize(jlong hwnd, jint x, jint y, jint width, jint height);
 jfloat nGetDpi(jlong hwnd);
-void nSetIcon(jlong hwnd, jint width, jint height, jint channels, char* data);
+void nSetIcon(jlong hwnd, jint width, jint height, jint channels, char* data, boolean isBig);
 void nSetDefaultIcon(jlong hwnd);
 
 // WindowsPlatform
@@ -56,6 +56,9 @@ extern "C" {
 
 		callbackObjects[(HWND)hwnd] = object;
 		baseProcs[(HWND)hwnd] = (WNDPROC)SetWindowLongPtr((HWND)hwnd, GWLP_WNDPROC, (LONG_PTR)&WndProc);
+
+		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetVisible(JNIEnv*, jobject, jlong hwnd, jboolean visible) {
@@ -76,8 +79,8 @@ extern "C" {
 		return nGetDpi(hwnd);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIcon(JNIEnv* env, jobject, jlong hwnd, jint width, jint height, jint channels, jobject data) {
-		nSetIcon(hwnd, width, height, channels, (char*)env->GetDirectBufferAddress(data));
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIcon(JNIEnv* env, jobject, jlong hwnd, jint width, jint height, jint channels, jobject data, boolean isBig) {
+		nSetIcon(hwnd, width, height, channels, (char*)env->GetDirectBufferAddress(data), isBig);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetDefaultIcon(JNIEnv*, jobject, jlong hwnd) {

@@ -1,5 +1,7 @@
 package com.huskerdev.alter.graphics
 
+import com.huskerdev.alter.graphics.font.FontRasterMetrics
+
 abstract class Painter {
 
     lateinit var currentGraphics: Graphics
@@ -23,4 +25,5 @@ abstract class Painter {
     abstract fun fillRect(x: Float, y: Float, width: Float, height: Float)
     abstract fun drawRect(x: Float, y: Float, width: Float, height: Float)
     abstract fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float)
+    abstract fun drawText(textImage: Image, x: Float, y: Float, width: Float, height: Float)
 }

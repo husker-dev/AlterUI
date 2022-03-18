@@ -4,8 +4,6 @@ import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.ImagePainter
 import com.huskerdev.alter.internal.pipelines.gl.GLImage
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_TEXTURE_2D
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glBindTexture
 import com.huskerdev.alter.internal.pipelines.gl.GLShader
 
 object GLImagePainter: ImagePainter() {
@@ -46,7 +44,7 @@ object GLImagePainter: ImagePainter() {
     override fun updateColor() = descriptor.shader.set4f(descriptor.context, descriptor.colorVar, color.r, color.g, color.b, color.a)
     override fun updateSize() = descriptor.shader.set4f(descriptor.context, descriptor.boundsVar, x, y, width, height)
     override fun updateImage() {
-        descriptor.shader[descriptor.context, descriptor.textureColorsVar] = image!!.type.channels.toFloat()
+        descriptor.shader[descriptor.context, descriptor.textureColorsVar] = image!!.pixelType.channels.toFloat()
         descriptor.context.bindTexture(1, (image as GLImage).texId)
     }
 
@@ -54,4 +52,5 @@ object GLImagePainter: ImagePainter() {
     override fun fillRect(x: Float, y: Float, width: Float, height: Float) = descriptor.fillRect(x, y, width, height)
     override fun drawRect(x: Float, y: Float, width: Float, height: Float) = descriptor.drawRect(x, y, width, height)
     override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) = descriptor.drawImage(image, x, y, width, height)
+    override fun drawText(textImage: Image, x: Float, y: Float, width: Float, height: Float) = descriptor.drawText(textImage, x, y, width, height)
 }
