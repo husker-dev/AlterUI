@@ -125,6 +125,25 @@ void nSetDefaultIcon(jlong hwnd) {
     SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, icon);
 }
 
+void nSetIconState(jlong hwnd, jint state) {
+    TBPFLAG winState = TBPF_NOPROGRESS;
+    if (state == 0)
+        winState = TBPF_NORMAL;
+    else if(state == 1)
+        winState = TBPF_PAUSED;
+    else if(state == 2)
+        winState = TBPF_ERROR;
+    else if (state == 3)
+        winState = TBPF_INDETERMINATE;
+
+    taskbars[(HWND)hwnd]->SetProgressState((HWND)hwnd, winState);
+}
+
+void nSetIconProgress(jlong hwnd, jfloat progress) {
+    int range = 300;
+    taskbars[(HWND)hwnd]->SetProgressValue((HWND)hwnd, progress * range, range);
+}
+
 void nSetBackground(jlong hwnd, int color) {
     HBRUSH brush = CreateSolidBrush(color);
     SetClassLongPtr((HWND)hwnd, GCLP_HBRBACKGROUND, (LONG_PTR)brush);

@@ -6,6 +6,13 @@ import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 
+enum class WindowStatus {
+    Default,
+    Paused,
+    Error,
+    InProgress
+}
+
 abstract class Window(val handle: Long) {
 
     companion object {
@@ -16,33 +23,33 @@ abstract class Window(val handle: Long) {
         }
     }
 
-    var background = Color.white
+    open var background = Color.white
         set(value) {
             field = value
             repaint()
         }
 
-    var visible = false
+    open var visible = false
         set(value) {
             field = value
             invokeOnMainIfRequired { setVisibleImpl(value) }
             repaint()
         }
 
-    var title: String = ""
+    open var title: String = ""
         set(value) {
             field = value
             invokeOnMainIfRequired { setTitleImpl(value) }
         }
 
-    var icon: Image? = null
+    open var icon: Image? = null
         set(value) {
             field = value
             invokeOnMainIfRequired { setIconImpl(value) }
         }
 
     private var _x = 0f
-    var x: Float
+    open var x: Float
         get() = _x
         set(value) {
             _x = value
@@ -50,7 +57,7 @@ abstract class Window(val handle: Long) {
         }
 
     private var _y = 0f
-    var y: Float
+    open var y: Float
         get() = _y
         set(value) {
             _y = value
@@ -58,7 +65,7 @@ abstract class Window(val handle: Long) {
         }
 
     private var _width = 0f
-    var width: Float
+    open var width: Float
         get() = _width
         set(value) {
             _width = value
@@ -66,11 +73,27 @@ abstract class Window(val handle: Long) {
         }
 
     private var _height = 0f
-    var height: Float
+    open var height: Float
         get() = _height
         set(value) {
             _height = value
             invokeOnMainIfRequired { setSizeImpl(physicalX, physicalY, physicalWidth, (value * dpi).toInt()) }
+        }
+
+    private var _status = WindowStatus.Default
+    open var status: WindowStatus
+        get() = _status
+        set(value) {
+            _status = value
+            invokeOnMainIfRequired { setStatusImpl(value) }
+        }
+
+    private var _progress = -1f
+    open var progress: Float
+        get() = _progress
+        set(value) {
+            _progress = value
+            invokeOnMainIfRequired { setProgressImpl(value) }
         }
 
     var clientWidth = 0
@@ -119,6 +142,9 @@ abstract class Window(val handle: Long) {
     protected abstract fun setTitleImpl(title: String)
     protected abstract fun setSizeImpl(x: Int, y: Int, width: Int, height: Int)
     protected abstract fun setIconImpl(image: Image?)
+    protected abstract fun setStatusImpl(status: WindowStatus)
+    protected abstract fun setProgressImpl(progress: Float)
+
     protected abstract fun requestRepaint()
 
     fun repaint() = invokeOnMainIfRequired { requestRepaint() }

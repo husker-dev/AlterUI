@@ -20,6 +20,8 @@ open class Frame {
     var background by peer::background
     var visible by peer::visible
     var icon by peer::icon
+    var status by peer::status
+    var progress by peer::progress
 
     fun onClosed(listener: () -> Unit) = peer.onClosedListeners.add(listener)
     fun onResized(listener: () -> Unit) = peer.onResizedListeners.add(listener)

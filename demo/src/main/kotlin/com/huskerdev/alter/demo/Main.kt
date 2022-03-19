@@ -6,34 +6,31 @@ import com.huskerdev.alter.components.Frame
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.ResizeAlgorithm
-import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
 fun main() = AlterUI.takeMain {
     AlterUI.load()
 
-    var image: Image? = null
-    var scaled = arrayListOf<Image>()
-    var filtered = false
+    val images = arrayListOf<Image>()
 
     val frame = object: Frame(){
         override fun paint(gr: Graphics) {
             super.paint(gr)
 
-            if(image == null)
-                return
+
             //gr.color = Color.black
-            gr.color = if(filtered) Color.green else Color.red
-            gr.fillRect(0f, height - 100f, 100f, 100f)
-
             gr.color = Color.white
-            var x = 0f
-            for(i in 0..5){
-                gr.drawImage(if(filtered) scaled[i] else image!!, x, 0f, x + 20, x + 20)
-                x += x + 20
-            }
+            var x = 0
+            var y = 0
+            for(image in images){
+                gr.drawImage(image, x.toFloat(), y.toFloat(), 150f, 150f)
 
+                x += 150
+                if(x > 500){
+                    x = 0
+                    y += 150
+                }
+            }
         }
     }
 
@@ -45,18 +42,22 @@ fun main() = AlterUI.takeMain {
     frame.visible = true
 
     thread {
-        image = Image.createFromURL("https://sun2-12.userapi.com/impg/Iuzz_OiomMyAAo3a6zScURWTb-G378DibE-rlA/55RTcyR-NEk.jpg?keep_aspect_ratio=1&size=1228x608&quality=95&sign=e03cb6e9bd0ba501fc9b86dc424c0e22&c_uniq_tag=PabUN7G5EFHlWCgCIZPN7KJRBtMvHE4wypGoT1zlopc")
+        val urls = arrayListOf(
+            "https://funart.pro/uploads/posts/2021-03/1617054432_6-p-oboi-priroda-4k-6.jpg",
+            "https://i.pinimg.com/originals/89/0b/d5/890bd505a9782aaa483b93183d647a78.jpg",
+            "https://images4.alphacoders.com/772/772692.jpg",
+            "https://www.xtrafondos.com/wallpapers/galaxia-en-el-espacio-4052.jpg",
+            "https://i.pinimg.com/originals/63/e6/f7/63e6f79d0687eeed56b74d925aaa9169.jpg",
+            "https://www.100hdwallpapers.com/wallpapers/2560x1440/astronaut_dream_1-hd_wallpapers.jpg",
+            "https://wallpaper-mania.com/wp-content/uploads/2018/09/High_resolution_wallpaper_background_ID_77701924923.jpg",
+            "https://wallpaper-mania.com/wp-content/uploads/2018/09/High_resolution_wallpaper_background_ID_77701914283.jpg",
+            "https://i.pinimg.com/originals/e1/df/fc/e1dffc73b671a341dd0c34cd5cd5b400.jpg",
+            "https://i.pinimg.com/originals/9c/df/56/9cdf56a9bbe523bfbbbb94bf82058caa.jpg",
+            "https://free4kwallpapers.com/uploads/originals/2016/12/03/deep-space-nebula-4k-8k-wallpaper.jpg"
+        )
 
-        var x = 0
-        for(i in 0..5){
-            scaled.add(image!!.getResized(x + 20, x + 20, ResizeAlgorithm.CatmullRom))
-            x += x + 20
-        }
-
-        frame.repaint()
-        while(true){
-            sleep(1000)
-            filtered = !filtered
+        for(url in urls) {
+            images.add(Image.fromURL(url))
             frame.repaint()
         }
     }

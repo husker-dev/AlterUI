@@ -3,6 +3,7 @@ package com.huskerdev.alter.internal.platforms.win
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.ResizeAlgorithm
 import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.WindowStatus
 import com.huskerdev.alter.internal.c_wideBytes
 import java.nio.ByteBuffer
 import kotlin.math.max
@@ -11,6 +12,7 @@ class WWindow(hwnd: Long): Window(hwnd) {
 
     companion object {
         @JvmStatic external fun nInitCallbacks(hwnd: Long, callbackObject: Any)
+        @JvmStatic external fun nInit(hwnd: Long)
         @JvmStatic external fun nSetVisible(hwnd: Long, visible: Boolean)
         @JvmStatic external fun nSetTitle(hwnd: Long, title: ByteArray)
         @JvmStatic external fun nSetSize(hwnd: Long, x: Int, y: Int, width: Int, height: Int)
@@ -18,12 +20,31 @@ class WWindow(hwnd: Long): Window(hwnd) {
         @JvmStatic external fun nGetDpi(hwnd: Long): Float
         @JvmStatic external fun nSetIcon(hwnd: Long, width: Int, height: Int, channels: Int, data: ByteBuffer, isBig: Boolean)
         @JvmStatic external fun nSetDefaultIcon(hwnd: Long)
+        @JvmStatic external fun nSetIconState(hwnd: Long, type: Int)
+        @JvmStatic external fun nSetIconProgress(hwnd: Long, progress: Float)
 
         @JvmStatic external fun nPollEvents()
         @JvmStatic external fun nSendEmptyMessage(handle: Long)
     }
 
     private val cachedIcons = hashMapOf<Int, Image>()
+    private var isInitialised = false
+
+    override var visible: Boolean
+        get() = super.visible
+        set(value) {
+            super.visible = value
+            if(!isInitialised) {
+                isInitialised = true
+                nInit(handle)
+            }
+
+            if(value) {
+                // Update properties when window became visible
+                status = status
+                progress = progress
+            }
+        }
 
     init {
         onDpiChangedListeners.add {
@@ -60,8 +81,24 @@ class WWindow(hwnd: Long): Window(hwnd) {
     override fun setTitleImpl(title: String) = nSetTitle(handle, title.c_wideBytes)
     override fun setSizeImpl(x: Int, y: Int, width: Int, height: Int) = nSetSize(handle, x, y, width, height)
     override fun setIconImpl(image: Image?) {
+        cachedIcons.clear()
         if(image != null) updateIcon()
         else nSetDefaultIcon(handle)
+    }
+
+    override fun setStatusImpl(status: WindowStatus) {
+        if(!visible)
+            return
+        nSetIconState(handle, status.ordinal)
+    }
+
+    override fun setProgressImpl(progress: Float) {
+        if(!visible)
+            return
+        if(progress == -1f)
+            nSetIconState(handle, -1)
+        else
+            nSetIconProgress(handle, progress)
     }
 
     override fun requestRepaint() = nRequestRepaint(handle)

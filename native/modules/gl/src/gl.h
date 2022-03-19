@@ -48,6 +48,10 @@ extern "C" {
 		glFlush();
 	}
 
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glFinish(JNIEnv*, jobject) {
+		glFinish();
+	}
+
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nInitContext(JNIEnv*, jobject) {
 		unsigned int vao, vbo = 0;
 		// VAO
@@ -77,7 +81,7 @@ extern "C" {
 		if (type > 1)
 			type++;
 
-		glBufferData(GL_ARRAY_BUFFER, 12 * count, array, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 12 * count, array, GL_STREAM_DRAW);
 		glDrawArrays(type, 0, count);
 	}
 
@@ -116,6 +120,7 @@ extern "C" {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, data);
 		glFlush();
 		return tex;

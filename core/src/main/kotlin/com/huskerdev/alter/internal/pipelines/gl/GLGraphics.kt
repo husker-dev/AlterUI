@@ -50,5 +50,6 @@ class WindowGLGraphics(val window: Window): GLGraphics(0, GLContext(window.handl
 
     override fun flush() {
         nSwapBuffers(window.handle)
+        context.finish()
     }
 }

@@ -46,6 +46,7 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         @JvmStatic external fun glBlendFunc(sfactor: Int, dfactor: Int)
         @JvmStatic external fun glBindFramebuffer(n: Int, buffer: Int)
         @JvmStatic external fun glFlush()
+        @JvmStatic external fun glFinish()
 
         @JvmStatic external fun nInitContext()
         @JvmStatic external fun nDrawArray(array: FloatBuffer, count: Int, type: Int)
@@ -94,10 +95,8 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
                 nMakeCurrent(resourceWindow)
                 nInitContext()
                 resourcesContext = GLResourcesContext(resourceWindow)
-                while(true) {
-                    //nMakeCurrent(resourceWindow)
+                while(true)
                     resourcesQueue.take().invoke()
-                }
             }
         }
     }

@@ -8,6 +8,7 @@ import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_DEPTH_B
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_FRAMEBUFFER
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glBindFramebuffer
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glBindTexture
+import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glFinish
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glFlush
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glGetUniformLocation
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glUniform1i
@@ -48,6 +49,10 @@ open class GLContext(val window: Long) {
 
     open fun flush(){
         glFlush()
+    }
+
+    open fun finish(){
+        glFinish()
     }
 
     open fun getShaderVariable(shader: GLShader, name: String) =
@@ -116,6 +121,10 @@ class GLResourcesContext(window: Long): GLContext(window){
 
     override fun flush() = invokeOnResourceThread {
         super.flush()
+    }
+
+    override fun finish() = invokeOnResourceThread {
+        super.finish()
     }
 
     override fun getShaderVariable(shader: GLShader, name: String): Int {

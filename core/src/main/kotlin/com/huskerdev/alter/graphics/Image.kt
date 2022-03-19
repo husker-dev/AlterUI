@@ -33,8 +33,8 @@ abstract class Image(val width: Int, val height: Int, val pixelType: PixelType) 
         @JvmStatic private external fun nResize(data: ByteBuffer, oldWidth: Int, oldHeight: Int, components: Int, newWidth: Int, newHeight: Int, type: Int): ByteBuffer
         @JvmStatic private external fun nWriteToFile(type: Int, path: ByteBuffer, data: ByteBuffer, width: Int, height: Int, components: Int, quality: Int)
 
-        fun create(data: ByteArray) = create(BufferUtils.createByteBuffer(*data))
-        fun create(data: ByteBuffer): Image{
+        fun fromFile(data: ByteArray) = fromFile(BufferUtils.createByteBuffer(*data))
+        fun fromFile(data: ByteBuffer): Image{
             val info = ImageInfo.get(data)
             val bitmap = nGetBitmap(data)
             val image = Pipeline.current.createImage(info.type, info.width, info.height, bitmap)
@@ -42,9 +42,9 @@ abstract class Image(val width: Int, val height: Int, val pixelType: PixelType) 
             return image
         }
 
-        fun createFromURL(url: String) = create(URL(url).openStream().readBytes())
+        fun fromURL(url: String) = fromFile(URL(url).openStream().readBytes())
 
-        fun create(filePath: String): Image{
+        fun fromFile(filePath: String): Image{
             val info = ImageInfo.get(filePath)
             val bitmap = nGetBitmapFromFile(BufferUtils.createByteBuffer(*filePath.c_str))
             val image = Pipeline.current.createImage(info.type, info.width, info.height, bitmap)
@@ -52,7 +52,7 @@ abstract class Image(val width: Int, val height: Int, val pixelType: PixelType) 
             return image
         }
 
-        fun create(width: Int, height: Int, type: PixelType, bitmap: ByteBuffer) = Pipeline.current.createImage(type, width, height, bitmap)
+        fun fromFile(width: Int, height: Int, type: PixelType, bitmap: ByteBuffer) = Pipeline.current.createImage(type, width, height, bitmap)
 
         fun createEmpty(width: Int, height: Int, type: PixelType = PixelType.RGBA) = Pipeline.current.createImage(type, width, height, null)
     }
@@ -69,7 +69,7 @@ abstract class Image(val width: Int, val height: Int, val pixelType: PixelType) 
 
     fun getSubImage(width: Int, height: Int) = getSubImage(0, 0, width, height)
     fun getResized(newWidth: Int, newHeight: Int, resizeType: ResizeAlgorithm = ResizeAlgorithm.Box) =
-        create(newWidth, newHeight, pixelType, nResize(data, width, height, pixelType.channels, newWidth, newHeight, resizeType.index))
+        fromFile(newWidth, newHeight, pixelType, nResize(data, width, height, pixelType.channels, newWidth, newHeight, resizeType.index))
 
     protected abstract fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int): Image
 

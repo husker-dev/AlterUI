@@ -25,6 +25,6 @@ class GLImage(
         get() = resourcesContext.readPixels(this, 0, 0, width, height)
 
     override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int) =
-        create(width, height, pixelType, resourcesContext.readPixels(this, x, y, width, height))
+        fromFile(width, height, pixelType, resourcesContext.readPixels(this, x, y, width, height))
 
 }
