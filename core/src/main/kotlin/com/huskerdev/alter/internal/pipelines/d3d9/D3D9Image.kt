@@ -5,13 +5,8 @@ import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nCreateTexture
 import java.nio.ByteBuffer
 
-class D3D9Image(width: Int, height: Int, type: PixelType, data: ByteBuffer?): Image(width, height, type) {
+class D3D9Image(val texture: Long, val surface: Long, width: Int, height: Int, type: PixelType): Image(width, height, type) {
 
-    var ptr = 0L
-
-    init {
-        ptr = nCreateTexture(width, height, type.channels, data!!)
-    }
 
     override val data: ByteBuffer
         get() = TODO("Not yet implemented")

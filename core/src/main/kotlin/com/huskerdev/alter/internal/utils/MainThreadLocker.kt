@@ -4,6 +4,7 @@ import com.huskerdev.alter.internal.Pipeline
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
+import kotlin.system.exitProcess
 
 class MainThreadLocker {
 
@@ -15,10 +16,15 @@ class MainThreadLocker {
         var mainThread: Thread? = null
 
         fun lock(){
-            mainThread = Thread.currentThread()
-            createDaemon()
-            while(!disposed)
-                (tasksQueue.poll(150, TimeUnit.MILLISECONDS) ?: continue)()
+            try {
+                mainThread = Thread.currentThread()
+                createDaemon()
+                while (!disposed)
+                    (tasksQueue.poll(150, TimeUnit.MILLISECONDS) ?: continue)()
+            }catch (e: Exception){
+                e.printStackTrace()
+                exitProcess(1)
+            }
         }
 
         fun invokeAsync(toInvoke: () -> Unit){

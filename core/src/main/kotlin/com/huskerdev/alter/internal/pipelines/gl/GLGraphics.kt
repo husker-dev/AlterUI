@@ -16,22 +16,16 @@ abstract class GLGraphics(
     override fun getColorPainter() = GLColorPainter
     override fun getImagePainter() = GLImagePainter
 
-    override fun flush() = context.flush()
+    override fun finish() = context.flush()
 }
 
 class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourcesContext) {
-    override val width: Float
-        get() = image.width.toFloat()
-    override val height: Float
-        get() = image.height.toFloat()
-    override val physicalHeight: Int
-        get() = image.height
-    override val physicalWidth: Int
-        get() = image.width
-    override val dpi: Float
-        get() = 1f
-    override val pixelType: PixelType
-        get() = image.pixelType
+    override val width = image.width.toFloat()
+    override val height = image.height.toFloat()
+    override val physicalHeight = image.height
+    override val physicalWidth = image.width
+    override val dpi = 1f
+    override val pixelType = image.pixelType
 }
 
 class WindowGLGraphics(val window: Window): GLGraphics(0, GLContext(window.handle)) {
@@ -48,7 +42,7 @@ class WindowGLGraphics(val window: Window): GLGraphics(0, GLContext(window.handl
     override val pixelType: PixelType
         get() = PixelType.RGBA
 
-    override fun flush() {
+    override fun finish() {
         nSwapBuffers(window.handle)
         context.finish()
     }

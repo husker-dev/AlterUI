@@ -26,14 +26,8 @@ vec2 getTextureCoord(vec4 bounds, float dpi){
 void main(){
     if(u_RenderType == 1)
         color = u_Color;
-    if(u_RenderType == 3){
-        /*
-        if(u_ColorChannels == 1)
-            color = vec4(texture(u_Texture, getTextureCoord(u_TextureBounds, u_Dpi)).r, 1, 1, 1);
-        else
-        */
+    if(u_RenderType == 3)
         color = texture(u_Texture, getTextureCoord(u_TextureBounds, u_Dpi)) * u_Color;
-    }
     if(u_RenderType == 4){
         if(u_ColorChannels == 1)
             color = vec4(texture(u_Texture, getTextureCoord(u_TextureBounds, u_Dpi)).r, 1, 1, 1);

@@ -1,18 +1,15 @@
 package com.huskerdev.alter.internal.pipelines.d3d9
 
 import com.huskerdev.alter.graphics.Graphics
-import com.huskerdev.alter.graphics.Painter
+import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Window
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nBeginScene
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nClear
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nEndScene
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetViewport
+import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nGetWindowSurface
+import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nPresent
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ColorPainter
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ImagePainter
-import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9Painter
 
-class D3D9Graphics(window: Window): Graphics() {
+abstract class D3D9Graphics(open val surface: Long): Graphics() {
 
     /*
     private val colorPainterInstance by lazy { D3D9ColorPainter() }
@@ -41,22 +38,6 @@ class D3D9Graphics(window: Window): Graphics() {
 
      */
 
-    override val width: Float
-        get() = TODO("Not yet implemented")
-    override val height: Float
-        get() = TODO("Not yet implemented")
-    override val physicalHeight: Int
-        get() = TODO("Not yet implemented")
-    override val physicalWidth: Int
-        get() = TODO("Not yet implemented")
-    override val dpi: Float
-        get() = TODO("Not yet implemented")
-    override val pixelType: PixelType
-        get() = TODO("Not yet implemented")
-
-    override fun flush() {
-        TODO("Not yet implemented")
-    }
 
     /*
     override var painter: Painter?
@@ -72,8 +53,36 @@ class D3D9Graphics(window: Window): Graphics() {
 */
     //override fun clear() = nClear()
 
-    override fun getColorPainter() = null!!
-    override fun getImagePainter() = null!!
+    override fun getColorPainter() = D3D9ColorPainter
+    override fun getImagePainter() = D3D9ImagePainter
 
+    override fun finish() {}
+}
 
+class D3D9ImageGraphics(val image: Image): D3D9Graphics((image as D3D9Image).surface){
+    override val width = image.width.toFloat()
+    override val height = image.height.toFloat()
+    override val physicalHeight = image.height
+    override val physicalWidth = image.width
+    override val dpi = 1f
+    override val pixelType = image.pixelType
+}
+
+class D3D9WindowGraphics(val window: Window): D3D9Graphics(0){
+    override val width: Float
+        get() = window.width
+    override val height: Float
+        get() = window.height
+    override val physicalHeight: Int
+        get() = window.physicalHeight
+    override val physicalWidth: Int
+        get() = window.physicalWidth
+    override val dpi: Float
+        get() = window.dpi
+    override val pixelType = PixelType.RGBA
+
+    override val surface: Long
+        get() = nGetWindowSurface(window.handle)
+
+    override fun finish() = nPresent(window.handle)
 }

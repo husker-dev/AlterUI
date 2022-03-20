@@ -27,7 +27,7 @@ class D3D11Graphics(window: Window): Graphics() {
     override val pixelType: PixelType
         get() = TODO("Not yet implemented")
 
-    override fun flush() {
+    override fun finish() {
         TODO("Not yet implemented")
     }
 

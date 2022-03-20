@@ -48,6 +48,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     }
     case WM_SIZE:
     {
+        LRESULT result = baseProcs[hwnd](hwnd, uMsg, wParam, lParam);
         RECT window;
         GetWindowRect(hwnd, &window);
 
@@ -55,7 +56,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),
             window.right - window.left, window.bottom - window.top
         );
-        break;
+        return result;
     }
     case WM_SHOWWINDOW:
     case WM_ERASEBKGND:

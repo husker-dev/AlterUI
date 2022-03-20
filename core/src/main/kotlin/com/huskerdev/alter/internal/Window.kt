@@ -155,7 +155,7 @@ abstract class Window(val handle: Long) {
             return
         graphics.reset()
         onPaintEvent(graphics)
-        graphics.flush()
+        graphics.finish()
     }
 
     @ImplicitUsage

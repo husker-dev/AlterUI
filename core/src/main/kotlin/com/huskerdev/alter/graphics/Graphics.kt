@@ -43,7 +43,7 @@ abstract class Graphics {
         font = Font.get(Platform.current.defaultFontFamily)
     }
 
-    abstract fun flush()
+    abstract fun finish()
 
     private fun isValidRect(x: Float, y: Float, width: Float, height: Float): Boolean {
         return (width > 0) && (height > 0) &&
