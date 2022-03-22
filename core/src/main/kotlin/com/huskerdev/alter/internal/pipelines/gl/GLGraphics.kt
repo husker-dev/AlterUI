@@ -2,7 +2,7 @@ package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.PixelType
-import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.WindowPeer
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSwapBuffers
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.resourcesContext
 import com.huskerdev.alter.internal.pipelines.gl.painters.GLColorPainter
@@ -28,7 +28,7 @@ class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourc
     override val pixelType = image.pixelType
 }
 
-class WindowGLGraphics(val window: Window): GLGraphics(0, GLContext(window.handle)) {
+class WindowGLGraphics(val window: WindowPeer): GLGraphics(0, GLContext(window.handle)) {
     override val width: Float
         get() = window.width
     override val height: Float

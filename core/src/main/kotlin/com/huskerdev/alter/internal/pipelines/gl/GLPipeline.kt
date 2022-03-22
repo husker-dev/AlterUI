@@ -5,7 +5,7 @@ import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
-import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.WindowPeer
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import com.huskerdev.alter.internal.utils.Trigger
@@ -26,6 +26,7 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         lateinit var resourcesContext: GLResourcesContext
 
         // Platform-specific
+        @JvmStatic external fun nCreateWindow(shareWith: Long): Long
         @JvmStatic external fun nMakeCurrent(handle: Long)
         @JvmStatic external fun nSwapBuffers(handle: Long)
 
@@ -85,8 +86,6 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         }
     }
 
-    private external fun nCreateWindow(shareWith: Long): Long
-
     override fun load() {
         super.load()
         MainThreadLocker.invoke {
@@ -101,7 +100,7 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         }
     }
 
-    override fun createGraphics(window: Window) = WindowGLGraphics(window)
+    override fun createGraphics(window: WindowPeer) = WindowGLGraphics(window)
     override fun createGraphics(image: Image) = ImageGLGraphics(image as GLImage)
 
     override fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?): Image {
@@ -118,8 +117,8 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
 
     override fun isMainThreadRequired() = OS.current != OS.Windows
 
-    override fun createWindow(): Window {
-        lateinit var newWindow: Window
+    override fun createWindow(): WindowPeer {
+        lateinit var newWindow: WindowPeer
         invokeOnResourceThread {
             nMakeCurrent(0)
             MainThreadLocker.invoke {

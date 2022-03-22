@@ -5,7 +5,7 @@ import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
-import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.WindowPeer
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import java.nio.ByteBuffer
@@ -40,8 +40,8 @@ class D3D11Pipeline: Pipeline.DefaultEventPoll("d3d11") {
         }
     }
 
-    override fun createWindow(): Window {
-        lateinit var window: Window
+    override fun createWindow(): WindowPeer {
+        lateinit var window: WindowPeer
         MainThreadLocker.invoke {
             window = Platform.current.createWindowInstance(nCreateWindow())
             windows.add(window)
@@ -49,7 +49,7 @@ class D3D11Pipeline: Pipeline.DefaultEventPoll("d3d11") {
         return window
     }
 
-    override fun createGraphics(window: Window) = D3D11Graphics(window)
+    override fun createGraphics(window: WindowPeer) = D3D11Graphics(window)
     override fun createGraphics(image: Image): Graphics {
         TODO("Not yet implemented")
     }

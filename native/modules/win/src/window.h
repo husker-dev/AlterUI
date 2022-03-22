@@ -12,11 +12,23 @@
 #if !defined(WM_DPICHANGED)
 #define WM_DPICHANGED 0x02E0
 #endif
+#if !defined(DWMWA_CAPTION_COLOR)
+#define DWMWA_CAPTION_COLOR DWORD(35)
+#endif
+#if !defined(DWMWA_TEXT_COLOR)
+#define DWMWA_TEXT_COLOR DWORD(36)
+#endif
+
+struct WindowStruct {
+	jweak			callbackObject;
+	WNDPROC			baseProc;
+	ITaskbarList3*	taskbar;
+
+	int style = 0;	// 0 - Default, 1 - Undecorated, 2 - NoTitle
+};
 
 static JavaVM* jvm;
-static std::map<HWND, jweak> callbackObjects;
-static std::map<HWND, WNDPROC> baseProcs;
-static std::map<HWND, ITaskbarList3*> taskbars;
+static std::map<HWND, WindowStruct> windows;
 
 static jmethodID onDrawCallback;
 static jmethodID onClosedCallback;
@@ -42,6 +54,12 @@ void nRequestRepaint(jlong hwnd);
 void nPollEvents();
 void nSendEmptyMessage(jlong handle);
 
+bool composition_enabled() {
+	BOOL composition_enabled = FALSE;
+	bool success = ::DwmIsCompositionEnabled(&composition_enabled) == S_OK;
+	return composition_enabled && success;
+}
+
 extern "C" {
 
 	/*
@@ -49,7 +67,6 @@ extern "C" {
 	*/
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nInitCallbacks(JNIEnv* env, jobject, jlong hwnd, jobject _object) {
 		env->GetJavaVM(&jvm);
-		auto object = getCallbackObject(env, _object);
 
 		// Callbacks
 		onDrawCallback = getCallbackMethod(env, _object, "onDrawCallback", "()V");
@@ -58,8 +75,10 @@ extern "C" {
 		onMovedCallback = getCallbackMethod(env, _object, "onMovedCallback", "(II)V");
 		onDpiChangedCallback = getCallbackMethod(env, _object, "onDpiChangedCallback", "(F)V");
 
-		callbackObjects[(HWND)hwnd] = object;
-		baseProcs[(HWND)hwnd] = (WNDPROC)SetWindowLongPtr((HWND)hwnd, GWLP_WNDPROC, (LONG_PTR)&WndProc);
+		WindowStruct windowStruct = {};
+		windowStruct.baseProc = (WNDPROC)SetWindowLongPtr((HWND)hwnd, GWLP_WNDPROC, (LONG_PTR)&WndProc);
+		windowStruct.callbackObject = getCallbackObject(env, _object);
+		windows[(HWND)hwnd] = windowStruct;
 
 		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -73,7 +92,7 @@ extern "C" {
 			std::cout << "ERROR when initialising taskbar" << std::endl;
 			return;
 		}
-		taskbars[(HWND)hwnd] = taskbar;
+		windows[(HWND)hwnd].taskbar = taskbar;
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetVisible(JNIEnv*, jobject, jlong hwnd, jboolean visible) {
@@ -108,6 +127,25 @@ extern "C" {
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIconProgress(JNIEnv*, jobject, jlong hwnd, jfloat progress) {
 		nSetIconProgress(hwnd, progress);
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetStyle(JNIEnv*, jobject, jlong hwnd, jint style) {
+		windows[(HWND)hwnd].style = style;
+
+		RECT window;
+		GetWindowRect((HWND)hwnd, &window);
+		int width = window.right - window.left;
+		int height = window.bottom - window.top;
+		SetWindowPos((HWND)hwnd, nullptr, 0, 0, width + 1, height, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOACTIVATE);
+		SetWindowPos((HWND)hwnd, nullptr, 0, 0, width, height, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOACTIVATE);
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetWindowTitleColor(JNIEnv*, jobject, jlong hwnd, jint color) {
+		//DwmSetWindowAttribute((HWND)hwnd, DWMWA_CAPTION_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetWindowTextColor(JNIEnv*, jobject, jlong hwnd, jint color) {
+		//DwmSetWindowAttribute((HWND)hwnd, DWMWA_TEXT_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
 	}
 
 	/*

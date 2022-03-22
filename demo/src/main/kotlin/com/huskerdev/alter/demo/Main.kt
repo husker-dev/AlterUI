@@ -6,9 +6,11 @@ import com.huskerdev.alter.components.Frame
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
+import com.huskerdev.alter.internal.WindowStyle
 import kotlin.concurrent.thread
 
 fun main() = AlterUI.takeMain {
+    AlterUIProperties.pipeline = "d3d9"
     AlterUI.load()
 
     val images = arrayListOf<Image>()
@@ -39,6 +41,7 @@ fun main() = AlterUI.takeMain {
     frame.y = 200f
     frame.width = 500f
     frame.height = 500f
+    frame.style = WindowStyle.Undecorated
     frame.visible = true
 
     thread {
@@ -57,8 +60,12 @@ fun main() = AlterUI.takeMain {
         )
 
         for(url in urls) {
-            images.add(Image.fromURL(url))
-            frame.repaint()
+            try {
+                images.add(Image.fromURL(url))
+                frame.repaint()
+            }catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

@@ -3,7 +3,6 @@ package com.huskerdev.alter.internal
 import com.huskerdev.alter.OS
 import com.huskerdev.alter.internal.platforms.win.WindowsPlatform
 import com.huskerdev.alter.internal.platforms.win.c_wstr
-import com.huskerdev.alter.internal.utils.LibraryLoader
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
@@ -48,7 +47,7 @@ abstract class Platform {
     abstract val defaultFontFamily: String
 
     abstract fun load()
-    abstract fun createWindowInstance(handle: Long): Window
+    abstract fun createWindowInstance(handle: Long): WindowPeer
     abstract fun pollEvents()
     abstract fun sendEmptyMessage(handle: Long)
     abstract fun getFontData(name: String): ByteBuffer?

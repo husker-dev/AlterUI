@@ -1,14 +1,16 @@
 package com.huskerdev.alter.internal.platforms.win
 
+import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.ResizeAlgorithm
-import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.WindowPeer
 import com.huskerdev.alter.internal.WindowStatus
+import com.huskerdev.alter.internal.WindowStyle
 import com.huskerdev.alter.internal.c_wideBytes
 import java.nio.ByteBuffer
 import kotlin.math.max
 
-class WWindow(hwnd: Long): Window(hwnd) {
+class WWindow(hwnd: Long): WindowPeer(hwnd) {
 
     companion object {
         @JvmStatic external fun nInitCallbacks(hwnd: Long, callbackObject: Any)
@@ -22,6 +24,9 @@ class WWindow(hwnd: Long): Window(hwnd) {
         @JvmStatic external fun nSetDefaultIcon(hwnd: Long)
         @JvmStatic external fun nSetIconState(hwnd: Long, type: Int)
         @JvmStatic external fun nSetIconProgress(hwnd: Long, progress: Float)
+        @JvmStatic external fun nSetStyle(hwnd: Long, style: Int)
+        @JvmStatic external fun nSetWindowTitleColor(hwnd: Long, color: Int)
+        @JvmStatic external fun nSetWindowTextColor(hwnd: Long, color: Int)
 
         @JvmStatic external fun nPollEvents()
         @JvmStatic external fun nSendEmptyMessage(handle: Long)
@@ -100,6 +105,10 @@ class WWindow(hwnd: Long): Window(hwnd) {
         else
             nSetIconProgress(handle, progress)
     }
+
+    override fun setStyleImpl(style: WindowStyle) = nSetStyle(handle, style.ordinal)
+    override fun setColorImpl(color: Color?) = nSetWindowTitleColor(handle, color?.toBGR() ?: -1)
+    override fun setTextColorImpl(color: Color?) = nSetWindowTextColor(handle, color?.toBGR() ?: -1)
 
     override fun requestRepaint() = nRequestRepaint(handle)
 

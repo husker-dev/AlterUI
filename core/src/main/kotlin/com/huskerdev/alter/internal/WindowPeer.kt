@@ -13,9 +13,20 @@ enum class WindowStatus {
     InProgress
 }
 
-abstract class Window(val handle: Long) {
+enum class WindowStyle {
+    Default,
+    Undecorated,
+    NoTitle
+}
+
+abstract class WindowPeer(val handle: Long) {
 
     companion object {
+        private fun invokeOnMainIfRequiredAsync(run: () -> Unit){
+            if(Pipeline.current.isMainThreadRequired())
+                MainThreadLocker.invokeAsync(run)
+            else run()
+        }
         private inline fun invokeOnMainIfRequired(crossinline run: () -> Unit){
             if(Pipeline.current.isMainThreadRequired())
                 MainThreadLocker.invoke(run)
@@ -80,20 +91,34 @@ abstract class Window(val handle: Long) {
             invokeOnMainIfRequired { setSizeImpl(physicalX, physicalY, physicalWidth, (value * dpi).toInt()) }
         }
 
-    private var _status = WindowStatus.Default
-    open var status: WindowStatus
-        get() = _status
+    open var status = WindowStatus.Default
         set(value) {
-            _status = value
+            field = value
             invokeOnMainIfRequired { setStatusImpl(value) }
         }
 
-    private var _progress = -1f
-    open var progress: Float
-        get() = _progress
+    open var progress = -1f
         set(value) {
-            _progress = value
+            field = value
             invokeOnMainIfRequired { setProgressImpl(value) }
+        }
+
+    open var style = WindowStyle.Default
+        set(value) {
+            field = value
+            invokeOnMainIfRequired { setStyleImpl(value) }
+        }
+
+    open var color: Color? = null
+        set(value) {
+            field = value
+            invokeOnMainIfRequired { setColorImpl(value) }
+        }
+
+    open var textColor: Color? = null
+        set(value) {
+            field = value
+            invokeOnMainIfRequired { setTextColorImpl(value) }
         }
 
     var clientWidth = 0
@@ -144,10 +169,13 @@ abstract class Window(val handle: Long) {
     protected abstract fun setIconImpl(image: Image?)
     protected abstract fun setStatusImpl(status: WindowStatus)
     protected abstract fun setProgressImpl(progress: Float)
+    protected abstract fun setStyleImpl(style: WindowStyle)
+    protected abstract fun setColorImpl(color: Color?)
+    protected abstract fun setTextColorImpl(color: Color?)
 
     protected abstract fun requestRepaint()
 
-    fun repaint() = invokeOnMainIfRequired { requestRepaint() }
+    fun repaint() = invokeOnMainIfRequiredAsync { requestRepaint() }
 
     @ImplicitUsage
     private fun onDrawCallback(){

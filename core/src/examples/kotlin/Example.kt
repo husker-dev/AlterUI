@@ -4,6 +4,7 @@ import com.huskerdev.alter.components.Frame
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
+import com.huskerdev.alter.internal.WindowStyle
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import kotlin.concurrent.thread
 
@@ -31,19 +32,25 @@ fun main() = AlterUI.takeMain {
             super.paint(gr)
 
             gr.color = Color.white
-            if(image != null)
-                gr.drawImage(image!!, 150f, 150f, 100f, 100f)
+            if(image != null) {
+                //gr.drawImage(image!!, 150f, 150f, 100f, 100f)
+                //gr.drawImage(image!!, width - 100f, height - 100f, 100f, 100f)
+            }
         }
     }
     window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
     //window.icon = Image.create("C:\\Users\\redfa\\Desktop\\Check_green_icon.svg.png")
-    window.background = Color.blue
+    window.background = Color.white
+
+    //window.style = WindowStyle.NoTitle
 
     window.visible = true
+
 
     thread {
         image = Image.fromFile("C:\\Users\\redfa\\Desktop\\15104f78cb83e3cefaf63ecc718a2a43.jpg")
         window.repaint()
+
     }
 
     val current = System.nanoTime()

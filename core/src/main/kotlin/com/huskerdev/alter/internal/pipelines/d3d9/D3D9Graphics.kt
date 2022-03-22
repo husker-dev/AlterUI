@@ -3,7 +3,7 @@ package com.huskerdev.alter.internal.pipelines.d3d9
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
-import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.WindowPeer
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nGetWindowSurface
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nPresent
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ColorPainter
@@ -68,7 +68,7 @@ class D3D9ImageGraphics(val image: Image): D3D9Graphics((image as D3D9Image).sur
     override val pixelType = image.pixelType
 }
 
-class D3D9WindowGraphics(val window: Window): D3D9Graphics(0){
+class D3D9WindowGraphics(val window: WindowPeer): D3D9Graphics(0){
     override val width: Float
         get() = window.width
     override val height: Float

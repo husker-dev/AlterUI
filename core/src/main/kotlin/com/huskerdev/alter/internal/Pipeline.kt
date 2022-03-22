@@ -14,7 +14,7 @@ abstract class Pipeline {
         val current = Class.forName("com.huskerdev.alter.internal.pipelines.${AlterUIProperties.pipeline.lowercase()}.${AlterUIProperties.pipeline.uppercase()}Pipeline")
                         .getDeclaredConstructor()
                         .newInstance() as Pipeline
-        val windows = arrayListOf<Window>()
+        val windows = arrayListOf<WindowPeer>()
 
         fun initialize(){
             current.load()
@@ -22,8 +22,8 @@ abstract class Pipeline {
     }
 
     abstract fun load()
-    abstract fun createWindow(): Window
-    abstract fun createGraphics(window: Window): Graphics
+    abstract fun createWindow(): WindowPeer
+    abstract fun createGraphics(window: WindowPeer): Graphics
     abstract fun createGraphics(image: Image): Graphics
     abstract fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?): Image
     abstract fun isMainThreadRequired(): Boolean

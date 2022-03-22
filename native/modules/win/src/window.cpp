@@ -1,16 +1,48 @@
 #include "window.h"
 
+LRESULT hit_test(HWND hwnd, POINT cursor) {
+    const POINT border{
+        ::GetSystemMetrics(SM_CXFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER),
+        ::GetSystemMetrics(SM_CYFRAME) + ::GetSystemMetrics(SM_CXPADDEDBORDER)
+    };
+    RECT window;
+    if (!::GetWindowRect(hwnd, &window)) {
+        return HTNOWHERE;
+    }
 
+    enum region_mask {
+        client = 0b0000,
+        left = 0b0001,
+        right = 0b0010,
+        top = 0b0100,
+        bottom = 0b1000,
+    };
+
+    const auto result =
+        left * (cursor.x < (window.left + border.x)) |
+        right * (cursor.x >= (window.right - border.x)) |
+        top * (cursor.y < (window.top + border.y)) |
+        bottom * (cursor.y >= (window.bottom - border.y));
+
+    switch (result) {
+    case left: return HTLEFT;
+    case right: return HTRIGHT;
+    case top: return HTTOP;
+    case bottom: return HTBOTTOM;
+    case top | left: return HTTOPLEFT;
+    case top | right: return HTTOPRIGHT;
+    case bottom | left: return HTBOTTOMLEFT;
+    case bottom | right: return HTBOTTOMRIGHT;
+    case client: return HTCAPTION;
+    default: return HTNOWHERE;
+    }
+}
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
-    case WM_NCDESTROY:
-    {
-        return 0;
-    }
     case WM_DPICHANGED:
     {
-        callback(jvm, callbackObjects[hwnd], onDpiChangedCallback, (float)LOWORD(wParam) / 96);
+        callback(jvm, windows[hwnd].callbackObject, onDpiChangedCallback, (float)LOWORD(wParam) / 96);
         
         RECT* prcNewWindow = (RECT*)lParam;
         int iWindowX = prcNewWindow->left;
@@ -23,48 +55,77 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     }
     case WM_DESTROY:
     {
-        callback(jvm, callbackObjects[hwnd], onClosedCallback);
+        callback(jvm, windows[hwnd].callbackObject, onClosedCallback);
 
         // Call base WinProc last time, and delete it
-        baseProcs[hwnd](hwnd, uMsg, wParam, lParam);
-        baseProcs.erase(baseProcs.find(hwnd));
-
-        // Clear callbacks
-        callbackObjects.erase(callbackObjects.find(hwnd));
+        windows[hwnd].baseProc(hwnd, uMsg, wParam, lParam);
+        windows.erase(windows.find(hwnd));
 
         return 0;
     }
     case WM_PAINT:
     {
-        callback(jvm, callbackObjects[hwnd], onDrawCallback);
+        callback(jvm, windows[hwnd].callbackObject, onDrawCallback);
         break;
     }
     case WM_MOVE:
     {
         RECT window;
         GetWindowRect(hwnd, &window);
-        callback(jvm, callbackObjects[hwnd], onMovedCallback, window.left, window.top);
+        callback(jvm, windows[hwnd].callbackObject, onMovedCallback, window.left, window.top);
         break;
     }
     case WM_SIZE:
     {
-        LRESULT result = baseProcs[hwnd](hwnd, uMsg, wParam, lParam);
+        LRESULT result = windows[hwnd].baseProc(hwnd, uMsg, wParam, lParam);
         RECT window;
         GetWindowRect(hwnd, &window);
 
-        callback(jvm, callbackObjects[hwnd], onResizedCallback,
+        callback(jvm, windows[hwnd].callbackObject, onResizedCallback,
             GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),
             window.right - window.left, window.bottom - window.top
         );
+        
         return result;
     }
     case WM_SHOWWINDOW:
     case WM_ERASEBKGND:
-        //SendMessage(hwnd, WM_PAINT, NULL, NULL);
         return TRUE;
+
+    case WM_NCCALCSIZE:
+    {
+        if (wParam == TRUE && windows[hwnd].style != 0) {
+            auto& params = *reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+
+            if (IsMaximized(hwnd)) {
+                // Setting window size equal to monitor
+                auto info = MONITORINFO {};
+                info.cbSize = sizeof(MONITORINFO);
+                GetMonitorInfo(MonitorFromRect(params.rgrc, MONITOR_DEFAULTTONEAREST), &info);
+
+                params.rgrc[0] = info.rcWork;
+            } else if(windows[hwnd].style == 2){
+                // Used to enable border in NoTitle style
+                params.rgrc[0].right -= 1;
+            }
+            return 0;
+        }
+        break;
     }
 
-    return baseProcs[hwnd](hwnd, uMsg, wParam, lParam);
+    case WM_NCHITTEST:
+    {
+        if (windows[hwnd].style != 0) {
+            return hit_test(hwnd, POINT{
+                        GET_X_LPARAM(lParam),
+                        GET_Y_LPARAM(lParam)
+                });
+        }
+        break;
+    }
+
+    }
+    return windows[hwnd].baseProc(hwnd, uMsg, wParam, lParam);
 }
 
 void nSetVisible(jlong hwnd, jboolean visible) {
@@ -137,12 +198,12 @@ void nSetIconState(jlong hwnd, jint state) {
     else if (state == 3)
         winState = TBPF_INDETERMINATE;
 
-    taskbars[(HWND)hwnd]->SetProgressState((HWND)hwnd, winState);
+    windows[(HWND)hwnd].taskbar->SetProgressState((HWND)hwnd, winState);
 }
 
 void nSetIconProgress(jlong hwnd, jfloat progress) {
     int range = 300;
-    taskbars[(HWND)hwnd]->SetProgressValue((HWND)hwnd, progress * range, range);
+    windows[(HWND)hwnd].taskbar->SetProgressValue((HWND)hwnd, progress * range, range);
 }
 
 void nSetBackground(jlong hwnd, int color) {

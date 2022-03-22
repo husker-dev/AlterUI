@@ -45,15 +45,14 @@ jlong nCreateWindow(jlong shareWith) {
         wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
         wc.lpfnWndProc = (WNDPROC)WndProc;
         wc.hInstance = GetModuleHandle(NULL);
+        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wc.lpszClassName = L"alterui_gl";
 
         // Set default application icon
         SHSTOCKICONINFO sii;
         sii.cbSize = sizeof(sii);
         SHGetStockIconInfo(SIID_APPLICATION, SHGSI_ICON | SHGSI_LARGEICON, &sii);
         wc.hIcon = sii.hIcon;
-        
-        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.lpszClassName = L"alterui_gl";
         RegisterClass(&wc);
 
         // Create dummy window

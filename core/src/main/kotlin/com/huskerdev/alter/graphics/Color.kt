@@ -9,7 +9,8 @@ value class Color(private val value: Int) {
     val b get() = (value and 0xFF).toFloat() / 255
 
     fun toARGB() = value
-    fun toRGB() = value or 0xff000000.toInt()
+    fun toRGB() = value or 0xFF000000.toInt()
+    fun toBGR() = (value shr 16 and 0xFF) or (value and 0xFF00) or (value shl 16 and 0xFF0000)
 
     companion object {
         fun css(hex: String) = hex(hex.substring(1).toInt(radix = 16))

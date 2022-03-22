@@ -3,10 +3,10 @@ package com.huskerdev.alter.internal.pipelines.d3d11
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.graphics.painters.ImagePainter
-import com.huskerdev.alter.internal.Window
+import com.huskerdev.alter.internal.WindowPeer
 import com.huskerdev.alter.internal.pipelines.d3d11.painters.D3D11ColorPainter
 
-class D3D11Graphics(window: Window): Graphics() {
+class D3D11Graphics(window: WindowPeer): Graphics() {
 
     private val colorPainterInstance = D3D11ColorPainter()
 

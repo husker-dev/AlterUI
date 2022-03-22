@@ -144,7 +144,7 @@ extern "C" {
 		return (jlong)CreateWindowEx(
 			WS_EX_COMPOSITED,
 			L"alterui_d3d9", L"",
-			WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION | WS_MAXIMIZEBOX | WS_THICKFRAME,
+			WS_OVERLAPPEDWINDOW,
 			0, 0,
 			10, 10,
 			NULL, NULL,
