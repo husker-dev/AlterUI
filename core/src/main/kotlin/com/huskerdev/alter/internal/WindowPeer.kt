@@ -12,11 +12,35 @@ enum class WindowStatus {
     Error,
     InProgress
 }
-
+/*
 enum class WindowStyle {
     Default,
     Undecorated,
     NoTitle
+}
+
+ */
+
+enum class WindowHitPosition {
+    Caption,
+    Client,
+    Transparent,
+    // Buttons
+    Minimize,
+    Maximize,
+    Close,
+    // Borders
+    Left,
+    Right,
+    Top,
+    Bottom,
+    // Corners
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+    // Default
+    Default
 }
 
 abstract class WindowPeer(val handle: Long) {
@@ -93,32 +117,37 @@ abstract class WindowPeer(val handle: Long) {
 
     open var status = WindowStatus.Default
         set(value) {
+            if(field != value)
+                invokeOnMainIfRequired { setStatusImpl(value) }
             field = value
-            invokeOnMainIfRequired { setStatusImpl(value) }
         }
 
     open var progress = -1f
         set(value) {
+            if(field != value)
+                invokeOnMainIfRequired { setProgressImpl(value) }
             field = value
-            invokeOnMainIfRequired { setProgressImpl(value) }
         }
 
-    open var style = WindowStyle.Default
+    open var style: WindowStyle = WindowStyle.Default
         set(value) {
+            if(field != value)
+                invokeOnMainIfRequired { setStyleImpl(value) }
             field = value
-            invokeOnMainIfRequired { setStyleImpl(value) }
         }
 
     open var color: Color? = null
         set(value) {
+            if(field != value)
+                invokeOnMainIfRequired { setColorImpl(value) }
             field = value
-            invokeOnMainIfRequired { setColorImpl(value) }
         }
 
     open var textColor: Color? = null
         set(value) {
+            if(field != value)
+                invokeOnMainIfRequired { setTextColorImpl(value) }
             field = value
-            invokeOnMainIfRequired { setTextColorImpl(value) }
         }
 
     var clientWidth = 0
@@ -139,6 +168,7 @@ abstract class WindowPeer(val handle: Long) {
 
     var onPaintEvent: (Graphics) -> Unit = {}
     var onClosedListeners = arrayListOf<() -> Unit>()
+    var onClosingListeners = arrayListOf<() -> Boolean>()
     var onResizedListeners = arrayListOf<() -> Unit>()
     var onMovedListeners = arrayListOf<() -> Unit>()
     var onDpiChangedListeners = arrayListOf<() -> Unit>()
@@ -187,6 +217,16 @@ abstract class WindowPeer(val handle: Long) {
     }
 
     @ImplicitUsage
+    private fun onClosingCallback(): Boolean {
+        var result = true
+        onClosingListeners.forEach {
+            if(!it())
+                result = false
+        }
+        return result
+    }
+
+    @ImplicitUsage
     private fun onClosedCallback(){
         Pipeline.windows.remove(this)
         onClosedListeners.forEach { it() }
@@ -221,5 +261,8 @@ abstract class WindowPeer(val handle: Long) {
         this.dpi = dpi
         onDpiChangedListeners.forEach { it() }
     }
+
+    @ImplicitUsage
+    private fun onHitTestCallback(x: Int, y: Int) = style.hitTest(this, x, y).ordinal
 
 }

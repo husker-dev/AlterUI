@@ -3,10 +3,8 @@ package com.huskerdev.alter.internal.platforms.win
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.ResizeAlgorithm
-import com.huskerdev.alter.internal.WindowPeer
-import com.huskerdev.alter.internal.WindowStatus
-import com.huskerdev.alter.internal.WindowStyle
-import com.huskerdev.alter.internal.c_wideBytes
+import com.huskerdev.alter.internal.*
+import com.huskerdev.alter.internal.utils.BufferUtils
 import java.nio.ByteBuffer
 import kotlin.math.max
 
@@ -16,7 +14,7 @@ class WWindow(hwnd: Long): WindowPeer(hwnd) {
         @JvmStatic external fun nInitCallbacks(hwnd: Long, callbackObject: Any)
         @JvmStatic external fun nInit(hwnd: Long)
         @JvmStatic external fun nSetVisible(hwnd: Long, visible: Boolean)
-        @JvmStatic external fun nSetTitle(hwnd: Long, title: ByteArray)
+        @JvmStatic external fun nSetTitle(hwnd: Long, title: ByteBuffer)
         @JvmStatic external fun nSetSize(hwnd: Long, x: Int, y: Int, width: Int, height: Int)
         @JvmStatic external fun nRequestRepaint(hwnd: Long)
         @JvmStatic external fun nGetDpi(hwnd: Long): Float
@@ -83,7 +81,7 @@ class WWindow(hwnd: Long): WindowPeer(hwnd) {
     override fun initCallbacksImpl() = nInitCallbacks(handle, this)
     override fun getDpiImpl() = nGetDpi(handle)
     override fun setVisibleImpl(visible: Boolean) = nSetVisible(handle, visible)
-    override fun setTitleImpl(title: String) = nSetTitle(handle, title.c_wideBytes)
+    override fun setTitleImpl(title: String) = nSetTitle(handle, BufferUtils.createByteBuffer(*title.c_wideBytes))
     override fun setSizeImpl(x: Int, y: Int, width: Int, height: Int) = nSetSize(handle, x, y, width, height)
     override fun setIconImpl(image: Image?) {
         cachedIcons.clear()
@@ -106,7 +104,7 @@ class WWindow(hwnd: Long): WindowPeer(hwnd) {
             nSetIconProgress(handle, progress)
     }
 
-    override fun setStyleImpl(style: WindowStyle) = nSetStyle(handle, style.ordinal)
+    override fun setStyleImpl(style: WindowStyle) = nSetStyle(handle, style.styleIndex)
     override fun setColorImpl(color: Color?) = nSetWindowTitleColor(handle, color?.toBGR() ?: -1)
     override fun setTextColorImpl(color: Color?) = nSetWindowTextColor(handle, color?.toBGR() ?: -1)
 

@@ -90,10 +90,12 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         super.load()
         MainThreadLocker.invoke {
             resourceWindow = nCreateWindow(0)
+
             resourceThread = thread(name = "Alter OpenGL resource", isDaemon = true) {
                 nMakeCurrent(resourceWindow)
                 nInitContext()
                 resourcesContext = GLResourcesContext(resourceWindow)
+
                 while(true)
                     resourcesQueue.take().invoke()
             }

@@ -31,33 +31,118 @@ static JavaVM* jvm;
 static std::map<HWND, WindowStruct> windows;
 
 static jmethodID onDrawCallback;
+static jmethodID onClosingCallback;
 static jmethodID onClosedCallback;
 static jmethodID onResizedCallback;
 static jmethodID onMovedCallback;
 static jmethodID onDpiChangedCallback;
+static jmethodID onHitTestCallback;
 
-// WWindow
-LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void nSetVisible(jlong hwnd, jboolean visible);
-void nSetTitle(jlong hwnd, jbyte* title);
-void nSetSize(jlong hwnd, jint x, jint y, jint width, jint height);
-jfloat nGetDpi(jlong hwnd);
-void nSetIcon(jlong hwnd, jint width, jint height, jint channels, char* data, boolean isBig);
-void nSetDefaultIcon(jlong hwnd);
-void nSetIconState(jlong hwnd, jint state);
-void nSetIconProgress(jlong hwnd, jfloat progress);
+LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	switch (uMsg) {
+	case WM_CLOSE:
+	{
+		if (!callbackBoolean(jvm, windows[hwnd].callbackObject, onClosingCallback))
+			return 0;
+		break;
+	}
+		
+	case WM_DESTROY:
+	{
+		callback(jvm, windows[hwnd].callbackObject, onClosedCallback);
+		
+		windows[hwnd].baseProc(hwnd, uMsg, wParam, lParam);
+		windows.erase(windows.find(hwnd));
 
-// WindowsPlatform
-jobject nGetFontData(JNIEnv* env, char* name);
+		PostQuitMessage(0);
+		break;
+	}
+	case WM_DPICHANGED:
+	{
+		callback(jvm, windows[hwnd].callbackObject, onDpiChangedCallback, (float)LOWORD(wParam) / 96);
 
-void nRequestRepaint(jlong hwnd);
-void nPollEvents();
-void nSendEmptyMessage(jlong handle);
+		RECT* prcNewWindow = (RECT*)lParam;
+		int iWindowX = prcNewWindow->left;
+		int iWindowY = prcNewWindow->top;
+		int iWindowWidth = prcNewWindow->right - prcNewWindow->left;
+		int iWindowHeight = prcNewWindow->bottom - prcNewWindow->top;
+		SetWindowPos(hwnd, nullptr, iWindowX, iWindowY, iWindowWidth, iWindowHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 
-bool composition_enabled() {
-	BOOL composition_enabled = FALSE;
-	bool success = ::DwmIsCompositionEnabled(&composition_enabled) == S_OK;
-	return composition_enabled && success;
+		return 0;
+	}
+	case WM_PAINT:
+	{
+		callback(jvm, windows[hwnd].callbackObject, onDrawCallback);
+		break;
+	}
+	case WM_MOVE:
+	{
+		RECT window;
+		GetWindowRect(hwnd, &window);
+		callback(jvm, windows[hwnd].callbackObject, onMovedCallback, window.left, window.top);
+		break;
+	}
+	case WM_SIZE:
+	{
+		LRESULT result = windows[hwnd].baseProc(hwnd, uMsg, wParam, lParam);
+		RECT window;
+		GetWindowRect(hwnd, &window);
+
+		callback(jvm, windows[hwnd].callbackObject, onResizedCallback,
+			GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),
+			window.right - window.left, window.bottom - window.top
+		);
+		return result;
+	}
+	case WM_SHOWWINDOW:
+	case WM_ERASEBKGND:
+		return TRUE;
+
+	case WM_NCCALCSIZE:
+	{
+		if (wParam == TRUE && windows[hwnd].style != 0) {
+			auto& params = *reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+
+			// If window is maximized, then set its size equal to monitor
+			// If style is 'NoTitle', then just enable border
+			if (IsMaximized(hwnd)) {			
+				auto info = MONITORINFO{};
+				info.cbSize = sizeof(MONITORINFO);
+				GetMonitorInfo(MonitorFromRect(params.rgrc, MONITOR_DEFAULTTONEAREST), &info);
+
+				params.rgrc[0] = info.rcWork;
+			} else if (windows[hwnd].style == 2)
+				params.rgrc[0].right -= 1;
+			return 0;
+		}
+		break;
+	}
+
+	case WM_NCHITTEST:
+	{
+		int result = callbackInt(jvm, windows[hwnd].callbackObject, onHitTestCallback,
+			GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)
+		);
+		switch (result) {
+		case 0: return HTCAPTION;
+		case 1: return HTCLIENT;
+		case 2: return HTNOWHERE;
+		case 3: return HTMINBUTTON;
+		case 4: return HTMAXBUTTON;
+		case 5: return HTCLOSE;
+		case 6: return HTLEFT;
+		case 7: return HTRIGHT;
+		case 8: return HTTOP;
+		case 9: return HTBOTTOM;
+		case 10: return HTTOPLEFT;
+		case 11: return HTTOPRIGHT;
+		case 12: return HTBOTTOMLEFT;
+		case 13: return HTBOTTOMRIGHT;
+		}
+		break;
+	}
+	}
+	return CallWindowProc(windows[hwnd].baseProc, hwnd, uMsg, wParam, lParam);
 }
 
 extern "C" {
@@ -70,10 +155,12 @@ extern "C" {
 
 		// Callbacks
 		onDrawCallback = getCallbackMethod(env, _object, "onDrawCallback", "()V");
+		onClosingCallback = getCallbackMethod(env, _object, "onClosingCallback", "()Z");
 		onClosedCallback = getCallbackMethod(env, _object, "onClosedCallback", "()V");
 		onResizedCallback = getCallbackMethod(env, _object, "onResizedCallback", "(IIII)V");
 		onMovedCallback = getCallbackMethod(env, _object, "onMovedCallback", "(II)V");
 		onDpiChangedCallback = getCallbackMethod(env, _object, "onDpiChangedCallback", "(F)V");
+		onHitTestCallback = getCallbackMethod(env, _object, "onHitTestCallback", "(II)I");
 
 		WindowStruct windowStruct = {};
 		windowStruct.baseProc = (WNDPROC)SetWindowLongPtr((HWND)hwnd, GWLP_WNDPROC, (LONG_PTR)&WndProc);
@@ -96,37 +183,82 @@ extern "C" {
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetVisible(JNIEnv*, jobject, jlong hwnd, jboolean visible) {
-		nSetVisible(hwnd, visible);
+		ShowWindow((HWND)hwnd, visible ? SW_SHOW : SW_HIDE);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetTitle(JNIEnv* env, jobject, jlong hwnd, jbyteArray title) {
-		jbyte* _title = env->GetByteArrayElements(title, 0);
-		nSetTitle(hwnd, _title);
-		env->ReleaseByteArrayElements(title, _title, JNI_ABORT);
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetTitle(JNIEnv* env, jobject, jlong hwnd, jobject _title) {
+		char* title = (char*)env->GetDirectBufferAddress(_title);
+		SetWindowTextW((HWND)hwnd, (LPCWSTR)title);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetSize(JNIEnv* env, jobject, jlong hwnd, jint x, jint y, jint width, jint height) {
-		nSetSize(hwnd, x, y, width, height);
+		SetWindowPos((HWND)hwnd, nullptr, x, y, width, height, SWP_NOACTIVATE | SWP_NOZORDER);
 	}
 
 	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nGetDpi(JNIEnv*, jobject, jlong hwnd) {
-		return nGetDpi(hwnd);
+		return (float)GetDpiForWindow((HWND)hwnd) / 96;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIcon(JNIEnv* env, jobject, jlong hwnd, jint width, jint height, jint channels, jobject data, boolean isBig) {
-		nSetIcon(hwnd, width, height, channels, (char*)env->GetDirectBufferAddress(data), isBig);
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIcon(JNIEnv* env, jobject, jlong hwnd, jint width, jint height, jint channels, jobject _data, boolean isBig) {
+		char* data = (char*)env->GetDirectBufferAddress(_data);
+
+		char* bitmap = new char[width * height * 4];
+
+		for (unsigned int i = 0, s = 0;
+			i < width * height * 4;
+			i += 4, s += channels
+			) {
+			bitmap[i] = data[s + 2];
+			bitmap[i + 1] = data[s + 1];
+			bitmap[i + 2] = data[s];
+			bitmap[i + 3] = channels == 3 ? 255 : data[s + 3];
+		}
+
+		ICONINFO iconInfo = {};
+		iconInfo.hbmColor = CreateBitmap(width, height, 1, 32, bitmap);
+		iconInfo.hbmMask = CreateCompatibleBitmap(GetDC((HWND)hwnd), width, height);
+		HICON hIcon = CreateIconIndirect(&iconInfo);
+
+		DeleteObject(iconInfo.hbmMask);
+		DeleteObject(iconInfo.hbmColor);
+		delete[] bitmap;
+
+		if (isBig) {
+			SendMessage((HWND)hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+		} else {
+			SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+			SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, (LPARAM)hIcon);
+		}
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetDefaultIcon(JNIEnv*, jobject, jlong hwnd) {
-		nSetDefaultIcon(hwnd);
+		SHSTOCKICONINFO sii;
+		sii.cbSize = sizeof(sii);
+		SHGetStockIconInfo(SIID_APPLICATION, SHGSI_ICON | SHGSI_LARGEICON, &sii);
+
+		LPARAM icon = (LPARAM)sii.hIcon;
+		SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL, icon);
+		SendMessage((HWND)hwnd, WM_SETICON, ICON_BIG, icon);
+		SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, icon);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIconState(JNIEnv*, jobject, jlong hwnd, jint state) {
-		nSetIconState(hwnd, state);
+		TBPFLAG winState = TBPF_NOPROGRESS;
+		if (state == 0)
+			winState = TBPF_NORMAL;
+		else if (state == 1)
+			winState = TBPF_PAUSED;
+		else if (state == 2)
+			winState = TBPF_ERROR;
+		else if (state == 3)
+			winState = TBPF_INDETERMINATE;
+
+		windows[(HWND)hwnd].taskbar->SetProgressState((HWND)hwnd, winState);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIconProgress(JNIEnv*, jobject, jlong hwnd, jfloat progress) {
-		nSetIconProgress(hwnd, progress);
+		int range = 300;
+		windows[(HWND)hwnd].taskbar->SetProgressValue((HWND)hwnd, progress * range, range);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetStyle(JNIEnv*, jobject, jlong hwnd, jint style) {
@@ -141,11 +273,11 @@ extern "C" {
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetWindowTitleColor(JNIEnv*, jobject, jlong hwnd, jint color) {
-		//DwmSetWindowAttribute((HWND)hwnd, DWMWA_CAPTION_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
+		DwmSetWindowAttribute((HWND)hwnd, DWMWA_CAPTION_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetWindowTextColor(JNIEnv*, jobject, jlong hwnd, jint color) {
-		//DwmSetWindowAttribute((HWND)hwnd, DWMWA_TEXT_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
+		DwmSetWindowAttribute((HWND)hwnd, DWMWA_TEXT_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
 	}
 
 	/*
@@ -153,18 +285,44 @@ extern "C" {
 	*/
 	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetFontData(JNIEnv* env, jobject, jobject _name) {
 		char* name = (char*)env->GetDirectBufferAddress(_name);
-		return nGetFontData(env, name);
+
+		LOGFONT logFont = {};
+		HGLOBAL hGlobal = NULL;
+		HDC hDC = NULL;
+		LPVOID ptr = NULL;
+
+		hDC = CreateDC(L"DISPLAY", NULL, NULL, NULL);
+
+		wcscpy_s(logFont.lfFaceName, (LPCWSTR)name);
+		HGDIOBJ hFont = CreateFontIndirect(&logFont);
+		SelectObject(hDC, hFont);
+
+		DWORD fontDataLen = GetFontData(hDC, 0, 0, NULL, 0);
+		if (fontDataLen == GDI_ERROR)
+			return NULL;
+
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE, fontDataLen);
+		ptr = GlobalLock(hGlobal);
+
+		GetFontData(hDC, 0, 0, ptr, fontDataLen);
+		GlobalUnlock(hGlobal);
+
+		return env->NewDirectByteBuffer(ptr, fontDataLen);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nRequestRepaint(JNIEnv*, jobject, jlong hwnd) {
-		nRequestRepaint(hwnd);
+		RedrawWindow((HWND)hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nPollEvents(JNIEnv*, jobject) {
-		nPollEvents();
+		MSG msg;
+		if (GetMessage(&msg, NULL, 0, 0)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSendEmptyMessage(JNIEnv*, jobject, jlong hwnd) {
-		nSendEmptyMessage(hwnd);
+		PostMessage((HWND)hwnd, 0, 0, 0);
 	}
 }

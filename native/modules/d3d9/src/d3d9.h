@@ -46,7 +46,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 		if (--devices_count == 0)
 			d3d->Release();
-		return 0;
+		
+		break;
 	}
 	case WM_SIZE:
 	{

@@ -20,7 +20,7 @@ val ByteArray.c_str: ByteArray
 val String.wideBytes: ByteArray
     get() = encodeToByteArray().wideBytes
 val String.c_wideBytes: ByteArray
-    get() = encodeToByteArray().wideBytes.c_wstr
+    get() = toByteArray(StandardCharsets.UTF_16LE).c_wstr
 val ByteArray.wideBytes: ByteArray
     get() = String(this, StandardCharsets.UTF_8).toByteArray(StandardCharsets.UTF_16LE)
 val ByteArray.utf8BytesFromWide: ByteArray

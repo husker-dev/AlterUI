@@ -23,7 +23,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     {
         wglDeleteContext(rc_list[hwnd]);
         ReleaseDC(hwnd, dc_list[hwnd]);
-        return 0;
+        break;
     }
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
