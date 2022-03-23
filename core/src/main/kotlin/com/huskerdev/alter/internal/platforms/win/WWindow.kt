@@ -107,6 +107,13 @@ class WWindow(hwnd: Long): WindowPeer(hwnd) {
     override fun setStyleImpl(style: WindowStyle) = nSetStyle(handle, style.styleIndex)
     override fun setColorImpl(color: Color?) = nSetWindowTitleColor(handle, color?.toBGR() ?: -1)
     override fun setTextColorImpl(color: Color?) = nSetWindowTextColor(handle, color?.toBGR() ?: -1)
+    override fun getMouseXImpl(): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun getMouseYImpl(): Int {
+        TODO("Not yet implemented")
+    }
 
     override fun requestRepaint() = nRequestRepaint(handle)
 

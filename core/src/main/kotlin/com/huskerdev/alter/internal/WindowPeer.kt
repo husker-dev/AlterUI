@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal
 
+import com.huskerdev.alter.geom.Point
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
@@ -12,14 +13,6 @@ enum class WindowStatus {
     Error,
     InProgress
 }
-/*
-enum class WindowStyle {
-    Default,
-    Undecorated,
-    NoTitle
-}
-
- */
 
 enum class WindowHitPosition {
     Caption,
@@ -150,6 +143,14 @@ abstract class WindowPeer(val handle: Long) {
             field = value
         }
 
+    private var _mousePosition = Point(-1f, -1f)
+    open val mousePosition: Point<Float>?
+        get() {
+            if(_mousePosition.x == -1f || _mousePosition.y == -1f)
+                return null
+            return _mousePosition
+        }
+
     var clientWidth = 0
         private set
     var clientHeight = 0
@@ -172,6 +173,7 @@ abstract class WindowPeer(val handle: Long) {
     var onResizedListeners = arrayListOf<() -> Unit>()
     var onMovedListeners = arrayListOf<() -> Unit>()
     var onDpiChangedListeners = arrayListOf<() -> Unit>()
+    var onMouseMovedListeners = arrayListOf<() -> Unit>()
 
     val graphics: Graphics
 
@@ -202,6 +204,9 @@ abstract class WindowPeer(val handle: Long) {
     protected abstract fun setStyleImpl(style: WindowStyle)
     protected abstract fun setColorImpl(color: Color?)
     protected abstract fun setTextColorImpl(color: Color?)
+
+    protected abstract fun getMouseXImpl(): Int
+    protected abstract fun getMouseYImpl(): Int
 
     protected abstract fun requestRepaint()
 
@@ -264,5 +269,24 @@ abstract class WindowPeer(val handle: Long) {
 
     @ImplicitUsage
     private fun onHitTestCallback(x: Int, y: Int) = style.hitTest(this, x, y).ordinal
+
+    @ImplicitUsage
+    private fun onMouseMoved(x: Int, y: Int, leftDown: Boolean, middleDown: Boolean, rightDown: Boolean, ctrlDown: Boolean, shiftDown: Boolean) {
+        _mousePosition.x = x.toFloat() / dpi
+        _mousePosition.y = y.toFloat() / dpi
+        onMouseMovedListeners.forEach { it() }
+    }
+
+    @ImplicitUsage
+    private fun onMouseEntered() {
+        //onMouseMovedListeners.forEach { it() }
+    }
+
+    @ImplicitUsage
+    private fun onMouseLeaved() {
+        _mousePosition.x = -1f
+        _mousePosition.y = -1f
+        //onMouseMovedListeners.forEach { it() }
+    }
 
 }

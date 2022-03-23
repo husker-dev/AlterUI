@@ -33,8 +33,8 @@ fun main() = AlterUI.takeMain {
 
             gr.color = Color.white
             if(image != null) {
-                //gr.drawImage(image!!, 150f, 150f, 100f, 100f)
-                //gr.drawImage(image!!, width - 100f, height - 100f, 100f, 100f)
+                gr.drawImage(image!!, (mousePosition?.x ?: 0f) - 50f, (mousePosition?.y ?: 0f) - 50f, 100f, 100f)
+                gr.drawImage(image!!, width - 100f, height - 100f, 100f, 100f)
             }
         }
     }
@@ -42,6 +42,10 @@ fun main() = AlterUI.takeMain {
     //window.icon = Image.create("C:\\Users\\redfa\\Desktop\\Check_green_icon.svg.png")
     window.background = Color.white
 
+
+    window.onMouseMoved {
+        window.repaint()
+    }
     //window.style = WindowStyle.NoTitle
 
     window.visible = true
@@ -50,7 +54,6 @@ fun main() = AlterUI.takeMain {
     thread {
         image = Image.fromFile("C:\\Users\\redfa\\Desktop\\15104f78cb83e3cefaf63ecc718a2a43.jpg")
         window.repaint()
-
     }
 
     val current = System.nanoTime()

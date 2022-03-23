@@ -1,3 +1,6 @@
+#define NOMINMAX
+#define VC_EXTRALEAN
+
 #include <jni.h>
 #include <windows.h>
 #include <windowsx.h>
@@ -25,6 +28,9 @@ struct WindowStruct {
 	ITaskbarList3*	taskbar;
 
 	int style = 0;	// 0 - Default, 1 - Undecorated, 2 - NoTitle
+	int mx = 0;
+	int my = 0;
+	bool mouseTracking = false;
 };
 
 static JavaVM* jvm;
@@ -37,6 +43,9 @@ static jmethodID onResizedCallback;
 static jmethodID onMovedCallback;
 static jmethodID onDpiChangedCallback;
 static jmethodID onHitTestCallback;
+static jmethodID onMouseMovedCallback;
+static jmethodID onMouseEnteredCallback;
+static jmethodID onMouseLeavedCallback;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
@@ -141,6 +150,38 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		}
 		break;
 	}
+	case WM_MOUSEMOVE:
+	{
+		
+		if (!windows[hwnd].mouseTracking) {
+			TRACKMOUSEEVENT tme;
+			tme.cbSize = sizeof(TRACKMOUSEEVENT);
+			tme.dwFlags = TME_LEAVE;
+			tme.dwHoverTime = 1;
+			tme.hwndTrack = hwnd;
+
+			TrackMouseEvent(&tme);
+			windows[hwnd].mouseTracking = true;
+			callbackInt(jvm, windows[hwnd].callbackObject, onMouseEnteredCallback);
+
+			windows[hwnd].mx = GET_X_LPARAM(lParam);
+			windows[hwnd].my = GET_Y_LPARAM(lParam);
+		}
+		callbackInt(jvm, windows[hwnd].callbackObject, onMouseMovedCallback,
+			GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), 
+			wParam & MK_LBUTTON, 
+			wParam & MK_MBUTTON, 
+			wParam & MK_RBUTTON,
+			wParam & MK_CONTROL,
+			wParam & MK_SHIFT);
+		break;
+	}
+	case WM_MOUSELEAVE:
+	{
+		windows[hwnd].mouseTracking = false;
+		callbackInt(jvm, windows[hwnd].callbackObject, onMouseLeavedCallback);
+		break;
+	}
 	}
 	return CallWindowProc(windows[hwnd].baseProc, hwnd, uMsg, wParam, lParam);
 }
@@ -161,6 +202,9 @@ extern "C" {
 		onMovedCallback = getCallbackMethod(env, _object, "onMovedCallback", "(II)V");
 		onDpiChangedCallback = getCallbackMethod(env, _object, "onDpiChangedCallback", "(F)V");
 		onHitTestCallback = getCallbackMethod(env, _object, "onHitTestCallback", "(II)I");
+		onMouseMovedCallback = getCallbackMethod(env, _object, "onMouseMoved", "(IIZZZZZ)V");
+		onMouseEnteredCallback = getCallbackMethod(env, _object, "onMouseEntered", "()V");
+		onMouseLeavedCallback = getCallbackMethod(env, _object, "onMouseLeaved", "()V");
 
 		WindowStruct windowStruct = {};
 		windowStruct.baseProc = (WNDPROC)SetWindowLongPtr((HWND)hwnd, GWLP_WNDPROC, (LONG_PTR)&WndProc);

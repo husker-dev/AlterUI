@@ -26,9 +26,13 @@ open class Frame {
     var titleColor by peer::color
     var textColor by peer::textColor
 
+    val mousePosition by peer::mousePosition
+
     fun onClosed(listener: () -> Unit) = peer.onClosedListeners.add(listener)
     fun onResized(listener: () -> Unit) = peer.onResizedListeners.add(listener)
     fun onMoved(listener: () -> Unit) = peer.onMovedListeners.add(listener)
+
+    fun onMouseMoved(listener: () -> Unit) = peer.onMouseMovedListeners.add(listener)
 
     init {
         peer.onPaintEvent = this::paint
