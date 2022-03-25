@@ -40,6 +40,7 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
         @JvmStatic external fun nSetShaderValue4f(shader: Long, varHandle: Long, v1: Float, v2: Float, v3: Float, v4: Float)
         @JvmStatic external fun nSetShaderMatrix(shader: Long, varHandle: Long, matrix: FloatBuffer)
         @JvmStatic external fun nCreateTexture(width: Int, height: Int, components: Int, data: ByteBuffer): Long
+        @JvmStatic external fun nCreateEmptyTexture(width: Int, height: Int, components: Int): Long
         @JvmStatic external fun nSetLinearFiltering(linearFiltering: Boolean)
     }
 
@@ -61,7 +62,10 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
     override fun createGraphics(image: Image) = D3D9ImageGraphics(image)
 
     override fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?): Image {
-        val texture = nCreateTexture(width, height, type.channels, data!!)
+        val texture = if(data != null)
+            nCreateTexture(width, height, type.channels, data)
+        else
+            nCreateEmptyTexture(width, height, type.channels)
         val surface = nGetTextureSurface(texture);
 
         return D3D9Image(texture, surface, width, height, type)

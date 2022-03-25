@@ -1,6 +1,9 @@
 import com.huskerdev.alter.AlterUI
 import com.huskerdev.alter.AlterUIProperties
+import com.huskerdev.alter.Mouse
+import com.huskerdev.alter.components.FlowPane
 import com.huskerdev.alter.components.Frame
+import com.huskerdev.alter.geom.Point
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
@@ -25,36 +28,15 @@ fun main() = AlterUI.takeMain {
     val start = System.nanoTime()
     AlterUI.load()
 
-    var image: Image? = null
+    val window = Frame()
+    window.children.add(FlowPane())
 
-    val window = object: Frame(){
-        override fun paint(gr: Graphics) {
-            super.paint(gr)
-
-            gr.color = Color.white
-            if(image != null) {
-                gr.drawImage(image!!, (mousePosition?.x ?: 0f) - 50f, (mousePosition?.y ?: 0f) - 50f, 100f, 100f)
-                gr.drawImage(image!!, width - 100f, height - 100f, 100f, 100f)
-            }
-        }
-    }
     window.title = "${AlterUIProperties.pipeline.uppercase()} Window"
-    //window.icon = Image.create("C:\\Users\\redfa\\Desktop\\Check_green_icon.svg.png")
     window.background = Color.white
-
-
-    window.onMouseMoved {
-        window.repaint()
-    }
-    //window.style = WindowStyle.NoTitle
 
     window.visible = true
 
 
-    thread {
-        image = Image.fromFile("C:\\Users\\redfa\\Desktop\\15104f78cb83e3cefaf63ecc718a2a43.jpg")
-        window.repaint()
-    }
 
     val current = System.nanoTime()
     println("Startup time: \t${(current - start) / 1000000.0 / 1000} sec")

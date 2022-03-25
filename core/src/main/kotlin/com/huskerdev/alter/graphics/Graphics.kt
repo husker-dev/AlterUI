@@ -51,13 +51,13 @@ abstract class Graphics {
                 (x <= this.width) && (y <= this.height)
     }
 
-    fun clear() {
+    open fun clear() {
         painter!!.runPaint {
             clear()
         }
     }
 
-    fun fillRect(x: Float, y: Float, width: Float, height: Float) {
+    open fun fillRect(x: Float, y: Float, width: Float, height: Float) {
         if(isValidRect(x, y, width, height)) {
             painter!!.runPaint {
                 fillRect(x, y, width, height)
@@ -65,7 +65,7 @@ abstract class Graphics {
         }
     }
 
-    fun drawRect(x: Float, y: Float, width: Float, height: Float) {
+    open fun drawRect(x: Float, y: Float, width: Float, height: Float) {
         if(isValidRect(x, y, width, height)) {
             painter!!.runPaint {
                 drawRect(x, y, width, height)
@@ -73,7 +73,7 @@ abstract class Graphics {
         }
     }
 
-    fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
+    open fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
         if(isValidRect(x, y, width, height)) {
             painter!!.runPaint {
                 drawImage(image, x, y, width, height)
@@ -81,7 +81,7 @@ abstract class Graphics {
         }
     }
 
-    fun drawText(text: String, x: Float, y: Float) {
+    open fun drawText(text: String, x: Float, y: Float) {
         val rasterizer = font.derived(font.size * dpi).getRasterMetrics(text, false)
         painter!!.runPaint {
             drawText(rasterizer.rasterImage, x, y, rasterizer.width / dpi, rasterizer.height / dpi)

@@ -1,6 +1,7 @@
 package com.huskerdev.alter.internal
 
 import com.huskerdev.alter.OS
+import com.huskerdev.alter.geom.Point
 import com.huskerdev.alter.internal.platforms.win.WindowsPlatform
 import com.huskerdev.alter.internal.platforms.win.c_wstr
 import java.nio.ByteBuffer
@@ -45,11 +46,12 @@ abstract class Platform {
     }
 
     abstract val defaultFontFamily: String
+    abstract val mousePosition: Point<Float>
+    abstract val physicalMousePosition: Point<Int>
 
     abstract fun load()
     abstract fun createWindowInstance(handle: Long): WindowPeer
     abstract fun pollEvents()
     abstract fun sendEmptyMessage(handle: Long)
     abstract fun getFontData(name: String): ByteBuffer?
-
 }

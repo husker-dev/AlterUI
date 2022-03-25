@@ -1,6 +1,5 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
-import com.huskerdev.alter.OS
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Pipeline
@@ -18,7 +17,7 @@ import kotlin.concurrent.thread
 class GLPipeline: Pipeline.DefaultEventPoll("gl") {
 
     companion object {
-        private var resourceWindow = 0L
+        var resourceWindow = 0L
         var resourceThread: Thread? = null
 
         val resourcesQueue = LinkedBlockingQueue<() -> Unit>()
@@ -89,9 +88,8 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
     override fun load() {
         super.load()
         MainThreadLocker.invoke {
-            resourceWindow = nCreateWindow(0)
-
             resourceThread = thread(name = "Alter OpenGL resource", isDaemon = true) {
+                resourceWindow = nCreateWindow(0)
                 nMakeCurrent(resourceWindow)
                 nInitContext()
                 resourcesContext = GLResourcesContext(resourceWindow)
@@ -117,7 +115,7 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         return GLImage(texId, framebuffer, type, width, height)
     }
 
-    override fun isMainThreadRequired() = OS.current != OS.Windows
+    override fun isMainThreadRequired() = true
 
     override fun createWindow(): WindowPeer {
         lateinit var newWindow: WindowPeer

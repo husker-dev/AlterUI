@@ -5,6 +5,7 @@ uniform float u_Dpi;
 uniform float u_RenderType;
 uniform float u_ColorChannels;
 uniform float u_ViewportHeight;
+uniform float u_InverseY;
 
 uniform vec4 u_Color;
 
@@ -13,14 +14,18 @@ uniform vec4 u_TextureBounds;
 uniform float u_TextureColors;
 
 vec2 getTextureCoord(vec4 bounds, float dpi){
-    bounds.y = u_ViewportHeight - bounds.y - bounds.w;
+    if(u_InverseY == 0)
+        bounds.y = u_ViewportHeight - bounds.y - bounds.w;
     bounds *= vec4(u_Dpi, u_Dpi, u_Dpi, u_Dpi);
     bounds.y -= 0.1;    // 0.1 - for pixel-perfect on HiDPI (idk why)
 
-    return vec2(
+    vec2 texCoord = vec2(
         (gl_FragCoord.x - bounds.x) / bounds.z,
-        1 - (gl_FragCoord.y - bounds.y) / bounds.w
+        (gl_FragCoord.y - bounds.y) / bounds.w
     );
+    if(u_InverseY == 0)
+    texCoord.y = 1 - texCoord.y;
+    return texCoord;
 }
 
 void main(){

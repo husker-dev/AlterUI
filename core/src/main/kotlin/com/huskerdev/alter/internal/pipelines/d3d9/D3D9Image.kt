@@ -7,7 +7,6 @@ import java.nio.ByteBuffer
 
 class D3D9Image(val texture: Long, val surface: Long, width: Int, height: Int, type: PixelType): Image(width, height, type) {
 
-
     override val data: ByteBuffer
         get() = TODO("Not yet implemented")
 

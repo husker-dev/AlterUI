@@ -10,7 +10,8 @@ import com.huskerdev.alter.internal.pipelines.gl.painters.GLImagePainter
 
 abstract class GLGraphics(
     val framebuffer: Int,
-    var context: GLContext
+    var context: GLContext,
+    val inverseY: Boolean
 ): Graphics() {
 
     override fun getColorPainter() = GLColorPainter
@@ -19,7 +20,7 @@ abstract class GLGraphics(
     override fun finish() = context.flush()
 }
 
-class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourcesContext) {
+class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourcesContext, true) {
     override val width = image.width.toFloat()
     override val height = image.height.toFloat()
     override val physicalHeight = image.height
@@ -28,7 +29,7 @@ class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourc
     override val pixelType = image.pixelType
 }
 
-class WindowGLGraphics(val window: WindowPeer): GLGraphics(0, GLContext(window.handle)) {
+class WindowGLGraphics(val window: WindowPeer): GLGraphics(0, GLContext(window.handle), false) {
     override val width: Float
         get() = window.width
     override val height: Float
@@ -43,7 +44,7 @@ class WindowGLGraphics(val window: WindowPeer): GLGraphics(0, GLContext(window.h
         get() = PixelType.RGBA
 
     override fun finish() {
+        //context.finish()
         nSwapBuffers(window.handle)
-        context.finish()
     }
 }

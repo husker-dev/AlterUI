@@ -3,13 +3,9 @@ package com.huskerdev.alter.internal.pipelines.d3d9.painters
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.VertexPaintHelper
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Graphics
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Image
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline
+import com.huskerdev.alter.internal.pipelines.d3d9.*
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nBeginScene
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nEndScene
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Shader
-import java.nio.FloatBuffer
 
 
 abstract class D3D9PainterDescriptor {

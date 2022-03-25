@@ -8,7 +8,7 @@ import com.huskerdev.alter.internal.utils.BufferUtils
 import java.nio.ByteBuffer
 import kotlin.math.max
 
-class WWindow(hwnd: Long): WindowPeer(hwnd) {
+class WWindowPeer(hwnd: Long): WindowPeer(hwnd) {
 
     companion object {
         @JvmStatic external fun nInitCallbacks(hwnd: Long, callbackObject: Any)

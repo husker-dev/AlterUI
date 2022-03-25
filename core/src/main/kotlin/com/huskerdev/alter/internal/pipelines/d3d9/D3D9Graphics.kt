@@ -11,50 +11,38 @@ import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ImagePainter
 
 abstract class D3D9Graphics(open val surface: Long): Graphics() {
 
-    /*
-    private val colorPainterInstance by lazy { D3D9ColorPainter() }
-    private val imagePainterInstance by lazy { D3D9ImagePainter() }
-
-    private var oldWidth = -1
-    private var oldHeight = -1
-
-    override fun beginImpl() {
-        if(oldWidth != window.clientWidth || oldHeight != window.clientHeight) {
-            oldWidth = window.clientWidth
-            oldHeight = window.clientHeight
-            nSetViewport(window.handle, oldWidth, oldHeight)
-        }
-        nBeginScene(window.handle)
-    }
-
-    override fun endImpl() {
-        nEndScene(window.handle)
-    }
-
-    override fun updateTransforms() {
-        //if(painter is D3D9Painter)
-        //    (painter as D3D9Painter).updateMatrix(matrix)
-    }
-
-     */
-
-
-    /*
-    override var painter: Painter?
-        get() = super.painter
-        set(value) {
-            super.painter = value
-            if(value is D3D9Painter) {
-                //value.updateMatrix(matrix)
-                value.updateHeight(oldHeight.toFloat())
-                value.updateDpi(dpi)
-            }
-        }
-*/
-    //override fun clear() = nClear()
-
     override fun getColorPainter() = D3D9ColorPainter
     override fun getImagePainter() = D3D9ImagePainter
+
+    override fun clear() {
+        synchronized(D3D9Pipeline.device){
+            super.clear()
+        }
+    }
+
+    override fun fillRect(x: Float, y: Float, width: Float, height: Float) {
+        synchronized(D3D9Pipeline.device) {
+            super.fillRect(x, y, width, height)
+        }
+    }
+
+    override fun drawRect(x: Float, y: Float, width: Float, height: Float) {
+        synchronized(D3D9Pipeline.device) {
+            super.drawRect(x, y, width, height)
+        }
+    }
+
+    override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
+        synchronized(D3D9Pipeline.device) {
+            super.drawImage(image, x, y, width, height)
+        }
+    }
+
+    override fun drawText(text: String, x: Float, y: Float) {
+        synchronized(D3D9Pipeline.device) {
+            super.drawText(text, x, y)
+        }
+    }
 
     override fun finish() {}
 }

@@ -52,9 +52,17 @@ abstract class Image(val width: Int, val height: Int, val pixelType: PixelType) 
             return image
         }
 
-        fun fromFile(width: Int, height: Int, type: PixelType, bitmap: ByteBuffer) = Pipeline.current.createImage(type, width, height, bitmap)
+        fun fromFile(width: Int, height: Int, type: PixelType, bitmap: ByteBuffer): Image {
+            if(width <= 0 || height <= 0)
+                throw UnsupportedOperationException("Image size can not be <= 0")
+            return Pipeline.current.createImage(type, width, height, bitmap)
+        }
 
-        fun createEmpty(width: Int, height: Int, type: PixelType = PixelType.RGBA) = Pipeline.current.createImage(type, width, height, null)
+        fun createEmpty(width: Int, height: Int, type: PixelType = PixelType.RGBA): Image {
+            if(width <= 0 || height <= 0)
+                throw UnsupportedOperationException("Image size can not be <= 0")
+            return Pipeline.current.createImage(type, width, height, null)
+        }
     }
 
     open var linearFiltered = true

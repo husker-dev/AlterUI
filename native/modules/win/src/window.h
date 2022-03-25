@@ -191,7 +191,7 @@ extern "C" {
 	/*
 		WWindow
 	*/
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nInitCallbacks(JNIEnv* env, jobject, jlong hwnd, jobject _object) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nInitCallbacks(JNIEnv* env, jobject, jlong hwnd, jobject _object) {
 		env->GetJavaVM(&jvm);
 
 		// Callbacks
@@ -215,7 +215,7 @@ extern "C" {
 		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nInit(JNIEnv*, jobject, jlong hwnd) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nInit(JNIEnv*, jobject, jlong hwnd) {
 		if (S_OK != CoInitialize(NULL))
 			return;
 		ITaskbarList3* taskbar;
@@ -226,24 +226,24 @@ extern "C" {
 		windows[(HWND)hwnd].taskbar = taskbar;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetVisible(JNIEnv*, jobject, jlong hwnd, jboolean visible) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetVisible(JNIEnv*, jobject, jlong hwnd, jboolean visible) {
 		ShowWindow((HWND)hwnd, visible ? SW_SHOW : SW_HIDE);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetTitle(JNIEnv* env, jobject, jlong hwnd, jobject _title) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetTitle(JNIEnv* env, jobject, jlong hwnd, jobject _title) {
 		char* title = (char*)env->GetDirectBufferAddress(_title);
 		SetWindowTextW((HWND)hwnd, (LPCWSTR)title);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetSize(JNIEnv* env, jobject, jlong hwnd, jint x, jint y, jint width, jint height) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetSize(JNIEnv* env, jobject, jlong hwnd, jint x, jint y, jint width, jint height) {
 		SetWindowPos((HWND)hwnd, nullptr, x, y, width, height, SWP_NOACTIVATE | SWP_NOZORDER);
 	}
 
-	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nGetDpi(JNIEnv*, jobject, jlong hwnd) {
+	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nGetDpi(JNIEnv*, jobject, jlong hwnd) {
 		return (float)GetDpiForWindow((HWND)hwnd) / 96;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIcon(JNIEnv* env, jobject, jlong hwnd, jint width, jint height, jint channels, jobject _data, boolean isBig) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetIcon(JNIEnv* env, jobject, jlong hwnd, jint width, jint height, jint channels, jobject _data, boolean isBig) {
 		char* data = (char*)env->GetDirectBufferAddress(_data);
 
 		char* bitmap = new char[width * height * 4];
@@ -275,7 +275,7 @@ extern "C" {
 		}
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetDefaultIcon(JNIEnv*, jobject, jlong hwnd) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetDefaultIcon(JNIEnv*, jobject, jlong hwnd) {
 		SHSTOCKICONINFO sii;
 		sii.cbSize = sizeof(sii);
 		SHGetStockIconInfo(SIID_APPLICATION, SHGSI_ICON | SHGSI_LARGEICON, &sii);
@@ -286,7 +286,7 @@ extern "C" {
 		SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, icon);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIconState(JNIEnv*, jobject, jlong hwnd, jint state) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetIconState(JNIEnv*, jobject, jlong hwnd, jint state) {
 		TBPFLAG winState = TBPF_NOPROGRESS;
 		if (state == 0)
 			winState = TBPF_NORMAL;
@@ -300,12 +300,12 @@ extern "C" {
 		windows[(HWND)hwnd].taskbar->SetProgressState((HWND)hwnd, winState);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetIconProgress(JNIEnv*, jobject, jlong hwnd, jfloat progress) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetIconProgress(JNIEnv*, jobject, jlong hwnd, jfloat progress) {
 		int range = 300;
 		windows[(HWND)hwnd].taskbar->SetProgressValue((HWND)hwnd, progress * range, range);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetStyle(JNIEnv*, jobject, jlong hwnd, jint style) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetStyle(JNIEnv*, jobject, jlong hwnd, jint style) {
 		windows[(HWND)hwnd].style = style;
 
 		RECT window;
@@ -316,11 +316,11 @@ extern "C" {
 		SetWindowPos((HWND)hwnd, nullptr, 0, 0, width, height, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOACTIVATE);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetWindowTitleColor(JNIEnv*, jobject, jlong hwnd, jint color) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetWindowTitleColor(JNIEnv*, jobject, jlong hwnd, jint color) {
 		DwmSetWindowAttribute((HWND)hwnd, DWMWA_CAPTION_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSetWindowTextColor(JNIEnv*, jobject, jlong hwnd, jint color) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSetWindowTextColor(JNIEnv*, jobject, jlong hwnd, jint color) {
 		DwmSetWindowAttribute((HWND)hwnd, DWMWA_TEXT_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
 	}
 
@@ -354,19 +354,35 @@ extern "C" {
 		return env->NewDirectByteBuffer(ptr, fontDataLen);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nRequestRepaint(JNIEnv*, jobject, jlong hwnd) {
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseX(JNIEnv* env, jobject) {
+		POINT point;
+		GetCursorPos(&point);
+		return point.x;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseY(JNIEnv* env, jobject) {
+		POINT point;
+		GetCursorPos(&point);
+		return point.y;
+	}
+
+	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseDpi(JNIEnv* env, jobject) {
+		return 1.0f;
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nRequestRepaint(JNIEnv*, jobject, jlong hwnd) {
 		RedrawWindow((HWND)hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nPollEvents(JNIEnv*, jobject) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nPollEvents(JNIEnv*, jobject) {
 		MSG msg;
-		if (GetMessage(&msg, NULL, 0, 0)) {
+		if (GetMessage(&msg, 0, 0, 0)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindow_nSendEmptyMessage(JNIEnv*, jobject, jlong hwnd) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSendEmptyMessage(JNIEnv*, jobject, jlong hwnd) {
 		PostMessage((HWND)hwnd, 0, 0, 0);
 	}
 }

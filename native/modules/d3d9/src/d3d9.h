@@ -185,7 +185,7 @@ extern "C" {
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nClear(JNIEnv*, jobject) {
-		device->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 255), 1.0f, 0);
+		device->Clear(0, NULL, D3DCLEAR_TARGET, 0, 1.0f, 0);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetTexture(JNIEnv*, jobject, jint index, jlong texture) {
@@ -311,9 +311,8 @@ extern "C" {
 		table->SetMatrix(device, (D3DXHANDLE)varHandle, &m);
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint components, jobject _data) {
-		char* data = (char*)env->GetDirectBufferAddress(_data);
-		IDirect3DTexture9* texture;
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateEmptyTexture(JNIEnv* env, jobject, jint width, jint height, jint components) {
+		IDirect3DTexture9* targetTexture;
 
 		D3DFORMAT format = D3DFMT_A8R8G8B8;
 		if (components == 3)
@@ -322,11 +321,31 @@ extern "C" {
 			format = D3DFMT_L8;
 
 		HRESULT h;
-		if ((h = device->CreateTexture(width, height, 1, 0, format, D3DPOOL_MANAGED, &texture, 0)) != S_OK)
-			throwError("Can't create texture");
+		if ((h = device->CreateTexture(width, height, 0, D3DUSAGE_RENDERTARGET, format, D3DPOOL_DEFAULT, &targetTexture, 0)) != S_OK)
+			throwJavaException(env, "java/lang/RuntimeException", "Can't create empty texture");
 
+		return (jlong)targetTexture;
+	}
+
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint components, jobject _data) {
+		char* data = (char*)env->GetDirectBufferAddress(_data);
+		IDirect3DTexture9* sourceTexture;
+		IDirect3DTexture9* targetTexture;
+
+		D3DFORMAT format = D3DFMT_A8R8G8B8;
+		if (components == 3)
+			format = D3DFMT_X8R8G8B8;
+		if (components == 1)
+			format = D3DFMT_L8;
+			
+		HRESULT h;
+		if ((h = device->CreateTexture(width, height, 1, 0, format, D3DPOOL_SYSTEMMEM, &sourceTexture, 0)) != S_OK)
+			throwJavaException(env, "java/lang/RuntimeException", "Can't create temporary texture");
+		if ((h = device->CreateTexture(width, height, 0, D3DUSAGE_RENDERTARGET, format, D3DPOOL_DEFAULT, &targetTexture, 0)) != S_OK)
+			throwJavaException(env, "java/lang/RuntimeException", "Can't create texture");
+		
 		D3DLOCKED_RECT lockedRect;
-		texture->LockRect(0, &lockedRect, 0, D3DLOCK_DISCARD);
+		sourceTexture->LockRect(0, &lockedRect, 0, D3DLOCK_DISCARD);
 
 		char* pData = (char*)lockedRect.pBits;
 
@@ -351,10 +370,17 @@ extern "C" {
 				}
 			}
 		}
+		sourceTexture->UnlockRect(0);
 
-		texture->UnlockRect(0);
+		IDirect3DSurface9* sourceSurface;
+		IDirect3DSurface9* targetSurface;
+		sourceTexture->GetSurfaceLevel(0, &sourceSurface);
+		targetTexture->GetSurfaceLevel(0, &targetSurface);
+		device->UpdateSurface(sourceSurface, NULL, targetSurface, NULL);
+		sourceSurface->Release();
+		sourceTexture->Release();
 
-		return (jlong)texture;
+		return (jlong)targetTexture;
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetLinearFiltering(JNIEnv*, jobject, jboolean linearFiltering) {

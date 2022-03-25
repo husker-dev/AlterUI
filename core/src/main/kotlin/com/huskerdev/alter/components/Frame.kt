@@ -7,14 +7,19 @@ open class Frame {
 
     val peer = Pipeline.current.createWindow()
 
+    val children = arrayListOf<Component>()
+
     var x by peer::x
     var y by peer::y
+    val physicalX by peer::physicalX
+    val physicalY by peer::physicalY
     var width by peer::width
     var height by peer::height
     val physicalWidth by peer::physicalWidth
     val physicalHeight by peer::physicalHeight
     val clientWidth by peer::clientWidth
     val clientHeight by peer::clientHeight
+    val dpi by peer::dpi
 
     var title by peer::title
     var background by peer::background
@@ -44,6 +49,9 @@ open class Frame {
         gr.clear()
         gr.color = background
         gr.fillRect(0f, 0f, width, height)
+
+        for(component in children)
+            component.paint(gr)
     }
 
 }

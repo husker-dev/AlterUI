@@ -3,7 +3,10 @@ package com.huskerdev.alter.internal.pipelines.gl.painters
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.VertexPaintHelper
+import com.huskerdev.alter.internal.Pipeline
+import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.pipelines.gl.*
+import java.nio.channels.Pipe
 
 abstract class GLPainterDescriptor {
 
@@ -14,6 +17,7 @@ abstract class GLPainterDescriptor {
     private var varRenderType = 0
     private var varViewportWidth = 0
     private var varViewportHeight = 0
+    private var varInverseY = 0
     private var varDpi = 0
     private var varTextureBounds = 0
     private var varTextureColors = 0
@@ -41,6 +45,7 @@ abstract class GLPainterDescriptor {
             varRenderType = shader[context, "u_RenderType"]
             varViewportWidth = shader[context, "u_ViewportWidth"]
             varViewportHeight = shader[context, "u_ViewportHeight"]
+            varInverseY = shader[context, "u_InverseY"]
             varDpi = shader[context, "u_Dpi"]
             varTextureBounds = shader[context, "u_TextureBounds"]
             varTextureColors = shader[context, "u_TextureColors"]
@@ -51,10 +56,14 @@ abstract class GLPainterDescriptor {
         context.setViewport(graphics.physicalWidth, graphics.physicalHeight)
         updateShaderViewport(graphics)
         shader[context, varColorChannels] = graphics.pixelType.channels.toFloat()
+        shader[context, varInverseY] = if(graphics.inverseY) 1f else 0f
     }
 
     fun onEndPaint(){
-        //context.makeCurrent(0)
+        if(graphics is ImageGLGraphics) {
+            context.flush()
+            context.finish()
+        }
     }
 
     private fun updateShaderViewport(graphics: Graphics) {
