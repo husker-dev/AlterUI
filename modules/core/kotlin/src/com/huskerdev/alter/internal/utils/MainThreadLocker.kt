@@ -10,6 +10,7 @@ class MainThreadLocker {
 
     companion object {
 
+        var isLocked = false
         var queueNotifiers = arrayListOf<() -> Unit>()
         var tasksQueue = LinkedBlockingQueue<() -> Unit>()
         var disposed = false
@@ -17,6 +18,7 @@ class MainThreadLocker {
 
         fun lock(){
             try {
+                isLocked = true
                 mainThread = Thread.currentThread()
                 createDaemon()
                 while (!disposed)

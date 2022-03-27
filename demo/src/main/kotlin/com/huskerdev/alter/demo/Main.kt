@@ -8,10 +8,7 @@ import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import kotlin.concurrent.thread
 
-fun main() = AlterUI.takeMain {
-    AlterUIProperties.pipeline = "d3d9"
-    AlterUI.load()
-
+fun main() = AlterUI.run {
     var image: Image? = null
 
     val frame = object: Frame(){
@@ -42,6 +39,5 @@ fun main() = AlterUI.takeMain {
         image = Image.fromURL("https://sun9-57.userapi.com/impf/1gtNjgQZDAlwcQturNhBY48C8dWAX1ldwF-mcA/HC1UBUhu9WQ.jpg?size=381x287&quality=96&sign=e40baa38284de39e16c1fe70f9be435a&type=album")
         frame.repaint()
     }
-
 
 }

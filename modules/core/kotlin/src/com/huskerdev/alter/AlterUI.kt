@@ -11,16 +11,19 @@ class AlterUI {
     companion object {
         const val version = "1.0"
 
-        @JvmStatic fun load(){
-            LibraryLoader.loadModuleLib("core")
+        @JvmStatic inline fun run(crossinline toInvoke: () -> Unit) {
+            if(!MainThreadLocker.isLocked) {
+                thread {
+                    // Initialize modules
+                    LibraryLoader.loadModuleLib("core")
+                    Platform.initialize()
+                    Pipeline.initialize()
 
-            Platform.initialize()
-            Pipeline.initialize()
-        }
-
-        @JvmStatic inline fun takeMain(crossinline toInvoke: () -> Unit) {
-            thread { toInvoke() }
-            MainThreadLocker.lock()
+                    // Give thread control to user
+                    toInvoke()
+                }
+                MainThreadLocker.lock()
+            }
         }
 
         @JvmStatic fun invokeOnMainThreadAsync(toInvoke: () -> Unit) = MainThreadLocker.invokeAsync(toInvoke)
