@@ -2,11 +2,10 @@ package com.huskerdev.alter.demo
 
 import com.huskerdev.alter.AlterUI
 import com.huskerdev.alter.AlterUIProperties
-import com.huskerdev.alter.components.Frame
+import com.huskerdev.alter.Frame
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.internal.WindowStyle
 import kotlin.concurrent.thread
 
 fun main() = AlterUI.takeMain {

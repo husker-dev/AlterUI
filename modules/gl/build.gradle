@@ -1,0 +1,32 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'kotlin/src'
+        }
+        resources {
+            srcDirs 'native/out'
+            srcDir 'kotlin/resources'
+        }
+    }
+}
+
+jar {
+    archiveBaseName.set('alterui_gl')
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib'
+    compileOnly findProject(':modules:core')
+}

@@ -1,16 +1,97 @@
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+import java.util.stream.*
+
+project.ext.DEBUG = false
+project.ext.modules = ['core', 'win', 'gl', 'd3d9']
+
+task buildLibrary(type: GradleBuild){
+    group = "alterui"
+
+    List toDo = ['compileNatives']
+    for(module in modules)
+        toDo.add(":modules:${module}:jar".toString())
+    tasks = toDo
+
+    doLast {
+        file("$projectDir/build/libs").mkdirs()
+
+        for(module in (List<String>)modules) {
+            String libName = "alterui_${module}.jar"
+            copyFile(file("$projectDir/modules/$module/build/libs/$libName"), file("$projectDir/build/libs/$libName"))
+        }
+    }
 }
 
-group 'com.huskerdev'
-version '1.0'
-
-repositories {
-    mavenCentral()
+task compileNatives(){
+    group = "alterui"
+    doLast {
+        for (module in (List<String>)modules)
+            compileNativeProject(module, "$projectDir/modules/${module}/native")
+    }
 }
 
-task buildProject(type: GradleBuild){
-    group 'alterui'
-    tasks = [':native:compileAll', ':core:moveNatives', ':core:jar']
+void compileNativeProject(String name, String project){
+    // TODO: Use MinGW in future
+    if(isWin()) {
+        // Uses 'msbuild' to compile project
+        // and 'vswhere' to find msbuild.exe
+        String msbuildPath = runCommand("${projectDir}\\utils\\vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe").text
+        println("Compiling native module \"${name}\":")
+        for (i in ["x86", "x64", "ARM64", "ARM"]) {
+            ConsoleOutput output = runCommand("\"${msbuildPath}\" \"${project}\\${name}.sln\" /t:Build /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")
+
+            String status
+            if(output.code != 0){
+                if(output.text.contains("error MSB4126"))
+                    status = "NO MODULE"
+                else status = "ERROR"
+            }else status = "OK"
+
+            println("\t- $i${repeat(".", 15 - i.length())}[${status}]")
+        }
+    }
 }
 
+static boolean isWin(){
+    return System.getProperty("os.name").toLowerCase().contains("win")
+}
+
+static String repeat(String str, int count){
+    return new String(new char[count]).replace("\0", str);
+}
+
+ConsoleOutput runCommand(String command){
+    if(DEBUG)
+        println ">> ${command}"
+    String suffix = (isWin() && command.contains("&&")) ? "cmd /c " : ""
+
+    Process p = Runtime.runtime.exec("${suffix}${command}")
+    String out = new BufferedReader(new InputStreamReader(p.inputStream)).lines().collect(Collectors.joining("\n"))
+    int code = p.waitFor()
+
+    return new ConsoleOutput(code, out)
+}
+
+static void copyFile(File source, File target){
+    try {
+        InputStream input = new BufferedInputStream(new FileInputStream(source))
+        OutputStream output = new BufferedOutputStream(new FileOutputStream(target))
+        byte[] buffer = new byte[1024]
+        int lengthRead
+        while ((lengthRead = input.read(buffer)) > 0) {
+            output.write(buffer, 0, lengthRead)
+            output.flush()
+        }
+        input.close()
+        output.close()
+    }catch(Exception ignored){ }
+}
+
+class ConsoleOutput {
+    int code
+    String text
+
+    ConsoleOutput(int code, String text){
+        this.code = code
+        this.text = text
+    }
+}

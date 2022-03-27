@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
 }
 
 group 'com.huskerdev'
@@ -22,14 +22,17 @@ jar {
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
 
-    implementation files("$projectDir/../core/build/libs/core.jar")
-    implementation 'com.github.husker-dev:NioEx:1.0'
+    implementation findProject(':modules:core')
+    implementation findProject(':modules:win')
+    implementation findProject(':modules:gl')
+    implementation findProject(':modules:d3d9')
+    implementation findProject(':modules:d3d11')
 }
 
 task buildDemo(){
     group 'alterui'
     dependsOn ':demo:jar'
-    dependsOn ':buildProject'
+    dependsOn ':buildLibrary'
 
-    tasks.findByPath(':demo:jar').mustRunAfter ':buildProject'
+    tasks.findByPath(':demo:jar').mustRunAfter ':buildLibrary'
 }

@@ -1,5 +1,10 @@
 rootProject.name = 'alterui'
-include 'core'
-include 'native'
+include 'modules'
+include 'modules:d3d9'
+include 'modules:d3d11'
+include 'modules:gl'
+include 'modules:win'
+include 'modules:core'
+
 include 'demo'
 

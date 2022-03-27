@@ -1,0 +1,27 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'kotlin/src'
+        }
+        resources {
+            srcDir 'native/out'
+            srcDir 'kotlin/resources'
+        }
+    }
+}
+
+jar {
+    archiveBaseName.set('alterui_core')
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
