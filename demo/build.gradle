@@ -20,7 +20,7 @@ jar {
 }
 
 dependencies {
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
     implementation findProject(':modules:core')
     implementation findProject(':modules:win')
