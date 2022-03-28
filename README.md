@@ -24,6 +24,12 @@ The main task is to make window creation faster and easier.
   
 ### Pipelines
   - :white_square_button: Direct3D 11
-  - :white_check_mark: Direct3D 9
+  - :white_check_mark: Direct3D 9 (x64, x86)
   - :white_check_mark: OpenGL
   - :white_square_button: Metal
+
+### Processor architectures
+  - :white_check_mark: x64
+  - :white_check_mark: x86
+  - :white_check_mark: ARM
+  - :white_check_mark: ARM64
