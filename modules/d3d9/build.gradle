@@ -5,21 +5,20 @@ plugins {
 sourceSets {
     main {
         java {
-            srcDirs 'kotlin/src'
+            srcDir 'kotlin/src'
         }
         resources {
-            srcDirs 'native/out'
+            srcDir 'native/out'
             srcDir 'kotlin/resources'
         }
     }
 }
 
-jar {
-    archiveBaseName.set('alterui_d3d9')
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
+bindAsDefaultModule(project,
+        "d3d9",
+        ["x64", "x86"],
+        ["win"]
+)
 
 repositories {
     mavenCentral()

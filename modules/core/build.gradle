@@ -5,7 +5,7 @@ plugins {
 sourceSets {
     main {
         java {
-            srcDirs 'kotlin/src'
+            srcDir 'kotlin/src'
         }
         resources {
             srcDir 'native/out'
@@ -14,12 +14,11 @@ sourceSets {
     }
 }
 
-jar {
-    archiveBaseName.set('alterui_core')
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
+bindAsDefaultModule(project,
+        "core",
+        ["x64", "x86", "arm", "arm64"],
+        ["win", "linux", "macos"]
+)
 
 repositories {
     mavenCentral()
@@ -28,5 +27,4 @@ repositories {
 
 dependencies {
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib'
-
 }

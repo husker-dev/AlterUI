@@ -14,7 +14,6 @@ import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glGetUnifo
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glUniform1i
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glUseProgram
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.glViewport
-import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.invokeOnResourceThread
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nCreateShaderProgram
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nReadPixels
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nReleaseFrameBuffer
@@ -24,7 +23,6 @@ import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetShader
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetShaderVariable3f
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nSetShaderVariable4f
 import com.huskerdev.alter.internal.utils.BufferUtils
-import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 
 open class GLContext(val window: Long) {

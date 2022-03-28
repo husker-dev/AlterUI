@@ -15,8 +15,8 @@ task buildLibrary(type: GradleBuild){
         file("$projectDir/build/libs").mkdirs()
 
         for(module in (List<String>)modules) {
-            String libName = "alterui_${module}.jar"
-            copyFile(file("$projectDir/modules/$module/build/libs/$libName"), file("$projectDir/build/libs/$libName"))
+            for(lib in file("$projectDir/modules/$module/build/libs/").listFiles())
+                copyFile(lib, file("$projectDir/build/libs/${lib.name}"))
         }
     }
 }
@@ -93,5 +93,32 @@ class ConsoleOutput {
     ConsoleOutput(int code, String text){
         this.code = code
         this.text = text
+    }
+}
+
+void bindAsDefaultModule(Object a, String moduleName, ArrayList<String> architectures, ArrayList<String> platforms){
+    a.jar {
+        def ext = new HashMap<String, String>()
+        ext.put("win", "dll")
+        ext.put("linux", "so")
+        ext.put("macos", "dylib")
+
+        archiveBaseName.set("alterui_$moduleName")
+        for(platform in platforms)
+            exclude("**/resources/$moduleName/*.${ext.get(platform)}")
+
+        doLast {
+            def resourcesFolder = new File(a.projectDir, "build/resources/main")
+            for(file in fileTree(resourcesFolder).files){
+                for(platform in platforms) {
+                    for (arch in architectures) {
+                        if (file.name == "${moduleName}_${arch}.${ext.get(platform)}") {
+                            String localPath = file.absolutePath.replace(resourcesFolder.absolutePath, "")
+                            runCommand("jar cf build/libs/alterui_${moduleName}_${platform}_${arch}.jar -C ${resourcesFolder.absolutePath} $localPath")
+                        }
+                    }
+                }
+            }
+        }
     }
 }

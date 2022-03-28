@@ -5,21 +5,20 @@ plugins {
 sourceSets {
     main {
         java {
-            srcDirs 'kotlin/src'
+            srcDir 'kotlin/src'
         }
         resources {
-            srcDirs 'native/out'
+            srcDir 'native/out'
             srcDir 'kotlin/resources'
         }
     }
 }
 
-jar {
-    archiveBaseName.set('alterui_gl')
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
+bindAsDefaultModule(project,
+        "gl",
+        ["x64", "x86", "arm", "arm64"],
+        ["win", "linux", "macos"]
+)
 
 repositories {
     mavenCentral()
