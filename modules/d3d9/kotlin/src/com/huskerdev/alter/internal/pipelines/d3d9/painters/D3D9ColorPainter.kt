@@ -11,15 +11,15 @@ object D3D9ColorPainter: ColorPainter() {
         var colorBar = 0L
 
         override fun initShaders() {
-            pixel = D3D9Shader.pixelFromResources("/com/huskerdev/alter/resources/d3d9/shaders/colorFragment.hlsl").compile()
-            vertex = D3D9Shader.vertexFromResources("/com/huskerdev/alter/resources/d3d9/shaders/defaultVertex.hlsl").compile()
+            pixelShader = D3D9Shader.pixelFromResources("/com/huskerdev/alter/resources/d3d9/shaders/colorFragment.hlsl").compile()
+            vertexShader = D3D9Shader.vertexFromResources("/com/huskerdev/alter/resources/d3d9/shaders/defaultVertex.hlsl").compile()
 
-            colorBar = pixel.getVariableHandler("u_Color")
+            colorBar = pixelShader.getVariableHandler("u_Color")
         }
     }
 
     override fun updateColor() =
-        descriptor.pixel.set4f(descriptor.colorBar, color.r, color.g, color.b, color.a)
+        descriptor.pixelShader.set4f(descriptor.colorBar, color.r, color.g, color.b, color.a)
 
     override fun onBeginPaint(graphics: Graphics) {
         descriptor.onBeginPaint(graphics)

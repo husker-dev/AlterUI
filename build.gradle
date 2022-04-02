@@ -1,4 +1,4 @@
-import java.util.stream.*
+import java.util.stream.Collectors
 
 project.ext.DEBUG = false
 project.ext.modules = ['core', 'win', 'gl', 'd3d9']
@@ -24,6 +24,7 @@ task buildLibrary(type: GradleBuild){
 task compileNatives(){
     group = "alterui"
     doLast {
+        println("${projectDir}/aaa.gradle")
         for (module in (List<String>)modules)
             compileNativeProject(module, "$projectDir/modules/${module}/native")
     }
@@ -50,6 +51,37 @@ void compileNativeProject(String name, String project){
         }
     }
 }
+
+void bindAsDefaultModule(Object a, String moduleName, ArrayList<String> architectures, ArrayList<String> platforms){
+    a.jar {
+        def ext = new HashMap<String, String>()
+        ext.put("win", "dll")
+        ext.put("linux", "so")
+        ext.put("macos", "dylib")
+
+        archiveBaseName.set("alterui_$moduleName")
+        for(platform in platforms)
+            exclude("**/resources/$moduleName/*.${ext.get(platform)}")
+
+        doLast {
+            def resourcesFolder = new File(a.projectDir, "build/resources/main")
+            for(file in fileTree(resourcesFolder).files){
+                for(platform in platforms) {
+                    for (arch in architectures) {
+                        if (file.name == "${moduleName}_${arch}.${ext.get(platform)}") {
+                            String localPath = file.absolutePath.replace(resourcesFolder.absolutePath, "")
+                            runCommand("jar cf build/libs/alterui_${moduleName}_${platform}_${arch}.jar -C ${resourcesFolder.absolutePath} $localPath")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/////////////////////////////////
+//  Utils
+/////////////////////////////////
 
 static boolean isWin(){
     return System.getProperty("os.name").toLowerCase().contains("win")
@@ -93,32 +125,5 @@ class ConsoleOutput {
     ConsoleOutput(int code, String text){
         this.code = code
         this.text = text
-    }
-}
-
-void bindAsDefaultModule(Object a, String moduleName, ArrayList<String> architectures, ArrayList<String> platforms){
-    a.jar {
-        def ext = new HashMap<String, String>()
-        ext.put("win", "dll")
-        ext.put("linux", "so")
-        ext.put("macos", "dylib")
-
-        archiveBaseName.set("alterui_$moduleName")
-        for(platform in platforms)
-            exclude("**/resources/$moduleName/*.${ext.get(platform)}")
-
-        doLast {
-            def resourcesFolder = new File(a.projectDir, "build/resources/main")
-            for(file in fileTree(resourcesFolder).files){
-                for(platform in platforms) {
-                    for (arch in architectures) {
-                        if (file.name == "${moduleName}_${arch}.${ext.get(platform)}") {
-                            String localPath = file.absolutePath.replace(resourcesFolder.absolutePath, "")
-                            runCommand("jar cf build/libs/alterui_${moduleName}_${platform}_${arch}.jar -C ${resourcesFolder.absolutePath} $localPath")
-                        }
-                    }
-                }
-            }
-        }
     }
 }

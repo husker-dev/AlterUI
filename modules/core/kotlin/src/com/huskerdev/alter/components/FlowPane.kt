@@ -5,13 +5,9 @@ import com.huskerdev.alter.graphics.Graphics
 import kotlin.math.max
 
 open class FlowPane: Component() {
-    override fun paintComponent(gr: Graphics) {
-
-    }
+    override fun paintComponent(gr: Graphics) {}
 
     override fun doLayout() {
-        //println("layout $width")
-
         var maxLineHeight = 0f
         var currentLineComponents = arrayListOf<Component>()
 

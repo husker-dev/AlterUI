@@ -63,6 +63,7 @@ open class Frame {
         gr.color = background
         gr.fillRect(0f, 0f, width, height)
 
+        content?.update()
         content?.paint(gr)
     }
 

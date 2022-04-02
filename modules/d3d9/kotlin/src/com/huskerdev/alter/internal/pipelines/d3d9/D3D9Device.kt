@@ -3,6 +3,7 @@ package com.huskerdev.alter.internal.pipelines.d3d9
 import com.huskerdev.alter.graphics.painters.VertexPaintHelper
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nClear
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nDrawArrays
+import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetLinearFiltering
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetPixelShader
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetRenderTarget
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetTexture
@@ -29,6 +30,14 @@ class D3D9Device {
             if(value != field){
                 field = value
                 nSetRenderTarget(value)
+            }
+        }
+
+    var linearFiltering = true
+        set(value) {
+            if(value != field){
+                field = value
+                nSetLinearFiltering(value)
             }
         }
 

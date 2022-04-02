@@ -20,6 +20,7 @@ open class Button: Component() {
     override fun paintComponent(gr: Graphics) {
         gr.color = Color.white
         gr.drawImage(texture, 0f, 0f, width, height)
+
         //gr.fillRect(0f, 0f, width, height)
     }
 

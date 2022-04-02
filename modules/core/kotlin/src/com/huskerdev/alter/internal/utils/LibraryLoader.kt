@@ -8,7 +8,7 @@ import java.lang.NullPointerException
 
 class LibraryLoader {
     companion object {
-        val alternativePaths = hashMapOf<String, String>()
+        var forceWrite = false
 
         val tempFolder = File("${System.getProperty("java.io.tmpdir")}Alter${File.separator}${AlterUI.version}")
 
@@ -21,23 +21,19 @@ class LibraryLoader {
         }
 
         fun load(path: String) {
-            if (path in alternativePaths)
-                System.load(alternativePaths[path])
-            else {
-                val relativePath = if (path.startsWith("/")) path.substring(1) else path
-                val dest = File(tempFolder, relativePath.substring(relativePath.lastIndexOf("/")))
-                dest.parentFile.mkdirs()
+            val relativePath = if (path.startsWith("/")) path.substring(1) else path
+            val dest = File(tempFolder, relativePath.substring(relativePath.lastIndexOf("/")))
+            dest.parentFile.mkdirs()
 
-                if(!dest.exists()) {
-                    val input = this::class.java.getResourceAsStream("/$relativePath")
-                        ?: throw NullPointerException("Can't find library in resources: /$relativePath")
-                    val output = FileOutputStream(dest)
-                    input.copyTo(output)
-                    input.close()
-                    output.close()
-                }
-                System.load(dest.absolutePath)
+            if(forceWrite || !dest.exists()) {
+                val input = this::class.java.getResourceAsStream("/$relativePath")
+                    ?: throw NullPointerException("Can't find library in resources: /$relativePath")
+                val output = FileOutputStream(dest)
+                input.copyTo(output)
+                input.close()
+                output.close()
             }
+            System.load(dest.absolutePath)
         }
     }
 }

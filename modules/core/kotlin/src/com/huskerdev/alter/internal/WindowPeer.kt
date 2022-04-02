@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal
 
+import com.huskerdev.alter.components.Component
 import com.huskerdev.alter.geom.Point
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics

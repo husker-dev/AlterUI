@@ -27,8 +27,8 @@ abstract class D3D9PainterDescriptor {
     lateinit var graphics: Graphics
     private val device = D3D9Pipeline.device
 
-    lateinit var vertex: D3D9Shader
-    lateinit var pixel: D3D9Shader
+    lateinit var vertexShader: D3D9Shader
+    lateinit var pixelShader: D3D9Shader
 
     abstract fun initShaders()
 
@@ -40,16 +40,16 @@ abstract class D3D9PainterDescriptor {
             shadersLoaded = true
             initShaders()
 
-            varRenderType = pixel.getVariableHandler("u_RenderType")
-            varViewportWidth = vertex.getVariableHandler("u_ViewportWidth")
-            varViewportHeight = vertex.getVariableHandler("u_ViewportHeight")
-            varDpi = pixel.getVariableHandler("u_Dpi")
+            varRenderType = pixelShader.getVariableHandler("u_RenderType")
+            varViewportWidth = vertexShader.getVariableHandler("u_ViewportWidth")
+            varViewportHeight = vertexShader.getVariableHandler("u_ViewportHeight")
+            varDpi = pixelShader.getVariableHandler("u_Dpi")
 
-            varTextureBounds = pixel.getVariableHandler("u_TextureBounds")
-            varTextureColors = pixel.getVariableHandler("u_TextureColors")
+            varTextureBounds = pixelShader.getVariableHandler("u_TextureBounds")
+            varTextureColors = pixelShader.getVariableHandler("u_TextureColors")
         }
-        device.vertexShader = vertex
-        device.pixelShader = pixel
+        device.vertexShader = vertexShader
+        device.pixelShader = pixelShader
         device.surface = graphics.surface
         updateShaderViewport(graphics)
         nBeginScene()
@@ -62,39 +62,40 @@ abstract class D3D9PainterDescriptor {
     private fun updateShaderViewport(graphics: Graphics) {
         if(lastViewportWidth != graphics.width) {
             lastViewportWidth = graphics.width
-            vertex[varViewportWidth] = graphics.width
+            vertexShader[varViewportWidth] = graphics.width
         }
         if(lastViewportHeight != graphics.height) {
             lastViewportHeight = graphics.height
-            vertex[varViewportHeight] = graphics.height
+            vertexShader[varViewportHeight] = graphics.height
         }
         if(lastDpi != graphics.dpi) {
             lastDpi = graphics.dpi
-            pixel[varDpi] = graphics.dpi
+            pixelShader[varDpi] = graphics.dpi
         }
     }
 
     fun clear() = D3D9Pipeline.device.clear()
     fun fillRect(x: Float, y: Float, width: Float, height: Float) {
-        pixel[varRenderType] = 1f
+        pixelShader[varRenderType] = 1f
         VertexPaintHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }
 
     fun drawRect(x: Float, y: Float, width: Float, height: Float) {
-        pixel[varRenderType] = 2f
+        pixelShader[varRenderType] = 2f
         VertexPaintHelper.drawRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }
 
     fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
-        pixel[varRenderType] = 3f
-        pixel[varTextureColors] = image.pixelType.channels.toFloat()
-        pixel.set4f(varTextureBounds, x, y, width, height)
+        pixelShader[varRenderType] = 3f
+        pixelShader[varTextureColors] = image.pixelType.channels.toFloat()
+        pixelShader.set4f(varTextureBounds, x, y, width, height)
         device.bindTexture(0, (image as D3D9Image).texture)
+        device.linearFiltering = image.linearFiltered
         VertexPaintHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }
 
     fun drawText(image: Image, x: Float, y: Float, width: Float, height: Float) {
-        pixel[varRenderType] = 4f
+        pixelShader[varRenderType] = 4f
         VertexPaintHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }
 }

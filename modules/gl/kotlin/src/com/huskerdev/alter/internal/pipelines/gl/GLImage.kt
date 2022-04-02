@@ -10,7 +10,8 @@ class GLImage(
     val framebuffer: Int,
     type: PixelType,
     width: Int,
-    height: Int
+    height: Int,
+    val context: GLContext
 ): Image(width, height, type) {
 
     private var _linearFiltering = false
@@ -18,17 +19,17 @@ class GLImage(
         get() = _linearFiltering
         set(value) {
             _linearFiltering = value
-            resourcesContext.setLinearFiltering(texId, value)
+            context.setLinearFiltering(texId, value)
         }
 
     override val data: ByteBuffer
-        get() = resourcesContext.readPixels(this, 0, 0, width, height)
+        get() = context.readPixels(this, 0, 0, width, height)
 
     override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int) =
-        fromFile(width, height, pixelType, resourcesContext.readPixels(this, x, y, width, height))
+        fromFile(width, height, pixelType, context.readPixels(this, x, y, width, height))
 
     override fun disposeImpl() {
-        resourcesContext.releaseTexture(texId)
-        resourcesContext.releaseFrameBuffer(framebuffer)
+        context.releaseTexture(texId)
+        context.releaseFrameBuffer(framebuffer)
     }
 }

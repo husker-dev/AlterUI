@@ -16,7 +16,7 @@ uniform float u_TextureColors;
 vec2 getTextureCoord(vec4 bounds, float dpi){
     if(u_InverseY == 0)
         bounds.y = u_ViewportHeight - bounds.y - bounds.w;
-    bounds *= vec4(u_Dpi, u_Dpi, u_Dpi, u_Dpi);
+    bounds *= vec4(dpi, dpi, dpi, dpi);
     bounds.y -= 0.1;    // 0.1 - for pixel-perfect on HiDPI (idk why)
 
     vec2 texCoord = vec2(

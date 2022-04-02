@@ -105,7 +105,7 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
     override fun createGraphics(window: WindowPeer) = WindowGLGraphics(window)
     override fun createGraphics(image: Image) = ImageGLGraphics(image as GLImage)
 
-    override fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?): Image {
+    fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?, context: GLContext): Image {
         var texId = 0
         var framebuffer = 0
         invokeOnResourceThread {
@@ -114,8 +114,11 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
             else nCreateEmptyTexture(width, height, type.channels)
             framebuffer = nBindTextureBuffer(texId)
         }
-        return GLImage(texId, framebuffer, type, width, height)
+        return GLImage(texId, framebuffer, type, width, height, context)
     }
+
+    override fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?) =
+        createImage(type, width, height, data, resourcesContext)
 
     override fun isMainThreadRequired() = true
 

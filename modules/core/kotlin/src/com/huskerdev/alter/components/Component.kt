@@ -1,5 +1,7 @@
 package com.huskerdev.alter.components
 
+import com.huskerdev.alter.Frame
+import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
@@ -7,8 +9,8 @@ import com.huskerdev.alter.graphics.PixelType
 abstract class Component {
 
     companion object {
-        protected const val FLAG_SIZE_CHANGED = 0x00000001
-        protected const val FLAG_CONTENT_CHANGED = 0x00000002
+        protected const val FLAG_UPDATE        = 0b00000001
+        protected const val FLAG_REPAINT       = 0b00000010
     }
 
     var x = 0f
@@ -17,16 +19,14 @@ abstract class Component {
        set(value) {
            if(field != value) {
                field = value
-               addFlag(FLAG_SIZE_CHANGED or FLAG_CONTENT_CHANGED)
-               doLayout()
+               componentUpdated()
            }
        }
     var height = 0f
         set(value) {
             if(field != value) {
                 field = value
-                addFlag(FLAG_SIZE_CHANGED or FLAG_CONTENT_CHANGED)
-                doLayout()
+                componentUpdated()
             }
         }
 
@@ -46,18 +46,32 @@ abstract class Component {
             }
         }
 
-    private var flags = FLAG_SIZE_CHANGED
+    private var flags = 0
     private var texture: Image? = null
 
     var parent: Component? = null
+    var frame: Frame? = null
+        set(value) {
+            field = value
+            componentUpdated()
+        }
+
     val children = object: ChildrenList(){
         override fun onAdd(component: Component) {
             component.parent = this@Component
-            doLayout()
+            component.componentUpdated()
         }
 
         override fun onRemove(component: Component) {
 
+        }
+    }
+
+    protected fun componentUpdated(){
+        var parent: Component? = this
+        while(parent != null){
+            parent.addFlag(FLAG_UPDATE)
+            parent = parent.parent
         }
     }
 
@@ -72,21 +86,36 @@ abstract class Component {
         return result
     }
 
-    fun paint(gr: Graphics) {
-        if(checkFlag(FLAG_SIZE_CHANGED)){
-            texture?.dispose()
-            texture = if(width > 0 && height > 0)
-                Image.createEmpty(width.toInt(), height.toInt(), PixelType.RGBA)
-            else null
-        }
-        if(checkFlag(FLAG_CONTENT_CHANGED) && texture != null) {
-            paintComponent(texture!!.graphics)
+    internal fun update(){
+        if(checkFlag(FLAG_UPDATE)){
             for(child in children)
-                child.paint(gr)
-        }
+                child.update()
 
-        if(texture != null)
-            gr.drawImage(texture!!, x, y, width, height)
+            doLayout()
+        }
+    }
+
+    internal fun paint(gr: Graphics) {
+        if(width <= 0 || height <= 0)
+            return
+        if(texture == null ||
+            width.toInt() != texture!!.width ||
+            height.toInt() != texture!!.height
+        ){
+            texture?.dispose()
+            texture = Image.createEmpty(width.toInt(), height.toInt(), PixelType.RGBA)
+
+            val contentGraphics = texture!!.graphics
+            paintComponent(contentGraphics)
+            for(child in children)
+                child.paint(contentGraphics)
+        }
+        gr.color = Color.white
+        gr.drawImage(texture!!, x, y, width, height)
+    }
+
+    fun repaint(){
+
     }
 
     abstract fun paintComponent(gr: Graphics)

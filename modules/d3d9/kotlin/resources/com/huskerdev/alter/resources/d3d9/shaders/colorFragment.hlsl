@@ -11,12 +11,12 @@ float4 u_TextureBounds;
 float u_TextureColors;
 
 float2 getTextureCoord(float2 Pos, float4 bounds, float dpi){
-    bounds *= float4(u_Dpi, u_Dpi, u_Dpi, u_Dpi);
+    bounds *= float4(dpi, dpi, dpi, dpi);
     bounds.y -= 0.1;    // 0.1 - for pixel-perfect on HiDPI (idk why)
 
     return float2(
         (Pos.x - bounds.x + 0.5) / bounds.z,
-        (Pos.y - bounds.y - 0.5) / bounds.w
+        (Pos.y - bounds.y) / bounds.w
     );
 }
 
