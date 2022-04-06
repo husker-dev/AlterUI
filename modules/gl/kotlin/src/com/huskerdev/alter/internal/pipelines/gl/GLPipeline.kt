@@ -23,6 +23,7 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         val resourcesQueue = LinkedBlockingQueue<() -> Unit>()
 
         lateinit var resourcesContext: GLContext
+        val contexts = hashMapOf<WindowPeer, GLContext>()
 
         // Platform-specific
         @JvmStatic external fun nCreateWindow(shareWith: Long): Long
@@ -102,10 +103,22 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         }
     }
 
-    override fun createGraphics(window: WindowPeer) = WindowGLGraphics(window)
-    override fun createGraphics(image: Image) = ImageGLGraphics(image as GLImage)
+    private fun getWindowGLContext(window: WindowPeer): GLContext{
+        if(window !in contexts)
+            contexts[window] = GLContext(window.handle)
+        return contexts[window]!!
+    }
 
-    fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?, context: GLContext): Image {
+    override fun createGraphics(window: WindowPeer) = WindowGLGraphics(window, getWindowGLContext(window))
+    override fun createGraphics(image: Image) =
+        if((image as GLImage).context == resourcesContext) ImageGLGraphics(image) else SurfaceImageGLGraphics(image)
+
+    override fun createImage(
+        type: PixelType,
+        width: Int,
+        height: Int,
+        data: ByteBuffer?
+    ): Image {
         var texId = 0
         var framebuffer = 0
         invokeOnResourceThread {
@@ -114,11 +127,23 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
             else nCreateEmptyTexture(width, height, type.channels)
             framebuffer = nBindTextureBuffer(texId)
         }
-        return GLImage(texId, framebuffer, type, width, height, context)
+        return GLImage(texId, framebuffer, type, width, height, width, height, 1f, resourcesContext)
     }
 
-    override fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?) =
-        createImage(type, width, height, data, resourcesContext)
+    override fun createSurfaceImage(
+        window: WindowPeer,
+        type: PixelType,
+        physicalWidth: Int,
+        physicalHeight: Int,
+        logicWidth: Int,
+        logicHeight: Int,
+        dpi: Float
+    ): Image {
+        val texId = nCreateEmptyTexture(physicalWidth, physicalHeight, type.channels)
+        val framebuffer = nBindTextureBuffer(texId)
+
+        return GLImage(texId, framebuffer, type, physicalWidth, physicalHeight, logicWidth, logicHeight, dpi, getWindowGLContext(window))
+    }
 
     override fun isMainThreadRequired() = true
 

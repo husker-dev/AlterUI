@@ -27,16 +27,18 @@ class WindowsPlatform: Platform() {
     override fun createWindowInstance(handle: Long) = WWindowPeer(handle)
 
     override fun pollEvents() = WWindowPeer.nPollEvents()
+    override fun takeEvents() = WWindowPeer.nTakeEvents()
+
     override fun sendEmptyMessage(handle: Long) = WWindowPeer.nSendEmptyMessage(handle)
     override fun getFontData(name: String) = nGetFontData(BufferUtils.createByteBuffer(*name.c_wideBytes))
 
-    override val mousePosition: Point<Float>
+    override val mousePosition: Point
         get() {
             val dpi = nGetMouseDpi()
             val x = nGetMouseX().toFloat() / dpi
             val y = nGetMouseY().toFloat() / dpi
             return Point(x, y)
         }
-    override val physicalMousePosition: Point<Int>
-        get() = Point(nGetMouseX(), nGetMouseY())
+    override val physicalMousePosition: Point
+        get() = Point(nGetMouseX().toFloat(), nGetMouseY().toFloat())
 }

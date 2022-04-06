@@ -25,10 +25,34 @@ abstract class Pipeline {
     abstract fun createWindow(): WindowPeer
     abstract fun createGraphics(window: WindowPeer): Graphics
     abstract fun createGraphics(image: Image): Graphics
-    abstract fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?): Image
+    abstract fun createImage(
+        type: PixelType,
+        width: Int,
+        height: Int,
+        data: ByteBuffer?
+    ): Image
+    abstract fun createSurfaceImage(
+        window: WindowPeer,
+        type: PixelType,
+        physicalWidth: Int,
+        physicalHeight: Int,
+        logicWidth: Int,
+        logicHeight: Int,
+        dpi: Float
+    ): Image
     abstract fun isMainThreadRequired(): Boolean
 
     abstract class DefaultEventPoll(private val libName: String): Pipeline() {
+
+        companion object {
+            // Fps timer
+            private var fpsTimerStart = 0L
+            private var countedFrames = 0
+
+            private var repaintStartTime = 0L
+
+            var currentFps = 0
+        }
 
         override fun load() {
             LibraryLoader.loadModuleLib(libName)
@@ -44,8 +68,29 @@ abstract class Pipeline {
                     if(MainThreadLocker.tasksQueue.size > 0)
                         MainThreadLocker.tasksQueue.take()()
 
-                    if(windows.isNotEmpty())
-                        Platform.current.pollEvents()
+                    if(windows.isNotEmpty()) {
+                        if(AlterUIProperties.alwaysRepaint){
+                            repaintStartTime = System.currentTimeMillis()
+
+                            Platform.current.takeEvents()
+                            for(window in windows)
+                                window.onDrawCallback()
+
+                            val currentTime = System.currentTimeMillis()
+                            if((currentTime - fpsTimerStart) > 1000) {
+                                fpsTimerStart = currentTime
+                                currentFps = countedFrames
+                                countedFrames = 0
+                            }
+                            countedFrames++
+
+                            if(AlterUIProperties.fpsLimit > 0) {
+                                val sleepTime = 1000 / AlterUIProperties.fpsLimit - (currentTime - repaintStartTime)
+                                if(sleepTime > 0)
+                                    Thread.sleep(sleepTime)
+                            }
+                        }else Platform.current.pollEvents()
+                    }
                 }
             }
         }

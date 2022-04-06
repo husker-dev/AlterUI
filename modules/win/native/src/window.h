@@ -324,6 +324,20 @@ extern "C" {
 		DwmSetWindowAttribute((HWND)hwnd, DWMWA_TEXT_COLOR, color == -1 ? nullptr : &color, sizeof(COLORREF));
 	}
 
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nGetWindowMouseX(JNIEnv* env, jobject, jlong hwnd) {
+		POINT point;
+		GetCursorPos(&point);
+		ScreenToClient((HWND)hwnd, &point);
+		return point.x;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nGetWindowMouseY(JNIEnv* env, jobject, jlong hwnd) {
+		POINT point;
+		GetCursorPos(&point);
+		ScreenToClient((HWND)hwnd, &point);
+		return point.y;
+	}
+
 	/*
 		WindowsPlatform
 	*/
@@ -377,6 +391,14 @@ extern "C" {
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nPollEvents(JNIEnv*, jobject) {
 		MSG msg;
 		if (GetMessage(&msg, 0, 0, 0)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nTakeEvents(JNIEnv*, jobject) {
+		MSG msg;
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}

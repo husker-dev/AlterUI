@@ -14,6 +14,7 @@ open class Frame {
                 field = value
                 field?.width = width
                 field?.height = height
+                field?.frame = this
                 repaint()
             }
         }
@@ -51,8 +52,13 @@ open class Frame {
     init {
         peer.onPaintEvent = this::paint
         peer.onResizedListeners.add {
+            content?.preferredWidth = width
+            content?.preferredHeight = height
             content?.width = width
             content?.height = height
+        }
+        peer.onDpiChangedListeners.add {
+            content?.dpiChanged()
         }
     }
 

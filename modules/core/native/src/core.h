@@ -12,6 +12,8 @@
 #include "stb/stb_image_resize.h"
 #include "stb/stb_image_write.h"
 
+#include "earcut/earcut.hpp"
+
 #include "ft2build.h"
 
 #include FT_FREETYPE_H

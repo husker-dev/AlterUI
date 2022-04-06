@@ -5,28 +5,57 @@ import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
+import com.huskerdev.alter.internal.Pipeline
 
 abstract class Component {
 
     companion object {
         protected const val FLAG_UPDATE        = 0b00000001
         protected const val FLAG_REPAINT       = 0b00000010
+
+        protected fun componentNeedsUpdate(component: Component){
+            var parent: Component? = component
+            while(parent != null){
+                parent.flags = parent.flags or FLAG_UPDATE
+                parent = parent.parent
+            }
+        }
+
+        protected fun componentNeedsRepaint(component: Component){
+            var parent: Component? = component
+            while(parent != null){
+                parent.flags = parent.flags or FLAG_REPAINT
+                parent = parent.parent
+            }
+        }
     }
 
     var x = 0f
+        set(value) {
+            field = value
+            if(parent != null)
+                componentNeedsRepaint(parent!!)
+        }
     var y = 0f
+        set(value) {
+            field = value
+            if(parent != null)
+                componentNeedsRepaint(parent!!)
+        }
     var width = 0f
        set(value) {
            if(field != value) {
                field = value
-               componentUpdated()
+               componentNeedsRepaint(this)
+               onResizeListeners.forEach { it() }
            }
        }
     var height = 0f
         set(value) {
             if(field != value) {
                 field = value
-                componentUpdated()
+                componentNeedsRepaint(this)
+                onResizeListeners.forEach { it() }
             }
         }
 
@@ -34,7 +63,7 @@ abstract class Component {
         set(value) {
             if(field != value){
                 field = value
-                parent?.doLayout()
+                componentNeedsUpdate(this)
             }
         }
 
@@ -42,24 +71,29 @@ abstract class Component {
         set(value) {
             if(field != value){
                 field = value
-                parent?.doLayout()
+                componentNeedsUpdate(this)
             }
         }
 
     private var flags = 0
     private var texture: Image? = null
 
+    private var onResizeListeners = arrayListOf<() -> Unit>()
+
     var parent: Component? = null
     var frame: Frame? = null
         set(value) {
             field = value
-            componentUpdated()
+            for(child in children)
+                child.frame = value
+            componentNeedsUpdate(this)
+            componentNeedsRepaint(this)
         }
 
     val children = object: ChildrenList(){
         override fun onAdd(component: Component) {
             component.parent = this@Component
-            component.componentUpdated()
+            componentNeedsUpdate(component)
         }
 
         override fun onRemove(component: Component) {
@@ -67,17 +101,9 @@ abstract class Component {
         }
     }
 
-    protected fun componentUpdated(){
-        var parent: Component? = this
-        while(parent != null){
-            parent.addFlag(FLAG_UPDATE)
-            parent = parent.parent
-        }
-    }
+    fun onResized(event: () -> Unit) = onResizeListeners.add(event)
 
-    protected fun addFlag(flag: Int){
-        flags = flags or flag
-    }
+
 
     private fun checkFlag(flag: Int): Boolean{
         val result = (flags and flag == flag)
@@ -95,19 +121,32 @@ abstract class Component {
         }
     }
 
+    internal fun dpiChanged(){
+        componentNeedsRepaint(this)
+        for(child in children)
+            child.dpiChanged()
+    }
+
     internal fun paint(gr: Graphics) {
-        if(width <= 0 || height <= 0)
+        if(frame == null)
             return
-        if(texture == null ||
-            width.toInt() != texture!!.width ||
-            height.toInt() != texture!!.height
-        ){
+        if(checkFlag(FLAG_REPAINT)) {
+            if (width <= 0 || height <= 0)
+                return
             texture?.dispose()
-            texture = Image.createEmpty(width.toInt(), height.toInt(), PixelType.RGBA)
+
+            texture = Pipeline.current.createSurfaceImage(
+                frame!!.peer,
+                PixelType.RGBA,
+                (width * frame!!.dpi).toInt(), (height * frame!!.dpi).toInt(),
+                width.toInt(), height.toInt(),
+                frame!!.dpi
+            )
+            texture!!.linearFiltered = false
 
             val contentGraphics = texture!!.graphics
             paintComponent(contentGraphics)
-            for(child in children)
+            for (child in children)
                 child.paint(contentGraphics)
         }
         gr.color = Color.white
@@ -115,7 +154,8 @@ abstract class Component {
     }
 
     fun repaint(){
-
+        componentNeedsRepaint(this)
+        frame?.repaint()
     }
 
     abstract fun paintComponent(gr: Graphics)

@@ -23,7 +23,12 @@ enum class ImageFileType(val index: Int){
     TGA(3)
 }
 
-abstract class Image(val width: Int, val height: Int, val pixelType: PixelType) {
+abstract class Image(
+    val width: Int,
+    val height: Int,
+    val pixelType: PixelType,
+    val dpi: Float
+) {
 
     companion object {
 

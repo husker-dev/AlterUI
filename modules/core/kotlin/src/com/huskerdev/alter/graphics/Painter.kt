@@ -1,5 +1,6 @@
 package com.huskerdev.alter.graphics
 
+import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.font.FontRasterMetrics
 
 abstract class Painter {
@@ -22,6 +23,7 @@ abstract class Painter {
     open fun onDisable(){}
 
     abstract fun clear()
+    abstract fun fillShape(shape: Shape)
     abstract fun fillRect(x: Float, y: Float, width: Float, height: Float)
     abstract fun drawRect(x: Float, y: Float, width: Float, height: Float)
     abstract fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float)

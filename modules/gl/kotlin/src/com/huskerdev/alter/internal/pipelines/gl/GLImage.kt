@@ -9,10 +9,13 @@ class GLImage(
     val texId: Int,
     val framebuffer: Int,
     type: PixelType,
-    width: Int,
-    height: Int,
+    val physicalWidth: Int,
+    val physicalHeight: Int,
+    val logicWidth: Int,
+    val logicHeight: Int,
+    dpi: Float,
     val context: GLContext
-): Image(width, height, type) {
+): Image(physicalWidth, physicalHeight, type, dpi) {
 
     private var _linearFiltering = false
     override var linearFiltered: Boolean

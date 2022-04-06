@@ -1,5 +1,6 @@
 package com.huskerdev.alter.graphics
 
+import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.font.Font
 import com.huskerdev.alter.graphics.painters.*
 import com.huskerdev.alter.internal.Platform
@@ -16,8 +17,8 @@ abstract class Graphics {
 
     abstract val width: Float
     abstract val height: Float
-    abstract val physicalHeight: Int
     abstract val physicalWidth: Int
+    abstract val physicalHeight: Int
 
     abstract val dpi: Float
     abstract val pixelType: PixelType
@@ -54,6 +55,14 @@ abstract class Graphics {
     open fun clear() {
         painter!!.runPaint {
             clear()
+        }
+    }
+
+    open fun fillShape(shape: Shape) {
+        if(shape.vertices.isNotEmpty()) {
+            painter!!.runPaint {
+                fillShape(shape)
+            }
         }
     }
 

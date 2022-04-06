@@ -124,6 +124,8 @@ jlong nCreateWindow(jlong shareWith) {
         WGL_DEPTH_BITS_ARB, 16,
         WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
         WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+        //WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
+        //WGL_SAMPLES_ARB, 4,
         0
     };
     if (!wglChoosePixelFormatARB(dc, pixel_attributes, NULL, 1, &pixel_format_arb, &pixel_formats_count))

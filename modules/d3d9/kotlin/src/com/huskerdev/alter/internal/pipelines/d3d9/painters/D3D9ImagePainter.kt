@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.d3d9.painters
 
+import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.ImagePainter
@@ -45,6 +46,10 @@ object D3D9ImagePainter: ImagePainter() {
     override fun updateImage() {
         //pixel.set("u_TextureColors", image!!.pixelType.channels.toFloat())
         //nSetTexture((image as D3D9Image).texture)
+    }
+
+    override fun fillShape(shape: Shape) {
+
     }
 
     // Paint functions

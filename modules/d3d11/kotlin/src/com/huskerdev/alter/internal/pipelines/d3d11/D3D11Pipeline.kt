@@ -58,6 +58,19 @@ class D3D11Pipeline: Pipeline.DefaultEventPoll("d3d11") {
         TODO("Not yet implemented")
     }
 
+    override fun createSurfaceImage(
+        window: WindowPeer,
+        type: PixelType,
+        physicalWidth: Int,
+        physicalHeight: Int,
+        logicWidth: Int,
+        logicHeight: Int,
+        dpi: Float
+    ): Image {
+        TODO("Not yet implemented")
+    }
+
+
     override fun isMainThreadRequired() = true
 
 }

@@ -1,19 +1,21 @@
 package com.huskerdev.alter.geom
 
-@JvmInline
-value class Rectangle(val values: FloatArray): Shape {
-    constructor(width: Float, height: Float): this(floatArrayOf(0f, 0f, width, height))
-    constructor(x: Float, y: Float, width: Float, height: Float): this(floatArrayOf(x, y, width, height))
+class Rectangle(
+    val x: Float,
+    val y: Float,
+    val width: Float,
+    val height: Float
+): Shape() {
+
+    override val points = floatArrayOf(
+        x, y,
+        x + width, y,
+        x + width, y + height,
+        x, y + height)
+
+    constructor(width: Float, height: Float): this(0f, 0f, width, height)
+
+    override fun contains(point: Point) =
+        (point.x >= x) && (point.y >= y) &&
+        (point.x <= x + width) && (point.y <= y + height)
 }
-
-val Rectangle.x: Float
-    get() = values[0]
-
-val Rectangle.y: Float
-    get() = values[1]
-
-val Rectangle.width: Float
-    get() = values[2]
-
-val Rectangle.height: Float
-    get() = values[3]

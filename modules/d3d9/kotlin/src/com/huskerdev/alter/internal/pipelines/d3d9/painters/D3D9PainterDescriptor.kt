@@ -1,11 +1,13 @@
 package com.huskerdev.alter.internal.pipelines.d3d9.painters
 
+import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.VertexPaintHelper
 import com.huskerdev.alter.internal.pipelines.d3d9.*
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nBeginScene
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nEndScene
+import com.huskerdev.alter.internal.utils.BufferUtils
 
 
 abstract class D3D9PainterDescriptor {
@@ -75,6 +77,12 @@ abstract class D3D9PainterDescriptor {
     }
 
     fun clear() = D3D9Pipeline.device.clear()
+
+    fun fillShape(shape: Shape) {
+        pixelShader[varRenderType] = 1f
+        D3D9Pipeline.device.drawVertices(BufferUtils.createFloatBuffer(*shape.vertices), shape.vertices.size / 3, VertexPaintHelper.DrawType.TriangleList)
+    }
+
     fun fillRect(x: Float, y: Float, width: Float, height: Float) {
         pixelShader[varRenderType] = 1f
         VertexPaintHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)

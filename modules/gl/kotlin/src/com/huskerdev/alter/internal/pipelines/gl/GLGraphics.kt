@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
+import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
@@ -21,11 +22,11 @@ abstract class GLGraphics(
 }
 
 class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourcesContext, true) {
-    override val width = image.width.toFloat()
-    override val height = image.height.toFloat()
-    override val physicalHeight = image.height
-    override val physicalWidth = image.width
-    override val dpi = 1f
+    override val width = image.logicWidth.toFloat()
+    override val height = image.logicHeight.toFloat()
+    override val physicalWidth = image.physicalWidth
+    override val physicalHeight = image.physicalHeight
+    override val dpi = image.dpi
     override val pixelType = image.pixelType
 
     override fun reset() = invokeOnResourceThread {
@@ -34,6 +35,10 @@ class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourc
 
     override fun clear() = invokeOnResourceThread {
         super.clear()
+    }
+
+    override fun fillShape(shape: Shape) = invokeOnResourceThread {
+        super.fillShape(shape)
     }
 
     override fun fillRect(x: Float, y: Float, width: Float, height: Float) = invokeOnResourceThread {
@@ -57,7 +62,18 @@ class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourc
     }
 }
 
-class WindowGLGraphics(val window: WindowPeer): GLGraphics(0, GLContext(window.handle), false) {
+class SurfaceImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, image.context, true) {
+    override val width = image.logicWidth.toFloat()
+    override val height = image.logicHeight.toFloat()
+    override val physicalWidth = image.physicalWidth
+    override val physicalHeight = image.physicalHeight
+    override val dpi = image.dpi
+    override val pixelType = image.pixelType
+
+    override fun finish() {}
+}
+
+class WindowGLGraphics(val window: WindowPeer, context: GLContext): GLGraphics(0, context, false) {
     override val width: Float
         get() = window.width
     override val height: Float

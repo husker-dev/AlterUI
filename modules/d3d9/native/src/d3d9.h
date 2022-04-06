@@ -94,6 +94,7 @@ extern "C" {
 		pp.hDeviceWindow = NULL;
 		pp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 		pp.BackBufferFormat = D3DFMT_A8R8G8B8;
+		//pp.MultiSampleType = D3DMULTISAMPLE_8_SAMPLES;
 		pp.BackBufferCount = 1;
 		pp.BackBufferWidth = 100;
 		pp.BackBufferHeight = 100;
@@ -114,6 +115,7 @@ extern "C" {
 		device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
 		device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 		device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+		device->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, TRUE);
 
 		device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
 		device->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);

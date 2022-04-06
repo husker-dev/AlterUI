@@ -61,16 +61,36 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
     }
 
     override fun createGraphics(window: WindowPeer) = D3D9WindowGraphics(window)
-    override fun createGraphics(image: Image) = D3D9ImageGraphics(image)
+    override fun createGraphics(image: Image) = D3D9ImageGraphics(image as D3D9Image)
 
-    override fun createImage(type: PixelType, width: Int, height: Int, data: ByteBuffer?): Image {
+    override fun createImage(
+        type: PixelType,
+        width: Int,
+        height: Int,
+        data: ByteBuffer?
+    ): Image {
         val texture = if(data != null)
             nCreateTexture(width, height, type.channels, data)
         else
             nCreateEmptyTexture(width, height, type.channels)
-        val surface = nGetTextureSurface(texture);
+        val surface = nGetTextureSurface(texture)
 
-        return D3D9Image(texture, surface, width, height, type)
+        return D3D9Image(texture, surface, width, height, width, height, type, 1f)
+    }
+
+    override fun createSurfaceImage(
+        window: WindowPeer,
+        type: PixelType,
+        physicalWidth: Int,
+        physicalHeight: Int,
+        logicWidth: Int,
+        logicHeight: Int,
+        dpi: Float
+    ): Image {
+        val texture = nCreateEmptyTexture(physicalWidth, physicalHeight, type.channels)
+        val surface = nGetTextureSurface(texture)
+
+        return D3D9Image(texture, surface, physicalWidth, physicalHeight, logicWidth, logicHeight, type, dpi)
     }
 
     override fun isMainThreadRequired() = true

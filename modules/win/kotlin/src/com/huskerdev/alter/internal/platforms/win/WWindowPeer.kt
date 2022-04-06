@@ -25,8 +25,11 @@ class WWindowPeer(hwnd: Long): WindowPeer(hwnd) {
         @JvmStatic external fun nSetStyle(hwnd: Long, style: Int)
         @JvmStatic external fun nSetWindowTitleColor(hwnd: Long, color: Int)
         @JvmStatic external fun nSetWindowTextColor(hwnd: Long, color: Int)
+        @JvmStatic external fun nGetWindowMouseX(hwnd: Long): Int
+        @JvmStatic external fun nGetWindowMouseY(hwnd: Long): Int
 
         @JvmStatic external fun nPollEvents()
+        @JvmStatic external fun nTakeEvents()
         @JvmStatic external fun nSendEmptyMessage(handle: Long)
     }
 
@@ -107,13 +110,8 @@ class WWindowPeer(hwnd: Long): WindowPeer(hwnd) {
     override fun setStyleImpl(style: WindowStyle) = nSetStyle(handle, style.styleIndex)
     override fun setColorImpl(color: Color?) = nSetWindowTitleColor(handle, color?.toBGR() ?: -1)
     override fun setTextColorImpl(color: Color?) = nSetWindowTextColor(handle, color?.toBGR() ?: -1)
-    override fun getMouseXImpl(): Int {
-        TODO("Not yet implemented")
-    }
-
-    override fun getMouseYImpl(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getMouseXImpl() = nGetWindowMouseX(handle)
+    override fun getMouseYImpl() = nGetWindowMouseY(handle)
 
     override fun requestRepaint() = nRequestRepaint(handle)
 

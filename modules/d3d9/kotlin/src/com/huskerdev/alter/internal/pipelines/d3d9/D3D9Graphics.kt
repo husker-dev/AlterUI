@@ -47,12 +47,12 @@ abstract class D3D9Graphics(open val surface: Long): Graphics() {
     override fun finish() {}
 }
 
-class D3D9ImageGraphics(val image: Image): D3D9Graphics((image as D3D9Image).surface){
-    override val width = image.width.toFloat()
-    override val height = image.height.toFloat()
-    override val physicalHeight = image.height
-    override val physicalWidth = image.width
-    override val dpi = 1f
+class D3D9ImageGraphics(image: D3D9Image): D3D9Graphics(image.surface){
+    override val width = image.logicWidth.toFloat()
+    override val height = image.logicHeight.toFloat()
+    override val physicalWidth = image.physicalWidth
+    override val physicalHeight = image.physicalHeight
+    override val dpi = image.dpi
     override val pixelType = image.pixelType
 }
 

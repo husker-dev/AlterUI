@@ -16,7 +16,7 @@ float2 getTextureCoord(float2 Pos, float4 bounds, float dpi){
 
     return float2(
         (Pos.x - bounds.x + 0.5) / bounds.z,
-        (Pos.y - bounds.y) / bounds.w
+        (Pos.y - bounds.y + 0.5) / bounds.w
     );
 }
 

@@ -1,6 +1,6 @@
 package com.huskerdev.alter.geom
 
-data class Point<T>(
-    var x: T,
-    var y: T
+class Point(
+    val x: Float,
+    val y: Float
 )

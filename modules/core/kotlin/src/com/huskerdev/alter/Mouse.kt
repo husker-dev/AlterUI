@@ -6,7 +6,7 @@ import com.huskerdev.alter.internal.Platform
 class Mouse {
 
     companion object {
-        val position : Point<Int>
+        val position : Point
             get() = Platform.current.physicalMousePosition
     }
 }

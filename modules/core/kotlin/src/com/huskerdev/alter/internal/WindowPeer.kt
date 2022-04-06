@@ -145,13 +145,8 @@ abstract class WindowPeer(val handle: Long) {
             field = value
         }
 
-    private var _mousePosition = Point(-1f, -1f)
-    open val mousePosition: Point<Float>?
-        get() {
-            if(_mousePosition.x == -1f || _mousePosition.y == -1f)
-                return null
-            return _mousePosition
-        }
+    open val mousePosition: Point?
+        get() = Point(getMouseXImpl().toFloat() / dpi, getMouseYImpl().toFloat() / dpi)
 
     var clientWidth = 0
         private set
@@ -215,7 +210,7 @@ abstract class WindowPeer(val handle: Long) {
     fun repaint() = invokeOnMainIfRequiredAsync { requestRepaint() }
 
     @ImplicitUsage
-    private fun onDrawCallback(){
+    fun onDrawCallback(){
         if(!visible)
             return
         graphics.reset()
@@ -224,7 +219,7 @@ abstract class WindowPeer(val handle: Long) {
     }
 
     @ImplicitUsage
-    private fun onClosingCallback(): Boolean {
+    fun onClosingCallback(): Boolean {
         var result = true
         onClosingListeners.forEach {
             if(!it())
@@ -234,13 +229,13 @@ abstract class WindowPeer(val handle: Long) {
     }
 
     @ImplicitUsage
-    private fun onClosedCallback(){
+    fun onClosedCallback(){
         Pipeline.windows.remove(this)
         onClosedListeners.forEach { it() }
     }
 
     @ImplicitUsage
-    private fun onResizedCallback(clientWidth: Int, clientHeight: Int, windowWidth: Int, windowHeight: Int){
+    fun onResizedCallback(clientWidth: Int, clientHeight: Int, windowWidth: Int, windowHeight: Int){
         if(windowWidth == physicalWidth && windowHeight == physicalHeight)
             return
         _width = clientWidth.toFloat() / dpi
@@ -253,7 +248,7 @@ abstract class WindowPeer(val handle: Long) {
     }
 
     @ImplicitUsage
-    private fun onMovedCallback(x: Int, y: Int){
+    fun onMovedCallback(x: Int, y: Int){
         if(physicalX == x && physicalY == y)
             return
         _x = x / dpi
@@ -264,30 +259,27 @@ abstract class WindowPeer(val handle: Long) {
     }
 
     @ImplicitUsage
-    private fun onDpiChangedCallback(dpi: Float){
+    fun onDpiChangedCallback(dpi: Float){
         this.dpi = dpi
         onDpiChangedListeners.forEach { it() }
     }
 
     @ImplicitUsage
-    private fun onHitTestCallback(x: Int, y: Int) = style.hitTest(this, x, y).ordinal
+    fun onHitTestCallback(x: Int, y: Int) = style.hitTest(this, x, y).ordinal
 
     @ImplicitUsage
-    private fun onMouseMoved(x: Int, y: Int, leftDown: Boolean, middleDown: Boolean, rightDown: Boolean, ctrlDown: Boolean, shiftDown: Boolean) {
-        _mousePosition.x = x.toFloat() / dpi
-        _mousePosition.y = y.toFloat() / dpi
+    fun onMouseMoved(x: Int, y: Int, leftDown: Boolean, middleDown: Boolean, rightDown: Boolean, ctrlDown: Boolean, shiftDown: Boolean) {
         onMouseMovedListeners.forEach { it() }
     }
 
     @ImplicitUsage
-    private fun onMouseEntered() {
+    fun onMouseEntered() {
         //onMouseMovedListeners.forEach { it() }
     }
 
     @ImplicitUsage
-    private fun onMouseLeaved() {
-        _mousePosition.x = -1f
-        _mousePosition.y = -1f
+    fun onMouseLeaved() {
+        //_mousePosition = Point(-1f, -1f)
         //onMouseMovedListeners.forEach { it() }
     }
 

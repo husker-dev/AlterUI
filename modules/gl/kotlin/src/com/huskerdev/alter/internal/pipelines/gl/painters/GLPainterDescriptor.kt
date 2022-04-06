@@ -1,12 +1,11 @@
 package com.huskerdev.alter.internal.pipelines.gl.painters
 
+import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.VertexPaintHelper
-import com.huskerdev.alter.internal.Pipeline
-import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.pipelines.gl.*
-import java.nio.channels.Pipe
+import com.huskerdev.alter.internal.utils.BufferUtils
 
 abstract class GLPainterDescriptor {
 
@@ -79,6 +78,11 @@ abstract class GLPainterDescriptor {
     }
 
     fun clear() = context.clear()
+
+    fun fillShape(shape: Shape) {
+        shader[context, varRenderType] = 1f
+        context.drawArray(BufferUtils.createFloatBuffer(*shape.vertices), shape.vertices.size / 3, VertexPaintHelper.DrawType.TriangleList)
+    }
 
     fun fillRect(x: Float, y: Float, width: Float, height: Float) {
         shader[context, varRenderType] = 1f

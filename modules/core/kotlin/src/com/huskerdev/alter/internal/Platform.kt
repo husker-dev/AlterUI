@@ -52,12 +52,13 @@ abstract class Platform {
     }
 
     abstract val defaultFontFamily: String
-    abstract val mousePosition: Point<Float>
-    abstract val physicalMousePosition: Point<Int>
+    abstract val mousePosition: Point
+    abstract val physicalMousePosition: Point
 
     abstract fun load()
     abstract fun createWindowInstance(handle: Long): WindowPeer
     abstract fun pollEvents()
+    abstract fun takeEvents()
     abstract fun sendEmptyMessage(handle: Long)
     abstract fun getFontData(name: String): ByteBuffer?
 }

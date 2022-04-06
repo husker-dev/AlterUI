@@ -1,6 +1,7 @@
 package com.huskerdev.alter.internal.utils
 
 import com.huskerdev.alter.AlterUI
+import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.OS
 import java.io.*
 import java.lang.NullPointerException
@@ -8,8 +9,6 @@ import java.lang.NullPointerException
 
 class LibraryLoader {
     companion object {
-        var forceWrite = false
-
         val tempFolder = File("${System.getProperty("java.io.tmpdir")}Alter${File.separator}${AlterUI.version}")
 
         fun loadModuleLib(name: String) {
@@ -25,13 +24,17 @@ class LibraryLoader {
             val dest = File(tempFolder, relativePath.substring(relativePath.lastIndexOf("/")))
             dest.parentFile.mkdirs()
 
-            if(forceWrite || !dest.exists()) {
-                val input = this::class.java.getResourceAsStream("/$relativePath")
-                    ?: throw NullPointerException("Can't find library in resources: /$relativePath")
-                val output = FileOutputStream(dest)
-                input.copyTo(output)
-                input.close()
-                output.close()
+            if(AlterUIProperties.forceLibraryCaching || !dest.exists()) {
+                try {
+                    val input = this::class.java.getResourceAsStream("/$relativePath")
+                        ?: throw NullPointerException("Can't find library in resources: /$relativePath")
+                    val output = FileOutputStream(dest)
+                    input.copyTo(output)
+                    input.close()
+                    output.close()
+                }catch (e: Exception){
+                    e.printStackTrace()
+                }
             }
             System.load(dest.absolutePath)
         }
