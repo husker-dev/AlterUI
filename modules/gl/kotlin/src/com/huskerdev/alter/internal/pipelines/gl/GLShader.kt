@@ -3,6 +3,7 @@ package com.huskerdev.alter.internal.pipelines.gl
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.nCreateShaderProgram
 import com.huskerdev.alter.internal.utils.BufferUtils
+import java.io.InputStream
 
 
 class GLShader(val vertex: String, val fragment: String) {
@@ -10,9 +11,15 @@ class GLShader(val vertex: String, val fragment: String) {
     companion object {
         fun fromResources(vertexPath: String, fragmentPath: String) =
             GLShader(
-                this::class.java.getResourceAsStream(vertexPath)!!.reader().readText(),
-                this::class.java.getResourceAsStream(fragmentPath)!!.reader().readText()
+                this::class.java.getResourceAsStream(vertexPath)!!.readAsText(),
+                this::class.java.getResourceAsStream(fragmentPath)!!.readAsText()
             )
+
+        private fun InputStream.readAsText(): String{
+            val text = reader().readText()
+            close()
+            return text
+        }
     }
 
     var program = 0

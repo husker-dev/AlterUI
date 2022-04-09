@@ -29,6 +29,11 @@ class AlterUIProperties {
          */
         @JvmStatic var alwaysRepaint = System.getProperty("alterui.alwaysRepaint", "false").toBoolean()
 
+        /**
+         *  MSAA samples count
+         */
+        @JvmStatic var msaa = System.getProperty("alterui.msaa", "4").toInt()
+
 
     }
 }

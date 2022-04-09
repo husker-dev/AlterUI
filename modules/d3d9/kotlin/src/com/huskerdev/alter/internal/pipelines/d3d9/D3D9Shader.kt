@@ -12,6 +12,7 @@ import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetSh
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetShaderValue4f
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetVertexShader
 import com.huskerdev.alter.internal.utils.BufferUtils
+import java.io.InputStream
 
 enum class D3D9ShaderType {
     Pixel,
@@ -21,8 +22,14 @@ enum class D3D9ShaderType {
 class D3D9Shader(private val content: String, private val type: D3D9ShaderType) {
 
     companion object {
-        fun pixelFromResources(path: String) = D3D9Shader(this::class.java.getResourceAsStream(path)!!.reader().readText(), D3D9ShaderType.Pixel)
-        fun vertexFromResources(path: String) = D3D9Shader(this::class.java.getResourceAsStream(path)!!.reader().readText(), D3D9ShaderType.Vertex)
+        fun pixelFromResources(path: String) = D3D9Shader(this::class.java.getResourceAsStream(path)!!.readAsText(), D3D9ShaderType.Pixel)
+        fun vertexFromResources(path: String) = D3D9Shader(this::class.java.getResourceAsStream(path)!!.readAsText(), D3D9ShaderType.Vertex)
+
+        private fun InputStream.readAsText(): String{
+            val text = reader().readText()
+            close()
+            return text
+        }
     }
 
     var pointer = -1L

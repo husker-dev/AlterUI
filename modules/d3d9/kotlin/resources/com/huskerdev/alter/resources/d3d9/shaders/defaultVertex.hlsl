@@ -10,5 +10,5 @@ float4 main(float3 pos : POSITION) : POSITION {
         0,                   0,                   0,  1
     );
 
-	return mul(ortho, float4(pos.x, u_ViewportHeight - pos.y, pos.z, 1.0));
+	return mul(ortho, float4(pos.x - 0.5, u_ViewportHeight - (pos.y - 0.5), pos.z, 1.0));
 }

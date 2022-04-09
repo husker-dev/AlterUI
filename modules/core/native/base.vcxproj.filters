@@ -35,5 +35,8 @@
     <ClInclude Include="src\stb\stb_image_write.h">
       <Filter>Header Files\stb</Filter>
     </ClInclude>
+    <ClInclude Include="src\earcut\earcut.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

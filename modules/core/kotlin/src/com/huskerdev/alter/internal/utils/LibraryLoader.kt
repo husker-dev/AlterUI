@@ -26,12 +26,15 @@ class LibraryLoader {
 
             if(AlterUIProperties.forceLibraryCaching || !dest.exists()) {
                 try {
-                    val input = this::class.java.getResourceAsStream("/$relativePath")
-                        ?: throw NullPointerException("Can't find library in resources: /$relativePath")
-                    val output = FileOutputStream(dest)
-                    input.copyTo(output)
-                    input.close()
-                    output.close()
+                    this::class.java.getResourceAsStream("/$relativePath").use {
+                        if (it == null)
+                            throw NullPointerException("Can't find library in resources: /$relativePath")
+
+                        val output = FileOutputStream(dest)
+                        it.copyTo(output)
+                        it.close()
+                        output.close()
+                    }
                 }catch (e: Exception){
                     e.printStackTrace()
                 }

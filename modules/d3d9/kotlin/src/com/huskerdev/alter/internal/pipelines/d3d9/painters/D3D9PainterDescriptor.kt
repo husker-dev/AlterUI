@@ -97,7 +97,7 @@ abstract class D3D9PainterDescriptor {
         pixelShader[varRenderType] = 3f
         pixelShader[varTextureColors] = image.pixelType.channels.toFloat()
         pixelShader.set4f(varTextureBounds, x, y, width, height)
-        device.bindTexture(0, (image as D3D9Image).texture)
+        device.bindTexture(0, (image as D3D9Image).renderTarget.texture)
         device.linearFiltering = image.linearFiltered
         VertexPaintHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }

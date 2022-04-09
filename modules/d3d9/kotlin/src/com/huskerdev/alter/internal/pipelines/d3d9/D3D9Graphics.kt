@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.d3d9
 
+import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
@@ -44,16 +45,52 @@ abstract class D3D9Graphics(open val surface: Long): Graphics() {
         }
     }
 
+    override fun fillShape(shape: Shape) {
+        synchronized(D3D9Pipeline.device) {
+            super.fillShape(shape)
+        }
+    }
+
     override fun finish() {}
 }
 
-class D3D9ImageGraphics(image: D3D9Image): D3D9Graphics(image.surface){
+class D3D9ImageGraphics(val image: D3D9Image): D3D9Graphics(image.renderTarget.surface){
     override val width = image.logicWidth.toFloat()
     override val height = image.logicHeight.toFloat()
     override val physicalWidth = image.physicalWidth
     override val physicalHeight = image.physicalHeight
     override val dpi = image.dpi
     override val pixelType = image.pixelType
+
+    override fun clear() {
+        super.clear()
+        image.renderTarget.contentChanged = true
+    }
+
+    override fun fillRect(x: Float, y: Float, width: Float, height: Float) {
+        super.fillRect(x, y, width, height)
+        image.renderTarget.contentChanged = true
+    }
+
+    override fun drawRect(x: Float, y: Float, width: Float, height: Float) {
+        super.drawRect(x, y, width, height)
+        image.renderTarget.contentChanged = true
+    }
+
+    override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
+        super.drawImage(image, x, y, width, height)
+        this.image.renderTarget.contentChanged = true
+    }
+
+    override fun drawText(text: String, x: Float, y: Float) {
+        super.drawText(text, x, y)
+        image.renderTarget.contentChanged = true
+    }
+
+    override fun fillShape(shape: Shape) {
+        super.fillShape(shape)
+        image.renderTarget.contentChanged = true
+    }
 }
 
 class D3D9WindowGraphics(val window: WindowPeer): D3D9Graphics(0){

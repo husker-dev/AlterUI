@@ -13,21 +13,16 @@ import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.internal.Pipeline
+import com.huskerdev.alter.internal.WindowStyle
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import kotlin.concurrent.thread
 
 fun main() = AlterUI.run {
-
     val frame = Frame()
     frame.content = object: FlowPane(){
         init {
-            for(i in 0..70)
+            for(i in 0..50)
                 children.add(Button())
-        }
-
-        override fun paintComponent(gr: Graphics) {
-            super.paintComponent(gr)
-
         }
     }
 
@@ -37,9 +32,5 @@ fun main() = AlterUI.run {
     frame.width = 500f
     frame.height = 500f
     frame.visible = true
-
-    frame.onResized {
-
-    }
 
 }

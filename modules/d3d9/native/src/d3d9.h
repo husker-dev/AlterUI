@@ -34,6 +34,14 @@ void cacheBufferSize(int vertices) {
 	device->CreateVertexBuffer(12 * vertices, 0, D3DFVF_XYZ, D3DPOOL_MANAGED, &cachedBuffers[vertices], NULL);
 }
 
+D3DFORMAT getFormat(int components) {
+	if (components == 4)
+		return D3DFMT_A8R8G8B8;
+	if (components == 3)
+		return D3DFMT_X8R8G8B8;
+	return D3DFMT_L8;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_DESTROY:
@@ -83,7 +91,7 @@ extern "C" {
 		Platform
 	   ===============
 	*/
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nInitializeDevice(JNIEnv*, jobject) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nInitializeDevice(JNIEnv*, jobject, jboolean vsync, jint samples) {
 		/*
 		*	Create device without window.
 		*	If BackBuffer size is 0, then DX tries to get current window size, and fails
@@ -94,10 +102,15 @@ extern "C" {
 		pp.hDeviceWindow = NULL;
 		pp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 		pp.BackBufferFormat = D3DFMT_A8R8G8B8;
-		//pp.MultiSampleType = D3DMULTISAMPLE_8_SAMPLES;
+		pp.MultiSampleType = (_D3DMULTISAMPLE_TYPE)samples;
+		pp.MultiSampleQuality = 0;
 		pp.BackBufferCount = 1;
 		pp.BackBufferWidth = 100;
 		pp.BackBufferHeight = 100;
+		if (vsync) {
+			pp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+			pp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
+		}
 		
 		d3d = Direct3DCreate9(D3D_SDK_VERSION);
 		d3d->CreateDevice(
@@ -323,76 +336,68 @@ extern "C" {
 		table->SetMatrix(device, (D3DXHANDLE)varHandle, &m);
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateEmptyTexture(JNIEnv* env, jobject, jint width, jint height, jint components) {
-		IDirect3DTexture9* targetTexture;
-
-		D3DFORMAT format = D3DFMT_A8R8G8B8;
-		if (components == 3)
-			format = D3DFMT_X8R8G8B8;
-		if (components == 1)
-			format = D3DFMT_L8;
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateEmptySurface(JNIEnv* env, jobject, jint width, jint height, jint components, jint samples) {
+		IDirect3DSurface9* surface;
 
 		HRESULT h;
-		if ((h = device->CreateTexture(width, height, 0, D3DUSAGE_RENDERTARGET, format, D3DPOOL_DEFAULT, &targetTexture, 0)) != S_OK)
+		if ((h = device->CreateRenderTarget(width, height, getFormat(components), (_D3DMULTISAMPLE_TYPE)samples, 0, false, &surface, 0)) != S_OK)
+			throwJavaException(env, "java/lang/RuntimeException", "Can't create render surface");
+
+		return (jlong)surface;
+	}
+
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateSurface(JNIEnv* env, jobject, jint width, jint height, jint components, jint samples, jobject _data) {
+		char* data = (char*)env->GetDirectBufferAddress(_data);
+		IDirect3DSurface9* targetSurface;
+		IDirect3DSurface9* sourceSurface;
+
+		HRESULT h;
+		if ((h = device->CreateRenderTarget(width, height, getFormat(components), (_D3DMULTISAMPLE_TYPE)samples, 0, true, &targetSurface, NULL)) != S_OK)
+			throwJavaException(env, "java/lang/RuntimeException", "Can't create render surface");
+
+		D3DLOCKED_RECT lockedRect;
+		targetSurface->LockRect(&lockedRect, NULL, 0);
+		char* pData = (char*)lockedRect.pBits;
+		int destComponents = components == 1 ? 1 : 4;
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int posSource = (y * width + x) * components;
+				int posTarget = y * lockedRect.Pitch + x * destComponents;
+
+				if (destComponents == 4) {
+					pData[posTarget] = data[posSource + 2];
+					pData[posTarget + 1] = data[posSource + 1];
+					pData[posTarget + 2] = data[posSource];
+					pData[posTarget + 3] = components == 3? 255 : data[posSource + 3];
+				}else
+					pData[posTarget] = data[posSource];
+			}
+		}
+		targetSurface->UnlockRect();
+
+		return (jlong)targetSurface;
+	}
+
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint components) {
+		IDirect3DTexture9* targetTexture;
+
+		HRESULT h;
+		if ((h = device->CreateTexture(width, height, 0, D3DUSAGE_RENDERTARGET, getFormat(components), D3DPOOL_DEFAULT, &targetTexture, 0)) != S_OK)
 			throwJavaException(env, "java/lang/RuntimeException", "Can't create empty texture");
 
 		return (jlong)targetTexture;
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint components, jobject _data) {
-		char* data = (char*)env->GetDirectBufferAddress(_data);
-		IDirect3DTexture9* sourceTexture;
-		IDirect3DTexture9* targetTexture;
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nStretchRect(JNIEnv* env, jobject, jlong _surface, jlong _texture) {
+		IDirect3DTexture9* texture = (IDirect3DTexture9*)_texture;
+		IDirect3DSurface9* sourceSurface = (IDirect3DSurface9*)_surface;
 
-		D3DFORMAT format = D3DFMT_A8R8G8B8;
-		if (components == 3)
-			format = D3DFMT_X8R8G8B8;
-		if (components == 1)
-			format = D3DFMT_L8;
-			
-		HRESULT h;
-		if ((h = device->CreateTexture(width, height, 1, 0, format, D3DPOOL_SYSTEMMEM, &sourceTexture, 0)) != S_OK)
-			throwJavaException(env, "java/lang/RuntimeException", "Can't create temporary texture");
-		if ((h = device->CreateTexture(width, height, 0, D3DUSAGE_RENDERTARGET, format, D3DPOOL_DEFAULT, &targetTexture, 0)) != S_OK)
-			throwJavaException(env, "java/lang/RuntimeException", "Can't create texture");
-		
-		D3DLOCKED_RECT lockedRect;
-		sourceTexture->LockRect(0, &lockedRect, 0, D3DLOCK_DISCARD);
-
-		char* pData = (char*)lockedRect.pBits;
-
-		if (components == 4 || components == 3) {
-			for (unsigned int i = 0, s = 0;
-				i < width * height * 4;
-				i += 4, s += components
-				) {
-				pData[i] = data[s + 2];
-				pData[i + 1] = data[s + 1];
-				pData[i + 2] = data[s];
-				pData[i + 3] = components == 3 ? 255 : data[s + 3];
-			}
-		}
-		if (components == 1) {
-			for (int row = 0; row < height; row++) {
-				for (int i = 0; i < width; i++) {
-					int posSource = row * width + i;
-					int posTarget = row * lockedRect.Pitch + i;
-
-					pData[posTarget] = data[posSource];
-				}
-			}
-		}
-		sourceTexture->UnlockRect(0);
-
-		IDirect3DSurface9* sourceSurface;
 		IDirect3DSurface9* targetSurface;
-		sourceTexture->GetSurfaceLevel(0, &sourceSurface);
-		targetTexture->GetSurfaceLevel(0, &targetSurface);
-		device->UpdateSurface(sourceSurface, NULL, targetSurface, NULL);
-		sourceSurface->Release();
-		sourceTexture->Release();
+		texture->GetSurfaceLevel(0, &targetSurface);
 
-		return (jlong)targetTexture;
+		device->StretchRect(sourceSurface, 0, targetSurface, 0, D3DTEXF_POINT);
+		targetSurface->Release();
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetLinearFiltering(JNIEnv*, jobject, jboolean linearFiltering) {

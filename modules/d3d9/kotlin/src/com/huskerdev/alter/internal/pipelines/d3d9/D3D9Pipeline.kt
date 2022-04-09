@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.d3d9
 
+import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.Pipeline
@@ -17,7 +18,7 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
 
         val device = D3D9Device()
 
-        @JvmStatic external fun nInitializeDevice()
+        @JvmStatic external fun nInitializeDevice(vsync: Boolean, samples: Int)
         @JvmStatic external fun nCreateWindow(): Long
         @JvmStatic external fun nGetWindowSurface(hwnd: Long): Long
         @JvmStatic external fun nGetTextureSurface(texture: Long): Long
@@ -41,14 +42,16 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
         @JvmStatic external fun nSetShaderValue3f(shader: Long, varHandle: Long, v1: Float, v2: Float, v3: Float)
         @JvmStatic external fun nSetShaderValue4f(shader: Long, varHandle: Long, v1: Float, v2: Float, v3: Float, v4: Float)
         @JvmStatic external fun nSetShaderMatrix(shader: Long, varHandle: Long, matrix: FloatBuffer)
-        @JvmStatic external fun nCreateTexture(width: Int, height: Int, components: Int, data: ByteBuffer): Long
-        @JvmStatic external fun nCreateEmptyTexture(width: Int, height: Int, components: Int): Long
+        @JvmStatic external fun nCreateEmptySurface(width: Int, height: Int, components: Int, samples: Int): Long
+        @JvmStatic external fun nCreateSurface(width: Int, height: Int, components: Int, samples: Int, data: ByteBuffer): Long
+        @JvmStatic external fun nCreateTexture(width: Int, height: Int, components: Int): Long
+        @JvmStatic external fun nStretchRect(surface: Long, texture: Long)
         @JvmStatic external fun nSetLinearFiltering(linearFiltering: Boolean)
     }
 
     override fun load() {
         super.load()
-        nInitializeDevice()
+        nInitializeDevice(AlterUIProperties.vsync, AlterUIProperties.msaa)
     }
 
     override fun createWindow(): WindowPeer {
@@ -68,15 +71,7 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
         width: Int,
         height: Int,
         data: ByteBuffer?
-    ): Image {
-        val texture = if(data != null)
-            nCreateTexture(width, height, type.channels, data)
-        else
-            nCreateEmptyTexture(width, height, type.channels)
-        val surface = nGetTextureSurface(texture)
-
-        return D3D9Image(texture, surface, width, height, width, height, type, 1f)
-    }
+    ) = D3D9Image(AlterUIProperties.msaa, width, height, width, height, type, 1f, data)
 
     override fun createSurfaceImage(
         window: WindowPeer,
@@ -86,12 +81,7 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
         logicWidth: Int,
         logicHeight: Int,
         dpi: Float
-    ): Image {
-        val texture = nCreateEmptyTexture(physicalWidth, physicalHeight, type.channels)
-        val surface = nGetTextureSurface(texture)
-
-        return D3D9Image(texture, surface, physicalWidth, physicalHeight, logicWidth, logicHeight, type, dpi)
-    }
+    ) = D3D9Image(AlterUIProperties.msaa, physicalWidth, physicalHeight, logicWidth, logicHeight, type, dpi, null)
 
     override fun isMainThreadRequired() = true
 
