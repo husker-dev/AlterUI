@@ -44,6 +44,11 @@ D3DFORMAT getFormat(int components) {
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
+	case WM_NCCREATE:
+	{
+		EnableNonClientDpiScaling(hwnd);
+		break;
+	}
 	case WM_DESTROY:
 	{
 		surfaces[hwnd]->Release();
@@ -92,6 +97,7 @@ extern "C" {
 	   ===============
 	*/
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nInitializeDevice(JNIEnv*, jobject, jboolean vsync, jint samples) {
+		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 		/*
 		*	Create device without window.
 		*	If BackBuffer size is 0, then DX tries to get current window size, and fails
@@ -157,8 +163,7 @@ extern "C" {
 
 			RegisterClass(&wc);
 		}
-		return (jlong)CreateWindowEx(
-			WS_EX_COMPOSITED,
+		return (jlong)CreateWindow(
 			L"alterui_d3d9", L"",
 			WS_OVERLAPPEDWINDOW,
 			0, 0,
@@ -389,15 +394,11 @@ extern "C" {
 		return (jlong)targetTexture;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nStretchRect(JNIEnv* env, jobject, jlong _surface, jlong _texture) {
-		IDirect3DTexture9* texture = (IDirect3DTexture9*)_texture;
-		IDirect3DSurface9* sourceSurface = (IDirect3DSurface9*)_surface;
-
-		IDirect3DSurface9* targetSurface;
-		texture->GetSurfaceLevel(0, &targetSurface);
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nStretchRect(JNIEnv* env, jobject, jlong _surfaceSource, jlong _surfaceTarget) {
+		IDirect3DSurface9* sourceSurface = (IDirect3DSurface9*)_surfaceSource;
+		IDirect3DSurface9* targetSurface = (IDirect3DSurface9*)_surfaceTarget;
 
 		device->StretchRect(sourceSurface, 0, targetSurface, 0, D3DTEXF_POINT);
-		targetSurface->Release();
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetLinearFiltering(JNIEnv*, jobject, jboolean linearFiltering) {

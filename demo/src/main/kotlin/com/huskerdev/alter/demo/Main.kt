@@ -19,18 +19,17 @@ import kotlin.concurrent.thread
 
 fun main() = AlterUI.run {
     val frame = Frame()
-    frame.content = object: FlowPane(){
+    frame.content = object : FlowPane() {
         init {
-            for(i in 0..50)
+            for (i in 0..50)
                 children.add(Button())
         }
     }
 
-    frame.title = "${AlterUIProperties.pipeline.uppercase()} Window"
+    frame.title = "Test Window"
     frame.x = 200f
     frame.y = 200f
     frame.width = 500f
     frame.height = 500f
     frame.visible = true
-
 }

@@ -45,7 +45,7 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
         @JvmStatic external fun nCreateEmptySurface(width: Int, height: Int, components: Int, samples: Int): Long
         @JvmStatic external fun nCreateSurface(width: Int, height: Int, components: Int, samples: Int, data: ByteBuffer): Long
         @JvmStatic external fun nCreateTexture(width: Int, height: Int, components: Int): Long
-        @JvmStatic external fun nStretchRect(surface: Long, texture: Long)
+        @JvmStatic external fun nStretchRect(surfaceFrom: Long, surfaceTo: Long)
         @JvmStatic external fun nSetLinearFiltering(linearFiltering: Boolean)
     }
 

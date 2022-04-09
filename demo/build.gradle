@@ -34,4 +34,20 @@ task buildDemo(){
     dependsOn ':buildLibrary'
 
     tasks.findByPath(':demo:jar').mustRunAfter ':buildLibrary'
+
+
+}
+
+jar {
+    doLast {
+        File libraries = new File(projectDir.parentFile, "build/libs")
+        File tmp = new File(projectDir, "build/tmp/demoBuild")
+        tmp.deleteDir()
+        tmp.mkdirs()
+
+        for (File file : libraries.listFiles())
+            runCommand("jar xf ${file.absolutePath}", tmp.absolutePath)
+        new File(tmp, "META-INF/MANIFEST.MF").delete()
+        runCommand("jar uf ${jar.archiveFile.get().asFile.absolutePath} -C ${tmp.absolutePath} .")
+    }
 }

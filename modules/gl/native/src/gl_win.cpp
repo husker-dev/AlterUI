@@ -22,6 +22,11 @@ void throwError(const char* text) {
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+    case WM_NCCREATE:
+    {
+        EnableNonClientDpiScaling(hwnd);
+        break;
+    }
     case WM_DESTROY:
     {
         wglDeleteContext(rc_list[hwnd]);
@@ -33,6 +38,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 jlong nCreateWindow(jlong shareWith) {
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+
     // Apply basic pixel format
     PIXELFORMATDESCRIPTOR pfd = {};
     pfd.nSize = sizeof(pfd);
@@ -109,7 +116,6 @@ jlong nCreateWindow(jlong shareWith) {
         NULL, NULL,
         GetModuleHandle(NULL),
         NULL);
-    EnableNonClientDpiScaling(hwnd);
     HDC dc = GetDC(hwnd);
 
     // Create extended pixel format

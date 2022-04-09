@@ -66,11 +66,12 @@ void bindAsDefaultModule(Object a, String moduleName, ArrayList<String> architec
         doLast {
             def resourcesFolder = new File(a.projectDir, "build/resources/main")
             for(file in fileTree(resourcesFolder).files){
+                println(a.projectDir)
                 for(platform in platforms) {
                     for (arch in architectures) {
                         if (file.name == "${moduleName}_${arch}.${ext.get(platform)}") {
                             String localPath = file.absolutePath.replace(resourcesFolder.absolutePath, "")
-                            runCommand("jar cf build/libs/alterui_${moduleName}_${platform}_${arch}.jar -C ${resourcesFolder.absolutePath} $localPath")
+                            runCommand("jar cf ${a.projectDir}/build/libs/alterui_${moduleName}_${platform}_${arch}.jar -C ${resourcesFolder.absolutePath} $localPath")
                         }
                     }
                 }
@@ -91,12 +92,16 @@ static String repeat(String str, int count){
     return new String(new char[count]).replace("\0", str);
 }
 
-ConsoleOutput runCommand(String command){
+ConsoleOutput runCommand(String command, String context = null){
     if(DEBUG)
         println ">> ${command}"
     String suffix = (isWin() && command.contains("&&")) ? "cmd /c " : ""
 
-    Process p = Runtime.runtime.exec("${suffix}${command}")
+    Process p
+    if(context != null)
+        p = Runtime.runtime.exec("${suffix}${command}", new String[0], file(context))
+    else
+        p = Runtime.runtime.exec("${suffix}${command}")
     String out = new BufferedReader(new InputStreamReader(p.inputStream)).lines().collect(Collectors.joining("\n"))
     int code = p.waitFor()
 

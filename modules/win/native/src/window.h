@@ -106,7 +106,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	case WM_SHOWWINDOW:
 	case WM_ERASEBKGND:
 		return TRUE;
-
 	case WM_NCCALCSIZE:
 	{
 		if (wParam == TRUE && windows[hwnd].style != 0) {
