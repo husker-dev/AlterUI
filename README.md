@@ -36,5 +36,6 @@ The main task is to make window creation faster and easier.
 
 # What can it do now?
   - Draw and fill any shape
+  - Draw lines with any caps and joins
   - Load and draw images
   - Basic components layout system 
