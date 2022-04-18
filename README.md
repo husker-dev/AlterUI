@@ -33,3 +33,8 @@ The main task is to make window creation faster and easier.
   - :white_check_mark: x86
   - :white_check_mark: ARM
   - :white_check_mark: ARM64
+
+# What can it do now?
+  - Draw and fill any shape
+  - Load and draw images
+  - Basic components layout system 
