@@ -38,6 +38,7 @@ object GLColorPainter: ColorPainter() {
 
     override fun clear() = descriptor.clear()
     override fun fillShape(shape: Shape) = descriptor.fillShape(shape)
+    override fun drawShape(shape: Shape) = descriptor.drawShape(shape)
     override fun fillRect(x: Float, y: Float, width: Float, height: Float) = descriptor.fillRect(x, y, width, height)
     override fun drawRect(x: Float, y: Float, width: Float, height: Float) = descriptor.drawRect(x, y, width, height)
     override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) = descriptor.drawImage(image, x, y, width, height)

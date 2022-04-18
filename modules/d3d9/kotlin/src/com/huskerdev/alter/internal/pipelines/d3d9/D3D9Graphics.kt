@@ -51,6 +51,12 @@ abstract class D3D9Graphics(open val surface: Long): Graphics() {
         }
     }
 
+    override fun drawShape(shape: Shape) {
+        synchronized(D3D9Pipeline.device) {
+            super.drawShape(shape)
+        }
+    }
+
     override fun finish() {}
 }
 
@@ -69,6 +75,11 @@ class D3D9ImageGraphics(val image: D3D9Image): D3D9Graphics(image.renderTarget.s
 
     override fun fillRect(x: Float, y: Float, width: Float, height: Float) {
         super.fillRect(x, y, width, height)
+        image.renderTarget.contentChanged = true
+    }
+
+    override fun drawShape(shape: Shape) {
+        super.drawShape(shape)
         image.renderTarget.contentChanged = true
     }
 

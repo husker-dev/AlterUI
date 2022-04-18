@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
 }
 
 group 'com.huskerdev'
@@ -49,5 +49,17 @@ jar {
             runCommand("jar xf ${file.absolutePath}", tmp.absolutePath)
         new File(tmp, "META-INF/MANIFEST.MF").delete()
         runCommand("jar uf ${jar.archiveFile.get().asFile.absolutePath} -C ${tmp.absolutePath} .")
+
+        // ProGuard
+        String libPath = ""
+        if(file(System.getProperty("java.home")).list().contains("jmods"))
+            libPath = System.getProperty("java.home") + "/jmods"
+        else
+            libPath = System.getProperty("java.home") + "/lib/rt.jar"
+
+        runCommand("java -jar \"${projectDir}/utils/proguard.jar\" @\"${projectDir}/utils/proguard.txt\" " +
+                "-injars \"${jar.archiveFile.get().asFile.absolutePath}\" " +
+                "-outjars \"${jar.archiveFile.get().asFile.absolutePath.replace(".jar", "_out.jar")}\" " +
+                "-libraryjars \"${libPath}\"")
     }
 }

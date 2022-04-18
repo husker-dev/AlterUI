@@ -41,6 +41,10 @@ class ImageGLGraphics(val image: GLImage): GLGraphics(image.framebuffer, resourc
         super.fillShape(shape)
     }
 
+    override fun drawShape(shape: Shape) = invokeOnResourceThread {
+        super.drawShape(shape)
+    }
+
     override fun fillRect(x: Float, y: Float, width: Float, height: Float) = invokeOnResourceThread {
         super.fillRect(x, y, width, height)
     }

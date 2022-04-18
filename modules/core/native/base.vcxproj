@@ -176,7 +176,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core.h" />
-    <ClInclude Include="src\earcut\earcut.hpp" />
     <ClInclude Include="src\stb\stb_image.h" />
     <ClInclude Include="src\stb\stb_image_resize.h" />
     <ClInclude Include="src\stb\stb_image_write.h" />

@@ -3,7 +3,7 @@ package com.huskerdev.alter.internal.pipelines.gl.painters
 import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.painters.VertexPaintHelper
+import com.huskerdev.alter.graphics.painters.VertexHelper
 import com.huskerdev.alter.internal.pipelines.gl.*
 import com.huskerdev.alter.internal.utils.BufferUtils
 
@@ -81,17 +81,22 @@ abstract class GLPainterDescriptor {
 
     fun fillShape(shape: Shape) {
         shader[context, varRenderType] = 1f
-        context.drawArray(BufferUtils.createFloatBuffer(*shape.vertices), shape.vertices.size / 3, VertexPaintHelper.DrawType.TriangleList)
+        VertexHelper.paintVertices(shape.fillVertices, context::drawArray)
+    }
+
+    fun drawShape(shape: Shape) {
+        shader[context, varRenderType] = 1f
+        VertexHelper.paintVertices(shape.drawVertices, context::drawArray)
     }
 
     fun fillRect(x: Float, y: Float, width: Float, height: Float) {
         shader[context, varRenderType] = 1f
-        VertexPaintHelper.fillRect(x, y, width, height, context::drawArray)
+        VertexHelper.fillRect(x, y, width, height, context::drawArray)
     }
 
     fun drawRect(x: Float, y: Float, width: Float, height: Float) {
         shader[context, varRenderType] = 2f
-        VertexPaintHelper.drawRect(x, y, width, height, context::drawArray)
+        VertexHelper.drawRect(x, y, width, height, context::drawArray)
     }
 
     fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
@@ -99,7 +104,7 @@ abstract class GLPainterDescriptor {
         shader[context, varTextureColors] = image.pixelType.channels.toFloat()
         shader.set4f(context, varTextureBounds, x, y, width, height)
         context.bindTexture(0, (image as GLImage).texId)
-        VertexPaintHelper.fillRect(x, y, width, height, context::drawArray)
+        VertexHelper.fillRect(x, y, width, height, context::drawArray)
     }
 
     fun drawText(textImage: Image, x: Float, y: Float, width: Float, height: Float) {
@@ -107,7 +112,7 @@ abstract class GLPainterDescriptor {
         shader[context, varTextureColors] = textImage.pixelType.channels.toFloat()
         shader.set4f(context, varTextureBounds, x, y, width, height)
         context.bindTexture(0, (textImage as GLImage).texId)
-        VertexPaintHelper.fillRect(x, y, width, height, context::drawArray)
+        VertexHelper.fillRect(x, y, width, height, context::drawArray)
     }
 
 }

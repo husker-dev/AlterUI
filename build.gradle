@@ -24,7 +24,6 @@ task buildLibrary(type: GradleBuild){
 task compileNatives(){
     group = "alterui"
     doLast {
-        println("${projectDir}/aaa.gradle")
         for (module in (List<String>)modules)
             compileNativeProject(module, "$projectDir/modules/${module}/native")
     }
@@ -59,19 +58,24 @@ void bindAsDefaultModule(Object a, String moduleName, ArrayList<String> architec
         ext.put("linux", "so")
         ext.put("macos", "dylib")
 
-        archiveBaseName.set("alterui_$moduleName")
+        archiveBaseName.set("alterui-${libVersion}_$moduleName")
         for(platform in platforms)
             exclude("**/resources/$moduleName/*.${ext.get(platform)}")
+
+        doFirst {
+            File dir = new File(a.projectDir, "build/libs")
+            dir.deleteDir()
+            dir.mkdirs()
+        }
 
         doLast {
             def resourcesFolder = new File(a.projectDir, "build/resources/main")
             for(file in fileTree(resourcesFolder).files){
-                println(a.projectDir)
                 for(platform in platforms) {
                     for (arch in architectures) {
                         if (file.name == "${moduleName}_${arch}.${ext.get(platform)}") {
                             String localPath = file.absolutePath.replace(resourcesFolder.absolutePath, "")
-                            runCommand("jar cf ${a.projectDir}/build/libs/alterui_${moduleName}_${platform}_${arch}.jar -C ${resourcesFolder.absolutePath} $localPath")
+                            runCommand("jar cf ${a.projectDir}/build/libs/alterui-${libVersion}-${moduleName}-${platform}-${arch}.jar -C ${resourcesFolder.absolutePath} $localPath")
                         }
                     }
                 }

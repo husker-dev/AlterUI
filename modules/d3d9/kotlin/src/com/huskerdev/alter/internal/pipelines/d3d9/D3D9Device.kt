@@ -1,6 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.d3d9
 
-import com.huskerdev.alter.graphics.painters.VertexPaintHelper
+import com.huskerdev.alter.graphics.painters.VertexHelper
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nClear
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nDrawArrays
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetLinearFiltering
@@ -43,7 +43,7 @@ class D3D9Device {
 
     fun clear() = nClear()
 
-    fun drawVertices(buffer: FloatBuffer, count: Int, type: VertexPaintHelper.DrawType) =
+    fun drawVertices(buffer: FloatBuffer, count: Int, type: VertexHelper.DrawType) =
         nDrawArrays(buffer, count, type.ordinal + 1)
 
     fun bindTexture(index: Int, texture: Long) =

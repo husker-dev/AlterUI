@@ -4,11 +4,7 @@ import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.ImagePainter
-import com.huskerdev.alter.graphics.painters.VertexPaintHelper
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Image
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetLinearFiltering
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetTexture
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Shader
 
 object D3D9ImagePainter: ImagePainter() {
 
@@ -49,6 +45,10 @@ object D3D9ImagePainter: ImagePainter() {
     }
 
     override fun fillShape(shape: Shape) {
+
+    }
+
+    override fun drawShape(shape: Shape) {
 
     }
 

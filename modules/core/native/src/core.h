@@ -12,7 +12,6 @@
 #include "stb/stb_image_resize.h"
 #include "stb/stb_image_write.h"
 
-#include "earcut/earcut.hpp"
 
 #include "ft2build.h"
 
@@ -20,8 +19,10 @@
 #include FT_SFNT_NAMES_H
 #include FT_LCD_FILTER_H
 
+
 #include "hb.h"
 #include "hb-ft.h"
+
 
 extern "C" {
 
@@ -108,6 +109,7 @@ extern "C" {
 		  Font
 	   =======================
 	*/
+	
 	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_graphics_font_Font_nLoadFreeType(JNIEnv*, jobject) {
 		FT_Library ft;
 		FT_Init_FreeType(&ft);
@@ -206,7 +208,7 @@ extern "C" {
 	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_graphics_font_Font_nGetBearingY(JNIEnv* env, jobject, jlong _face) {
 		return (jint)((FT_Face)_face)->glyph->bitmap_top;
 	}
-
+	
 	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_graphics_font_Font_nHBCreateBuffer(JNIEnv* env, jobject) {
 		hb_buffer_t* buf;
 		buf = hb_buffer_create();
@@ -271,4 +273,6 @@ extern "C" {
 	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_graphics_font_FontRasterMetrics_nHBGetYAdvance(JNIEnv* env, jobject, jlong positions, jint index) {
 		return ((hb_glyph_position_t*)positions)[index].y_advance;
 	}
+	
+	
 }

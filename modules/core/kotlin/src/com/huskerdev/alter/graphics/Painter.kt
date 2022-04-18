@@ -24,6 +24,7 @@ abstract class Painter {
 
     abstract fun clear()
     abstract fun fillShape(shape: Shape)
+    abstract fun drawShape(shape: Shape)
     abstract fun fillRect(x: Float, y: Float, width: Float, height: Float)
     abstract fun drawRect(x: Float, y: Float, width: Float, height: Float)
     abstract fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float)

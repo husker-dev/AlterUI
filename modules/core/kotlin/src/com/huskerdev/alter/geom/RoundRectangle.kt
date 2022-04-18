@@ -16,57 +16,76 @@ class RoundRectangle(
     val radius3height: Float,
     val radius4width: Float,    // Left bottom
     val radius4height: Float,
-    val roundPoints: Int = 20
+    val accuracy: Float = 0.7f
 ): Shape() {
 
-    constructor(x: Float, y: Float, width: Float, height: Float, radius: Float, roundPoints: Int = 20):
-            this(x, y, width, height, radius, radius, radius, radius, radius, radius, radius, radius, roundPoints)
+    constructor(x: Float, y: Float, width: Float, height: Float, radius: Float, accuracy: Float = 0.7f):
+            this(x, y, width, height, radius, radius, radius, radius, radius, radius, radius, radius, accuracy)
 
-    constructor(width: Float, height: Float, radius: Float, roundPoints: Int = 20):
-            this(0f, 0f, width, height, radius, radius, radius, radius, radius, radius, radius, radius, roundPoints)
+    constructor(width: Float, height: Float, radius: Float, accuracy: Float = 0.7f):
+            this(0f, 0f, width, height, radius, radius, radius, radius, radius, radius, radius, radius, accuracy)
 
-    constructor(x: Float, y: Float, width: Float, height: Float, radius1: Float, radius2: Float, radius3: Float, radius4: Float, roundPoints: Int = 20):
-            this(x, y, width, height, radius1, radius1, radius2, radius2, radius3, radius3, radius4, radius4, roundPoints)
+    constructor(x: Float, y: Float, width: Float, height: Float, radius1: Float, radius2: Float, radius3: Float, radius4: Float, accuracy: Float = 0.7f):
+            this(x, y, width, height, radius1, radius1, radius2, radius2, radius3, radius3, radius4, radius4, accuracy)
 
-    constructor(width: Float, height: Float, radius1: Float, radius2: Float, radius3: Float, radius4: Float, roundPoints: Int = 20):
-            this(0f, 0f, width, height, radius1, radius1, radius2, radius2, radius3, radius3, radius4, radius4, roundPoints)
+    constructor(width: Float, height: Float, radius1: Float, radius2: Float, radius3: Float, radius4: Float, accuracy: Float = 0.7f):
+            this(0f, 0f, width, height, radius1, radius1, radius2, radius2, radius3, radius3, radius4, radius4, accuracy)
 
     override val points by lazy {
         val points = arrayListOf<Float>()
-
-        // TODO: Optimize count of points in Ellipse
+        var steps = 0f
 
         // Left-top corner
-        for(i in 0..roundPoints){
-            val angle = i / roundPoints.toFloat() * 90 - 180
+        points.add(x)
+        points.add(y + radius1height)
+        steps = PI.toFloat() * (radius1width + radius1height) / 4 * accuracy
+        repeat(steps.toInt()){ i ->
+            val angle = i / steps * 90 - 180
 
             points.add(cos(Math.toRadians(angle.toDouble())).toFloat() * radius1width + (x + radius1width))
             points.add(sin(Math.toRadians(angle.toDouble())).toFloat() * radius1height + (y + radius1height))
         }
+        points.add(x + radius1width)
+        points.add(y)
 
         // Right top corner
-        for(i in 0..roundPoints){
-            val angle = i / roundPoints.toFloat() * 90 - 90
+        points.add(x + width - radius2width)
+        points.add(y)
+        steps = PI.toFloat() * (radius2width + radius2height) / 4 * accuracy
+        repeat(steps.toInt()){ i ->
+            val angle = i / steps * 90 - 90
 
             points.add(cos(Math.toRadians(angle.toDouble())).toFloat() * radius2width + (x + width - radius2width))
             points.add(sin(Math.toRadians(angle.toDouble())).toFloat() * radius2height + (y + radius2height))
         }
+        points.add(x + width)
+        points.add(y + radius2height)
 
         // Right bottom corner
-        for(i in 0..roundPoints){
-            val angle = i / roundPoints.toFloat() * 90
+        points.add(x + width)
+        points.add(y + height - radius3height)
+        steps = PI.toFloat() * (radius3width + radius3height) / 4 * accuracy
+        repeat(steps.toInt()){ i ->
+            val angle = i / steps * 90
 
             points.add(cos(Math.toRadians(angle.toDouble())).toFloat() * radius3width + (x + width - radius3width))
             points.add(sin(Math.toRadians(angle.toDouble())).toFloat() * radius3height + (y + height - radius3height))
         }
+        points.add(x + width - radius3width)
+        points.add(y + height)
 
         // Left bottom corner
-        for(i in 0..roundPoints){
-            val angle = i / roundPoints.toFloat() * 90 + 90
+        points.add(x + radius4width)
+        points.add(y + height)
+        steps = PI.toFloat() * (radius4width + radius4height) / 4 * accuracy
+        repeat(steps.toInt()){ i ->
+            val angle = i / steps * 90 + 90
 
             points.add(cos(Math.toRadians(angle.toDouble())).toFloat() * radius4width + (x + radius4width))
             points.add(sin(Math.toRadians(angle.toDouble())).toFloat() * radius4height + (y + height - radius4height))
         }
+        points.add(x)
+        points.add(y + height - radius4height)
 
         return@lazy points.toFloatArray()
     }

@@ -1,7 +1,7 @@
 package com.huskerdev.alter.internal.pipelines.gl
 
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.painters.VertexPaintHelper
+import com.huskerdev.alter.graphics.painters.VertexHelper
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_COLOR_BUFFER_BIT
 import com.huskerdev.alter.internal.pipelines.gl.GLPipeline.Companion.GL_DEPTH_BUFFER_BIT
@@ -90,7 +90,7 @@ open class GLContext(val window: Long) {
         }
     }
 
-    open fun drawArray(array: FloatBuffer, count: Int, type: VertexPaintHelper.DrawType) =
+    open fun drawArray(array: FloatBuffer, count: Int, type: VertexHelper.DrawType) =
         GLPipeline.nDrawArray(array, count, type.ordinal)
 
     open fun clear() =

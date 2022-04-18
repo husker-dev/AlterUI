@@ -59,10 +59,16 @@ abstract class Graphics {
     }
 
     open fun fillShape(shape: Shape) {
-        if(shape.vertices.isNotEmpty()) {
+        if(shape.fillVertices.isNotEmpty()) {
             painter!!.runPaint {
                 fillShape(shape)
             }
+        }
+    }
+
+    open fun drawShape(shape: Shape) {
+        painter!!.runPaint {
+            drawShape(shape)
         }
     }
 

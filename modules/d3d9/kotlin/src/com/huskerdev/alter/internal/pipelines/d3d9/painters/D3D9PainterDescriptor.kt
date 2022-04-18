@@ -3,7 +3,7 @@ package com.huskerdev.alter.internal.pipelines.d3d9.painters
 import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
-import com.huskerdev.alter.graphics.painters.VertexPaintHelper
+import com.huskerdev.alter.graphics.painters.VertexHelper
 import com.huskerdev.alter.internal.pipelines.d3d9.*
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nBeginScene
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nEndScene
@@ -80,17 +80,22 @@ abstract class D3D9PainterDescriptor {
 
     fun fillShape(shape: Shape) {
         pixelShader[varRenderType] = 1f
-        D3D9Pipeline.device.drawVertices(BufferUtils.createFloatBuffer(*shape.vertices), shape.vertices.size / 3, VertexPaintHelper.DrawType.TriangleList)
+        VertexHelper.paintVertices(shape.fillVertices, D3D9Pipeline.device::drawVertices)
+    }
+
+    fun drawShape(shape: Shape) {
+        pixelShader[varRenderType] = 1f
+        VertexHelper.paintVertices(shape.drawVertices, D3D9Pipeline.device::drawVertices)
     }
 
     fun fillRect(x: Float, y: Float, width: Float, height: Float) {
         pixelShader[varRenderType] = 1f
-        VertexPaintHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
+        VertexHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }
 
     fun drawRect(x: Float, y: Float, width: Float, height: Float) {
         pixelShader[varRenderType] = 2f
-        VertexPaintHelper.drawRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
+        VertexHelper.drawRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }
 
     fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
@@ -99,11 +104,11 @@ abstract class D3D9PainterDescriptor {
         pixelShader.set4f(varTextureBounds, x, y, width, height)
         device.bindTexture(0, (image as D3D9Image).renderTarget.texture)
         device.linearFiltering = image.linearFiltered
-        VertexPaintHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
+        VertexHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }
 
     fun drawText(image: Image, x: Float, y: Float, width: Float, height: Float) {
         pixelShader[varRenderType] = 4f
-        VertexPaintHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
+        VertexHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)
     }
 }

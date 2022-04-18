@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
 }
 
 sourceSets {
@@ -26,5 +26,4 @@ repositories {
 
 dependencies {
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib'
-    //implementation "io.github.earcut4j:earcut4j:2.2.2"
 }
