@@ -15,6 +15,18 @@ The main task is to make window creation faster and easier.
 
 > AlterUI is very young, so it does not pretend to replace the frameworks above.
 
+
+# What can it do now?
+  - Draw and fill any shape
+  - Draw lines with any caps and joins
+  - Load and draw images
+  - Basic components layout system
+
+<div>
+<img src="https://user-images.githubusercontent.com/31825139/163837133-e05fd400-cf88-4bc3-9741-85957284dfe5.png" width="300">
+<img src="https://user-images.githubusercontent.com/31825139/163837585-18186e62-e2fb-4ff5-9a56-aff70319b2a6.png" width="300">
+</div>
+
 # Support
 
 ### Platforms
@@ -33,9 +45,3 @@ The main task is to make window creation faster and easier.
   - :white_check_mark: x86
   - :white_check_mark: ARM
   - :white_check_mark: ARM64
-
-# What can it do now?
-  - Draw and fill any shape
-  - Draw lines with any caps and joins
-  - Load and draw images
-  - Basic components layout system 
