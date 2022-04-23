@@ -16,6 +16,7 @@ static std::map<HWND, IDirect3DSurface9*> surfaces;
 static std::map<HWND, IDirect3DSwapChain9*> swapChains;
 static std::map<int, LPDIRECT3DVERTEXBUFFER9> cachedBuffers;
 static int devices_count = 0;
+static int maxMSAA = -1;
 
 // Shader's constants
 static std::map<jlong, ID3DXConstantTable*> constantTables;
@@ -34,12 +35,29 @@ void cacheBufferSize(int vertices) {
 	device->CreateVertexBuffer(12 * vertices, 0, D3DFVF_XYZ, D3DPOOL_MANAGED, &cachedBuffers[vertices], NULL);
 }
 
-D3DFORMAT getFormat(int components) {
+D3DFORMAT GetFormat(int components) {
 	if (components == 4)
 		return D3DFMT_A8R8G8B8;
 	if (components == 3)
 		return D3DFMT_X8R8G8B8;
 	return D3DFMT_L8;
+}
+
+_D3DMULTISAMPLE_TYPE GetSupportedMSAA(int level) {
+	if (maxMSAA == -1) {
+		for (int i = 0; i < 16; i += 2) {
+			if (d3d->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, D3DFMT_A8R8G8B8, FALSE, (_D3DMULTISAMPLE_TYPE)i, NULL) == S_OK)
+				maxMSAA = i;
+		}
+	}
+	if (level % 2 == 1)
+		level--;
+	if (level > maxMSAA)
+		level = maxMSAA;
+	if (level < 0)
+		level = 0;
+	
+	return (_D3DMULTISAMPLE_TYPE)level;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -98,6 +116,8 @@ extern "C" {
 	*/
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nInitializeDevice(JNIEnv*, jobject, jboolean vsync, jint samples) {
 		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+
+		d3d = Direct3DCreate9(D3D_SDK_VERSION);
 		/*
 		*	Create device without window.
 		*	If BackBuffer size is 0, then DX tries to get current window size, and fails
@@ -108,7 +128,7 @@ extern "C" {
 		pp.hDeviceWindow = NULL;
 		pp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 		pp.BackBufferFormat = D3DFMT_A8R8G8B8;
-		pp.MultiSampleType = (_D3DMULTISAMPLE_TYPE)samples;
+		pp.MultiSampleType = GetSupportedMSAA(samples);
 		pp.MultiSampleQuality = 0;
 		pp.BackBufferCount = 1;
 		pp.BackBufferWidth = 100;
@@ -118,7 +138,6 @@ extern "C" {
 			pp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
 		}
 		
-		d3d = Direct3DCreate9(D3D_SDK_VERSION);
 		d3d->CreateDevice(
 			D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL,
 			NULL,
@@ -345,7 +364,7 @@ extern "C" {
 		IDirect3DSurface9* surface;
 
 		HRESULT h;
-		if ((h = device->CreateRenderTarget(width, height, getFormat(components), (_D3DMULTISAMPLE_TYPE)samples, 0, false, &surface, 0)) != S_OK)
+		if ((h = device->CreateRenderTarget(width, height, GetFormat(components), (_D3DMULTISAMPLE_TYPE)samples, 0, false, &surface, 0)) != S_OK)
 			throwJavaException(env, "java/lang/RuntimeException", "Can't create render surface");
 
 		return (jlong)surface;
@@ -357,11 +376,13 @@ extern "C" {
 		IDirect3DSurface9* sourceSurface;
 
 		HRESULT h;
-		if ((h = device->CreateRenderTarget(width, height, getFormat(components), (_D3DMULTISAMPLE_TYPE)samples, 0, true, &targetSurface, NULL)) != S_OK)
+		if ((h = device->CreateRenderTarget(width, height, GetFormat(components), GetSupportedMSAA(samples), 0, false, &targetSurface, NULL)) != S_OK)
 			throwJavaException(env, "java/lang/RuntimeException", "Can't create render surface");
+		if ((h = device->CreateOffscreenPlainSurface(width, height, GetFormat(components), D3DPOOL_DEFAULT, &sourceSurface, NULL)) != S_OK)
+			throwJavaException(env, "java/lang/RuntimeException", "Can't create offscreen plain surface");
 
 		D3DLOCKED_RECT lockedRect;
-		targetSurface->LockRect(&lockedRect, NULL, 0);
+		sourceSurface->LockRect(&lockedRect, NULL, 0);
 		char* pData = (char*)lockedRect.pBits;
 		int destComponents = components == 1 ? 1 : 4;
 
@@ -374,12 +395,17 @@ extern "C" {
 					pData[posTarget] = data[posSource + 2];
 					pData[posTarget + 1] = data[posSource + 1];
 					pData[posTarget + 2] = data[posSource];
-					pData[posTarget + 3] = components == 3? 255 : data[posSource + 3];
-				}else
+					pData[posTarget + 3] = components == 3 ? 255 : data[posSource + 3];
+				}
+				else
 					pData[posTarget] = data[posSource];
 			}
 		}
-		targetSurface->UnlockRect();
+		sourceSurface->UnlockRect();
+
+		// Copy image content to render target
+		device->StretchRect(sourceSurface, NULL, targetSurface, NULL, D3DTEXF_POINT);
+		sourceSurface->Release();
 
 		return (jlong)targetSurface;
 	}
@@ -388,7 +414,7 @@ extern "C" {
 		IDirect3DTexture9* targetTexture;
 
 		HRESULT h;
-		if ((h = device->CreateTexture(width, height, 0, D3DUSAGE_RENDERTARGET, getFormat(components), D3DPOOL_DEFAULT, &targetTexture, 0)) != S_OK)
+		if ((h = device->CreateTexture(width, height, 0, D3DUSAGE_RENDERTARGET, GetFormat(components), D3DPOOL_DEFAULT, &targetTexture, 0)) != S_OK)
 			throwJavaException(env, "java/lang/RuntimeException", "Can't create empty texture");
 
 		return (jlong)targetTexture;

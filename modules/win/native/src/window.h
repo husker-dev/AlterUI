@@ -15,6 +15,7 @@
 #if !defined(WM_DPICHANGED)
 #define WM_DPICHANGED 0x02E0
 #endif
+#include <string>
 #if !defined(DWMWA_CAPTION_COLOR)
 #define DWMWA_CAPTION_COLOR DWORD(35)
 #endif
@@ -22,10 +23,45 @@
 #define DWMWA_TEXT_COLOR DWORD(36)
 #endif
 
+WCHAR* getRegistryStringValue(HKEY hkey, LPCWSTR value) {
+	WCHAR id[512];
+	DWORD size = 512;
+	DWORD type = REG_SZ;
+	RegQueryValueExW(hkey, value, NULL, &type, reinterpret_cast<LPBYTE>(&id), &size);
+	return id;
+}
+
+char* getRegistryBinaryValue(HKEY hkey, LPCWSTR value) {
+	char id[512];
+	DWORD size = 512;
+	DWORD type = REG_BINARY;
+	RegQueryValueExW(hkey, value, NULL, &type, reinterpret_cast<LPBYTE>(&id), &size);
+	return id;
+}
+
+WCHAR* getSubKeyName(HKEY hkey, DWORD index) {
+	WCHAR buffer[255];
+	DWORD size = 255;
+	RegEnumKeyExW(hkey, index, buffer, &size, NULL, NULL, NULL, NULL);
+	return buffer;
+}
+
+DWORD getSubKeysCount(HKEY hkey) {
+	DWORD count = 0;
+	RegQueryInfoKey(hkey, NULL, NULL, NULL, &count, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+	return count;
+}
+
+HKEY openRegistry(HKEY parent, LPCWSTR value) {
+	HKEY hKey;
+	RegOpenKeyExW(parent, value, 0, KEY_READ, &hKey);
+	return hKey;
+}
+
 struct WindowStruct {
 	jweak			callbackObject;
 	WNDPROC			baseProc;
-	ITaskbarList3*	taskbar;
+	ITaskbarList3* taskbar;
 
 	int style = 0;	// 0 - Default, 1 - Undecorated, 2 - NoTitle
 	int mx = 0;
@@ -55,11 +91,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			return 0;
 		break;
 	}
-		
+
 	case WM_DESTROY:
 	{
 		callback(jvm, windows[hwnd].callbackObject, onClosedCallback);
-		
+
 		windows[hwnd].baseProc(hwnd, uMsg, wParam, lParam);
 		windows.erase(windows.find(hwnd));
 
@@ -113,23 +149,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 			// If window is maximized, then set its size equal to monitor
 			// If style is 'NoTitle', then just enable border
-			if (IsMaximized(hwnd)) {			
+			if (IsMaximized(hwnd)) {
 				auto info = MONITORINFO{};
 				info.cbSize = sizeof(MONITORINFO);
 				GetMonitorInfo(MonitorFromRect(params.rgrc, MONITOR_DEFAULTTONEAREST), &info);
 
 				params.rgrc[0] = info.rcWork;
-			} else if (windows[hwnd].style == 2)
+			}
+			else if (windows[hwnd].style == 2)
 				params.rgrc[0].right -= 1;
 			return 0;
 		}
 		break;
 	}
-
+	case WM_NCACTIVATE:
+		return 0;
 	case WM_NCHITTEST:
 	{
+		POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+		ScreenToClient((HWND)hwnd, &point);
+
 		int result = callbackInt(jvm, windows[hwnd].callbackObject, onHitTestCallback,
-			GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)
+			point.x, point.y
 		);
 		switch (result) {
 		case 0: return HTCAPTION;
@@ -151,7 +192,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	}
 	case WM_MOUSEMOVE:
 	{
-		
 		if (!windows[hwnd].mouseTracking) {
 			TRACKMOUSEEVENT tme;
 			tme.cbSize = sizeof(TRACKMOUSEEVENT);
@@ -167,9 +207,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			windows[hwnd].my = GET_Y_LPARAM(lParam);
 		}
 		callbackInt(jvm, windows[hwnd].callbackObject, onMouseMovedCallback,
-			GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), 
-			wParam & MK_LBUTTON, 
-			wParam & MK_MBUTTON, 
+			GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),
+			wParam & MK_LBUTTON,
+			wParam & MK_MBUTTON,
 			wParam & MK_RBUTTON,
 			wParam & MK_CONTROL,
 			wParam & MK_SHIFT);
@@ -212,6 +252,8 @@ extern "C" {
 
 		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		static const MARGINS frame = { 0, 0, 0, 0 };
+		DwmExtendFrameIntoClientArea((HWND)hwnd, &frame);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nInit(JNIEnv*, jobject, jlong hwnd) {
@@ -268,7 +310,8 @@ extern "C" {
 
 		if (isBig) {
 			SendMessage((HWND)hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-		} else {
+		}
+		else {
 			SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 			SendMessage((HWND)hwnd, WM_SETICON, ICON_SMALL2, (LPARAM)hIcon);
 		}
@@ -405,5 +448,137 @@ extern "C" {
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nSendEmptyMessage(JNIEnv*, jobject, jlong hwnd) {
 		PostMessage((HWND)hwnd, 0, 0, 0);
+	}
+
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_platforms_win_WMonitorPeer_nGetPrimary(JNIEnv*, jobject) {
+		const POINT ptZero = { 0, 0 };
+		return (jlong)MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+	}
+
+	const char* getDisplayEDID(DISPLAY_DEVICE dd) {
+		std::wstring id = std::wstring(dd.DeviceID);
+		std::wstring driver = id.substr(id.find(L"{"), id.length() - id.find(L"{"));
+
+		HKEY hKey = openRegistry(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Enum\\DISPLAY");
+		DWORD monitorsCount = getSubKeysCount(hKey);
+
+		for (int i = 0; i < monitorsCount; i++) {
+			HKEY subFolder1 = openRegistry(hKey, getSubKeyName(hKey, i));
+			HKEY subFolder2 = openRegistry(subFolder1, getSubKeyName(subFolder1, 0));
+
+			auto id = getRegistryStringValue(subFolder2, L"Driver");
+
+			if (std::wstring(id).compare(driver) == 0) {
+				HKEY subFolder3 = openRegistry(subFolder2, L"Device Parameters");
+
+				RegCloseKey(hKey);
+				RegCloseKey(subFolder1);
+				RegCloseKey(subFolder2);
+				return getRegistryBinaryValue(subFolder3, L"EDID");
+			}
+			RegCloseKey(subFolder1);
+			RegCloseKey(subFolder2);
+		}
+		RegCloseKey(hKey);
+	}
+
+	JNIEXPORT jbyteArray JNICALL Java_com_huskerdev_alter_internal_platforms_win_WMonitorPeer_nGetEDID(JNIEnv* env, jobject, jlong handle) {
+		MONITORINFOEX info;
+		info.cbSize = sizeof(info);
+		GetMonitorInfo((HMONITOR)handle, &info);
+		std::wstring deviceName = info.szDevice;
+
+		DISPLAY_DEVICE dd;
+		dd.cb = sizeof(dd);
+
+		int deviceIndex = 0;
+		while (EnumDisplayDevices(0, deviceIndex, &dd, 0)) {
+			int monitorIndex = 0;
+			while (EnumDisplayDevices(std::wstring(dd.DeviceName).c_str(), monitorIndex, &dd, 0)) {
+				if (std::wstring(dd.DeviceName).find(deviceName) == 0) {
+					auto charArray = env->NewByteArray(128);
+					env->SetByteArrayRegion(charArray, 0, 128, (const jbyte*)getDisplayEDID(dd));
+					return charArray;
+				}
+				monitorIndex++;
+			}
+			deviceIndex++;
+		}
+		return 0;
+	}
+
+	jlong* monitors;
+	int monitorsCount = 0;
+	static BOOL CALLBACK MonitorFill(HMONITOR hMon, HDC hdc, LPRECT lprcMonitor, LPARAM pData) {
+		monitors[monitorsCount++] = (jlong)hMon;
+		return TRUE;
+	}
+	static BOOL CALLBACK MonitorCount(HMONITOR hMon, HDC hdc, LPRECT lprcMonitor, LPARAM pData) {
+		monitorsCount++;
+		return TRUE;
+	}
+
+	JNIEXPORT jlongArray JNICALL Java_com_huskerdev_alter_internal_platforms_win_WMonitorPeer_nGetAll(JNIEnv* env, jobject) {
+		monitorsCount = 0;
+		EnumDisplayMonitors(NULL, NULL, MonitorCount, NULL);
+
+		monitors = new jlong[monitorsCount];
+		monitorsCount = 0;
+		EnumDisplayMonitors(NULL, NULL, MonitorFill, NULL);
+
+		auto handles = env->NewLongArray(monitorsCount);
+		env->SetLongArrayRegion(handles, 0, monitorsCount, monitors);
+		delete[] monitors;
+		return handles;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WMonitorPeer_nGetWidth(JNIEnv* env, jobject, jlong handle) {
+		MONITORINFOEX info;
+		info.cbSize = sizeof(info);
+		GetMonitorInfo((HMONITOR)handle, &info);
+		return info.rcMonitor.right - info.rcMonitor.left;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WMonitorPeer_nGetHeight(JNIEnv* env, jobject, jlong handle) {
+		MONITORINFOEX info;
+		info.cbSize = sizeof(info);
+		GetMonitorInfo((HMONITOR)handle, &info);
+		return info.rcMonitor.bottom - info.rcMonitor.top;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WMonitorPeer_nGetX(JNIEnv* env, jobject, jlong handle) {
+		MONITORINFOEX info;
+		info.cbSize = sizeof(info);
+		GetMonitorInfo((HMONITOR)handle, &info);
+		return info.rcMonitor.left;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WMonitorPeer_nGetY(JNIEnv* env, jobject, jlong handle) {
+		MONITORINFOEX info;
+		info.cbSize = sizeof(info);
+		GetMonitorInfo((HMONITOR)handle, &info);
+		return info.rcMonitor.top;
+	}
+
+
+	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WMonitorPeer_nGetDpi(JNIEnv* env, jobject, jlong handle) {
+		typedef enum MONITOR_DPI_TYPE {
+			MDT_EFFECTIVE_DPI = 0,
+			MDT_ANGULAR_DPI = 1,
+			MDT_RAW_DPI = 2,
+			MDT_DEFAULT = MDT_EFFECTIVE_DPI
+		} MONITOR_DPI_TYPE;
+		typedef HRESULT(CALLBACK* GetDpiForMonitor_)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
+
+		static HINSTANCE shcore = LoadLibrary(L"Shcore.dll");
+		if (shcore != nullptr) {
+			if (auto getDpiForMonitor = GetDpiForMonitor_(GetProcAddress(shcore, "GetDpiForMonitor"))) {
+				UINT xScale, yScale;
+				getDpiForMonitor((HMONITOR)handle, MDT_DEFAULT, &xScale, &yScale);
+
+				return (float)xScale / 96;
+			}
+		}
+		return 1.0;
 	}
 }

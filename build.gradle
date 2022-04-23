@@ -36,7 +36,7 @@ void compileNativeProject(String name, String project){
         // and 'vswhere' to find msbuild.exe
         String msbuildPath = runCommand("${projectDir}\\utils\\vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe").text
         println("Compiling native module \"${name}\":")
-        for (i in ["x86", "x64", "ARM64", "ARM"]) {
+        for (i in ["x86", "x64", "ARM64"]) {
             ConsoleOutput output = runCommand("\"${msbuildPath}\" \"${project}\\${name}.sln\" /t:Build /nologo /p:Configuration=Release;Platform=$i;RunCodeAnalysis=False")
 
             String status

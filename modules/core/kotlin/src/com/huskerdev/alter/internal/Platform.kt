@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal
 
+import com.huskerdev.alter.Monitor
 import com.huskerdev.alter.OS
 import com.huskerdev.alter.geom.Point
 import java.nio.ByteBuffer
@@ -61,4 +62,6 @@ abstract class Platform {
     abstract fun takeEvents()
     abstract fun sendEmptyMessage(handle: Long)
     abstract fun getFontData(name: String): ByteBuffer?
+    abstract fun getPrimaryMonitor(): Monitor
+    abstract fun getMonitors(): Array<Monitor>
 }

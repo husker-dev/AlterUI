@@ -12,13 +12,10 @@
 #include "stb/stb_image_resize.h"
 #include "stb/stb_image_write.h"
 
-
 #include "ft2build.h"
-
 #include FT_FREETYPE_H
 #include FT_SFNT_NAMES_H
 #include FT_LCD_FILTER_H
-
 
 #include "hb.h"
 #include "hb-ft.h"

@@ -222,11 +222,9 @@ class VertexHelper {
             isLast: Boolean
         ): NoneCap(point, vector, width, isLast) {
 
-            companion object {
-                private const val steps = 45
-            }
-
             override val additionalVertices: FloatArray by lazy {
+                val steps = (PI * width / 2).toInt()
+
                 val vertices = FloatArray(3 * 3 * (steps + 1))
                 val startAngle = if(isLast)
                     -(Vector.fromPoints(startPoint2, startPoint1).angle - PI / 2)

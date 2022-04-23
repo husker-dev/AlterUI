@@ -19,12 +19,13 @@ class D3D9RenderTarget(
     var contentChanged = true
 
     private val pureTexture = nCreateTexture(width, height, components)
-    private val pureSurface = nGetTextureSurface(texture)
+    private val pureSurface = nGetTextureSurface(pureTexture)
     val texture: Long
         get() {
             if(contentChanged) {
                 nStretchRect(surface, pureSurface)
                 contentChanged = false
+                println("a")
             }
             return pureTexture
         }

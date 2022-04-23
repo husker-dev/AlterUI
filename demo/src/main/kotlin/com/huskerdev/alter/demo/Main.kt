@@ -3,43 +3,41 @@ package com.huskerdev.alter.demo
 import com.huskerdev.alter.AlterUI
 import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.Frame
+import com.huskerdev.alter.Monitor
 import com.huskerdev.alter.geom.*
-import com.huskerdev.alter.graphics.Color
-import com.huskerdev.alter.graphics.Graphics
-import com.huskerdev.alter.graphics.LineCap
-import com.huskerdev.alter.graphics.LineJoin
+import com.huskerdev.alter.graphics.*
 import com.huskerdev.alter.graphics.font.Font
+import com.huskerdev.alter.internal.WindowStyle
+import com.huskerdev.alter.internal.platforms.win.WMonitorPeer
+import com.huskerdev.alter.internal.utils.MainThreadLocker
+import kotlin.concurrent.thread
 
 fun main() = AlterUI.run {
-    val ellipse = Ellipse(100f, 100f, 100f, 100f)
-    val rectangle = Rectangle(250f, 100f, 100f, 100f)
 
-    println(Font.get("arial").family.copyright)
+    //g.fillShape(ellipse)
 
-    ellipse.stroke.join = LineJoin.None
+    val ellipse = Ellipse(10f, 150f, 100f, 100f)
+    val rectangle = Rectangle(150f, 230f, 100f, 100f)
+
+    ellipse.stroke.apply {
+        width = 4f
+        join = LineJoin.Round
+    }
     rectangle.stroke = ellipse.stroke
+
+    val font = Font.get("arial")
+    println(font.family.copyright)
 
     val frame = object: Frame(){
         override fun paint(gr: Graphics) {
             super.paint(gr)
-            gr.color = Color.rgba(0f, 0f, 0f, 0.5f)
 
-            ellipse.stroke.width = mousePosition!!.toVector().length / 20f
 
-            val pos1 = Point(400f, 200f)
-            val pos2 = mousePosition ?: Point(0f, 0f)
-            val pos3 = Point(100f, 300f)
-            val pos4 = Point(200f, 300f)
-            val pos5 = Point(300f, 300f)
+            gr.color = Color.white
 
-            val lineStrip = LineStrip(pos1, pos2, pos3, pos5)
-            lineStrip.stroke.width = 20f
-            lineStrip.stroke.join = LineJoin.Round
-            lineStrip.stroke.cap = LineCap.None
+            gr.drawShape(ellipse)
+            gr.drawShape(rectangle)
 
-            gr.drawShape(lineStrip)
-            //gr.drawShape(ellipse)
-            //gr.drawShape(rectangle)
         }
     }
 
@@ -50,8 +48,10 @@ fun main() = AlterUI.run {
     frame.width = 500f
     frame.height = 500f
     frame.visible = true
+    frame.background = Color.rgba(0.2f, 0.3f, 0.6f, 1f)
 
     frame.onMouseMoved {
         frame.repaint()
     }
+     
 }

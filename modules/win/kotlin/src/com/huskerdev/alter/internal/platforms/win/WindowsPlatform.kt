@@ -1,5 +1,6 @@
 package com.huskerdev.alter.internal.platforms.win
 
+import com.huskerdev.alter.Monitor
 import com.huskerdev.alter.geom.Point
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.c_wideBytes
@@ -31,6 +32,9 @@ class WindowsPlatform: Platform() {
 
     override fun sendEmptyMessage(handle: Long) = WWindowPeer.nSendEmptyMessage(handle)
     override fun getFontData(name: String) = nGetFontData(BufferUtils.createByteBuffer(*name.c_wideBytes))
+
+    override fun getPrimaryMonitor() = WMonitorPeer.primary
+    override fun getMonitors() = WMonitorPeer.list
 
     override val mousePosition: Point
         get() {

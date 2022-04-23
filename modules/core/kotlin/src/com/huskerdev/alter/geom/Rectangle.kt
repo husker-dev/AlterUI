@@ -1,6 +1,6 @@
 package com.huskerdev.alter.geom
 
-class Rectangle(
+data class Rectangle(
     val x: Float,
     val y: Float,
     val width: Float,

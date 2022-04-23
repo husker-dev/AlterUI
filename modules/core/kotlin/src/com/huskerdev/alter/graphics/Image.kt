@@ -57,6 +57,8 @@ abstract class Image(
             return image
         }
 
+        fun fromFile(file: File) = fromFile(file.absolutePath)
+
         fun fromFile(width: Int, height: Int, type: PixelType, bitmap: ByteBuffer): Image {
             if(width <= 0 || height <= 0)
                 throw UnsupportedOperationException("Image size can not be <= 0")
