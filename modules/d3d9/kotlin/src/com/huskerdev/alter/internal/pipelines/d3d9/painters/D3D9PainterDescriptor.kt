@@ -7,7 +7,6 @@ import com.huskerdev.alter.graphics.painters.VertexHelper
 import com.huskerdev.alter.internal.pipelines.d3d9.*
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nBeginScene
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nEndScene
-import com.huskerdev.alter.internal.utils.BufferUtils
 
 
 abstract class D3D9PainterDescriptor {

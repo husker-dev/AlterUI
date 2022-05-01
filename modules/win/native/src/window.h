@@ -162,8 +162,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		}
 		break;
 	}
-	case WM_NCACTIVATE:
-		return 0;
+
 	case WM_NCHITTEST:
 	{
 		POINT point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};

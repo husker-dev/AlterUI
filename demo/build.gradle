@@ -19,7 +19,7 @@ jar {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
     implementation findProject(':modules:core')
     implementation findProject(':modules:win')
@@ -34,8 +34,6 @@ task buildDemo(){
     dependsOn ':buildLibrary'
 
     tasks.findByPath(':demo:jar').mustRunAfter ':buildLibrary'
-
-
 }
 
 jar {

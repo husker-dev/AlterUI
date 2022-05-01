@@ -12,12 +12,23 @@ static std::map<HWND, HDC> dc_list;
 static bool openglInitialiased = false;
 static int gl_major_version;
 static int gl_minor_version;
+static int maxMSAA = -1;
 
 void throwError(const char* text) {
     std::cout << "[ERROR] Internal OpenGL error: " << text << std::endl;
     std::cout << glGetError() << std::endl;
     MessageBoxA(NULL, text, "Internal OpenGL error", MB_OK | MB_ICONERROR);
     exit(1);
+}
+
+int getSupportedMSAA(int samples) {
+    if (samples % 2 == 1)
+        samples--;
+    if (samples > maxMSAA)
+        return maxMSAA;
+    if (samples < 0)
+        return 0;
+    return samples;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -37,7 +48,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-jlong nCreateWindow(jlong shareWith) {
+jlong nCreateWindow(jlong shareWith, jint samples) {
     SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 
     // Apply basic pixel format
@@ -92,6 +103,8 @@ jlong nCreateWindow(jlong shareWith) {
             throwError("Failed to load GLAD functions");
         if (!gladLoadWGL(dc))
             throwError("Failed to load GLAD-WGL functions");
+
+        glGetIntegerv(GL_MAX_SAMPLES, &maxMSAA);
     
         // Getting last OpenGL version
         gl_major_version = glGetString(GL_VERSION)[0] - '0';
@@ -130,8 +143,8 @@ jlong nCreateWindow(jlong shareWith) {
         WGL_DEPTH_BITS_ARB, 16,
         WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
         WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-        //WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
-        //WGL_SAMPLES_ARB, 4,
+        WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
+        WGL_SAMPLES_ARB, getSupportedMSAA(samples),
         0
     };
     if (!wglChoosePixelFormatARB(dc, pixel_attributes, NULL, 1, &pixel_format_arb, &pixel_formats_count))
@@ -150,10 +163,11 @@ jlong nCreateWindow(jlong shareWith) {
     HGLRC rc;
     if (!(rc = wglCreateContextAttribsARB(dc, share_rc, context_attributes)))
         throwError("Failed to create context (WGL)");
-
-    // Disable V-Sync
     wglMakeCurrent(dc, rc);
+
+    // Disable V-Sync and configure context
     wglSwapIntervalEXT(0);
+    loadContextDefaults();
     
     // Save pointers
     rc_list[hwnd] = rc;

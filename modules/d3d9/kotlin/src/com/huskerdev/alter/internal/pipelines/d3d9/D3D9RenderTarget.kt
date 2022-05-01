@@ -7,6 +7,7 @@ import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nGetTe
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nReleaseSurface
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nReleaseTexture
 import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nStretchRect
+import com.huskerdev.alter.internal.pipelines.model.DefaultRenderTarget
 import java.nio.ByteBuffer
 
 class D3D9RenderTarget(
@@ -15,29 +16,32 @@ class D3D9RenderTarget(
     components: Int,
     samples: Int,
     data: ByteBuffer?
-) {
-    var contentChanged = true
+): DefaultRenderTarget<Long>(width, height, components, samples, data) {
 
-    private val pureTexture = nCreateTexture(width, height, components)
-    private val pureSurface = nGetTextureSurface(pureTexture)
-    val texture: Long
-        get() {
-            if(contentChanged) {
-                nStretchRect(surface, pureSurface)
-                contentChanged = false
-                println("a")
-            }
-            return pureTexture
-        }
+    val surface by ::renderSurface
+    val texture by ::renderTexture
 
-    val surface = if(data == null)
+    override fun disposeTexture(texture: Long) =
+        nReleaseTexture(texture)
+    override fun disposeRenderSurface(surface: Long) =
+        nReleaseSurface(surface)
+
+    override fun createTexture(width: Int, height: Int, components: Int) =
+        nCreateTexture(width, height, components)
+    override fun getTextureRenderSurface(texture: Long) =
+        nGetTextureSurface(texture)
+
+    override fun createMSAARenderSurface(
+        width: Int,
+        height: Int,
+        components: Int,
+        samples: Int,
+        data: ByteBuffer?
+    ) = if(data == null)
         nCreateEmptySurface(width, height, components, samples)
     else
         nCreateSurface(width, height, components, samples, data)
 
-    fun dispose(){
-        nReleaseSurface(surface)
-        nReleaseSurface(pureSurface)
-        nReleaseTexture(pureTexture)
-    }
+    override fun resolveMSAA(sourceSurface: Long, targetSurface: Long) =
+        nStretchRect(sourceSurface, targetSurface)
 }

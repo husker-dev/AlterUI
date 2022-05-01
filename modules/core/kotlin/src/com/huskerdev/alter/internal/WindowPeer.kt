@@ -7,6 +7,7 @@ import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
+import com.huskerdev.alter.internal.utils.kotlin.unique
 import kotlin.properties.Delegates
 
 enum class WindowStatus {
@@ -110,40 +111,25 @@ abstract class WindowPeer(val handle: Long) {
             invokeOnMainIfRequired { setSizeImpl(physicalX, physicalY, physicalWidth, (value * dpi).toInt()) }
         }
 
-    open var status = WindowStatus.Default
-        set(value) {
-            if(field != value)
-                invokeOnMainIfRequired { setStatusImpl(value) }
-            field = value
-        }
+    open var status by unique(WindowStatus.Default){
+        invokeOnMainIfRequired { setStatusImpl(it) }
+    }
 
-    open var progress = -1f
-        set(value) {
-            if(field != value)
-                invokeOnMainIfRequired { setProgressImpl(value) }
-            field = value
-        }
+    open var progress by unique(-1f){
+        invokeOnMainIfRequired { setProgressImpl(it) }
+    }
 
-    open var style: WindowStyle = WindowStyle.Default
-        set(value) {
-            if(field != value)
-                invokeOnMainIfRequired { setStyleImpl(value) }
-            field = value
-        }
+    open var style by unique<WindowStyle>(WindowStyle.Default){
+        invokeOnMainIfRequired { setStyleImpl(it) }
+    }
 
-    open var color: Color? = null
-        set(value) {
-            if(field != value)
-                invokeOnMainIfRequired { setColorImpl(value) }
-            field = value
-        }
+    open var color by unique<Color?>(null){
+        invokeOnMainIfRequired { setColorImpl(it) }
+    }
 
-    open var textColor: Color? = null
-        set(value) {
-            if(field != value)
-                invokeOnMainIfRequired { setTextColorImpl(value) }
-            field = value
-        }
+    open var textColor by unique<Color?>(null){
+        invokeOnMainIfRequired { setTextColorImpl(it) }
+    }
 
     open val mousePosition: Point?
         get() = Point(getMouseXImpl().toFloat() / dpi, getMouseYImpl().toFloat() / dpi)

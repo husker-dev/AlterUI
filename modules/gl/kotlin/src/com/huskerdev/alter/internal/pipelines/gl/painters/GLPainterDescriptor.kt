@@ -5,7 +5,6 @@ import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.VertexHelper
 import com.huskerdev.alter.internal.pipelines.gl.*
-import com.huskerdev.alter.internal.utils.BufferUtils
 
 abstract class GLPainterDescriptor {
 
@@ -51,15 +50,15 @@ abstract class GLPainterDescriptor {
             varColorChannels = shader[context, "u_ColorChannels"]
         }
         context.shader = shader
-        context.boundFramebuffer = graphics.framebuffer
-        context.setViewport(graphics.physicalWidth, graphics.physicalHeight)
+        context.framebuffer = graphics.framebuffer
+        context.glViewport(graphics.physicalWidth, graphics.physicalHeight)
         updateShaderViewport(graphics)
         shader[context, varColorChannels] = graphics.pixelType.channels.toFloat()
         shader[context, varInverseY] = if(graphics.inverseY) 1f else 0f
     }
 
     fun onEndPaint(){
-        context.finish()
+        context.glFinish()
     }
 
     private fun updateShaderViewport(graphics: Graphics) {
@@ -77,7 +76,7 @@ abstract class GLPainterDescriptor {
         }
     }
 
-    fun clear() = context.clear()
+    fun clear() = context.glClear()
 
     fun fillShape(shape: Shape) {
         shader[context, varRenderType] = 1f
@@ -103,7 +102,7 @@ abstract class GLPainterDescriptor {
         shader[context, varRenderType] = 3f
         shader[context, varTextureColors] = image.pixelType.channels.toFloat()
         shader.set4f(context, varTextureBounds, x, y, width, height)
-        context.bindTexture(0, (image as GLImage).texId)
+        context.glBindTexture(0, (image as GLImage).renderTarget.texture)
         VertexHelper.fillRect(x, y, width, height, context::drawArray)
     }
 
@@ -111,7 +110,7 @@ abstract class GLPainterDescriptor {
         shader[context, varRenderType] = 4f
         shader[context, varTextureColors] = textImage.pixelType.channels.toFloat()
         shader.set4f(context, varTextureBounds, x, y, width, height)
-        context.bindTexture(0, (textImage as GLImage).texId)
+        context.glBindTexture(0, (textImage as GLImage).renderTarget.texture)
         VertexHelper.fillRect(x, y, width, height, context::drawArray)
     }
 

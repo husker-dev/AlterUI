@@ -46,7 +46,7 @@ object GLImagePainter: ImagePainter() {
     override fun updateSize() = descriptor.shader.set4f(descriptor.context, descriptor.boundsVar, x, y, width, height)
     override fun updateImage() {
         descriptor.shader[descriptor.context, descriptor.textureColorsVar] = image!!.pixelType.channels.toFloat()
-        descriptor.context.bindTexture(1, (image as GLImage).texId)
+        descriptor.context.glBindTexture(1, (image as GLImage).renderTarget.texture)
     }
 
     override fun clear() = descriptor.clear()

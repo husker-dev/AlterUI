@@ -5,12 +5,37 @@
 
 #include <glad/glad.h>
 
-jlong nCreateWindow(jlong shareWith);
+jlong nCreateWindow(jlong shareWith, jint samples);
 void nMakeCurrent(jlong handle);
 void nSwapBuffers(jlong handle);
 
 void throwJavaException(JNIEnv* env, const char* exceptionClass, const char* message) {
 	env->ThrowNew(env->FindClass(exceptionClass), message);
+}
+
+void loadContextDefaults() {
+	unsigned int vao, vbo = 0;
+	// VAO
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	// VBO
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	// Attribute
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	// Configuration
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glEnable(GL_MULTISAMPLE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//  Read/Write 
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 }
 
 extern "C" {
@@ -20,62 +45,31 @@ extern "C" {
 	   ================
 	*/
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glClear(JNIEnv*, jobject, jint mask) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglClear(JNIEnv*, jobject, jint mask) {
 		glClear(mask);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glViewport(JNIEnv*, jobject, jint x, jint y, jint width, jint height) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglViewport(JNIEnv*, jobject, jint x, jint y, jint width, jint height) {
 		glViewport(x, y, width, height);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glUseProgram(JNIEnv*, jobject, jint program) {
-		glUseProgram(program);
-	}
-
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glBindTexture(JNIEnv*, jobject, jint target, jint texture) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglBindTexture(JNIEnv*, jobject, jint target, jint texture) {
 		glBindTexture(target, texture);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glBlendFunc(JNIEnv*, jobject, jint sfactor, jint dfactor) {
-		glBlendFunc(sfactor, dfactor);
-	}
-
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glBindFramebuffer(JNIEnv*, jobject, jint n, jint buffer) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglBindFramebuffer(JNIEnv*, jobject, jint n, jint buffer) {
 		glBindFramebuffer(n, buffer);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glFlush(JNIEnv*, jobject) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglFlush(JNIEnv*, jobject) {
 		glFlush();
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glFinish(JNIEnv*, jobject) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglFinish(JNIEnv*, jobject) {
 		glFinish();
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nInitContext(JNIEnv*, jobject) {
-		unsigned int vao, vbo = 0;
-		// VAO
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
-
-		// VBO
-		glGenBuffers(1, &vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		
-		// Attribute
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-		// Configuration
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	}
-
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nDrawArray(JNIEnv* env, jobject, jobject _array, jint count, jint type) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nDrawArray(JNIEnv* env, jobject, jobject _array, jint count, jint type) {
 		jfloat* array = (jfloat*)env->GetDirectBufferAddress(_array);
 
 		if (type > 1)
@@ -85,66 +79,110 @@ extern "C" {
 		glDrawArrays(type, 0, count);
 	}
 
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nCreateEmptyTexture(JNIEnv* env, jobject, jint width, jint height, jint channels) {
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint channels) {
 		int type = GL_RED;
 		if (channels == 3)
 			type = GL_RGB;
 		if (channels == 4)
 			type = GL_RGBA;
 
-		GLuint tex;
-		glGenTextures(1, &tex);
-		glBindTexture(GL_TEXTURE_2D, tex);
+		GLuint texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, 0);
 		glFlush();
-		return tex;
+		return texture;
 	}
 
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint channels, jobject _data) {
-		char* data = (char*)env->GetDirectBufferAddress(_data);
-		
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nCreateEmptyMSAATexture(JNIEnv* env, jobject, jint width, jint height, jint channels, jint samples) {
 		int type = GL_RED;
 		if (channels == 3)
 			type = GL_RGB;
 		if (channels == 4)
 			type = GL_RGBA;
 
-		GLuint tex;
-		glGenTextures(1, &tex);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		GLuint texture;
+		glGenTextures(1, &texture);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, data);
-		glFlush();
-		return tex;
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB, width, height, GL_TRUE);
+		return texture;
 	}
 
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nBindTextureBuffer(JNIEnv* env, jobject, jint texId) {
-		GLuint framebuffer = 0;
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nCreateMSAATexture(JNIEnv* env, jobject, jint width, jint height, jint channels, jint samples, jobject _data) {
+		char* data = (char*)env->GetDirectBufferAddress(_data);
+
+		int type = GL_RED;
+		if (channels == 3)
+			type = GL_RGB;
+		if (channels == 4)
+			type = GL_RGBA;
+
+		// Creating textures
+		GLuint sourceTexture;
+		glGenTextures(1, &sourceTexture);
+		glBindTexture(GL_TEXTURE_2D, sourceTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, data);
+
+		GLuint targetTexture;
+		glGenTextures(1, &targetTexture);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, targetTexture);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, type, width, height, GL_TRUE);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+		// Creating framebuffers
+		GLuint sourceFramebuffer;
+		glGenFramebuffers(1, &sourceFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, sourceFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sourceTexture, 0);
+
+		GLuint targetFramebuffer;
+		glGenFramebuffers(1, &targetFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, targetFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, targetTexture, 0);
+
+		// Blitting
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, sourceFramebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebuffer);
+		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glFlush();
+
+		glDeleteFramebuffers(1, &targetFramebuffer);
+		glDeleteFramebuffers(1, &sourceFramebuffer);
+
+		return targetTexture;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nCreateTextureFramebuffer(JNIEnv* env, jobject, jint texture, jboolean isMSAA) {
+		GLuint framebuffer;
 		glGenFramebuffers(1, &framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		//glBindTexture(GL_TEXTURE_2D, texId);
-		glBindTexture(GL_TEXTURE_2D, 0);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texId, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, isMSAA ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, texture, 0);
 		return framebuffer;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetLinearFiltering(JNIEnv* env, jobject, jint tex, jboolean linearFiltering) {
-		glBindTexture(GL_TEXTURE_2D, tex);
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglBlitFramebuffer(JNIEnv* env, jobject, jint source, jint target, jint width, jint height) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, source);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target);
+
+		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glFlush();
+	}
+
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nSetLinearFiltering(JNIEnv* env, jobject, jint texture, jboolean linearFiltering) {
+		glBindTexture(GL_TEXTURE_2D, texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
 		glFlush();
 	}
 
-	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nReadPixels(JNIEnv* env, jobject, jint framebuffer, jint channels, jint x, jint y, jint width, jint height) {
+	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nReadPixels(JNIEnv* env, jobject, jint framebuffer, jint channels, jint x, jint y, jint width, jint height) {
 		char* pixels = new char[width * height * channels];
 		int type = GL_RED;
 		if (channels == 3)
@@ -159,11 +197,11 @@ extern "C" {
 		return env->NewDirectByteBuffer(pixels, width * height * channels);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nReleaseTexture(JNIEnv* env, jobject, jint tex) {
-		glDeleteTextures(1, (GLuint*)&tex);
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglDeleteTextures(JNIEnv* env, jobject, jint texture) {
+		glDeleteTextures(1, (GLuint*)&texture);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nReleaseFrameBuffer(JNIEnv* env, jobject, jint buf) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglDeleteFrameBuffer(JNIEnv* env, jobject, jint buf) {
 		glDeleteFramebuffers(1, (GLuint*)&buf);
 	}
 
@@ -171,7 +209,7 @@ extern "C" {
 		 GL-Shader
 	   ================
 	*/
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nCreateShaderProgram(JNIEnv* env, jobject, jobject _vertex, jobject _fragment) {
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nCreateShaderProgram(JNIEnv* env, jobject, jobject _vertex, jobject _fragment) {
 		char* vertexSource = (char*)env->GetDirectBufferAddress(_vertex);
 		char* fragmentSource = (char*)env->GetDirectBufferAddress(_fragment);
 
@@ -231,39 +269,37 @@ extern "C" {
 		return program;
 	}
 
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glGetUniformLocation(JNIEnv* env, jobject, jint program, jobject _name) {
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglGetUniformLocation(JNIEnv* env, jobject, jint program, jobject _name) {
 		char* name = (char*)env->GetDirectBufferAddress(_name);
 		return glGetUniformLocation(program, name);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderVariable4f(JNIEnv* env, jobject, jint program, jint location, jfloat var1, jfloat var2, jfloat var3, jfloat var4) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglUniform4f(JNIEnv* env, jobject, jint program, jint location, jfloat var1, jfloat var2, jfloat var3, jfloat var4) {
 		glUniform4f(location, var1, var2,var3, var4);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderVariable3f(JNIEnv* env, jobject, jint program, jint location, jfloat var1, jfloat var2, jfloat var3) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglUniform3f(JNIEnv* env, jobject, jint program, jint location, jfloat var1, jfloat var2, jfloat var3) {
 		glUniform3f(location, var1, var2, var3);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderVariable1f(JNIEnv* env, jobject, jint program, jint location, jfloat var1) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglUniform1f(JNIEnv* env, jobject, jint program, jint location, jfloat var1) {
 		glUniform1f(location, var1);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nSetShaderMatrixVariable(JNIEnv* env, jobject, jint program, jint location, jobject _matrix) {
-		float* matrix = (float*)env->GetDirectBufferAddress(_matrix);
-
-		glUniformMatrix4fv(location, 1, GL_TRUE, &matrix[0]);
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglUniform1i(JNIEnv* env, jobject, jint location, jint v0) {
+		glUniform1i(location, v0);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_glUniform1i(JNIEnv* env, jobject, jint location, jint v0) {
-		glUniform1i(location, v0);
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglUseProgram(JNIEnv*, jobject, jint program) {
+		glUseProgram(program);
 	}
 
 	/* ================
 		 Platform
 	   ================
 	*/
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nCreateWindow(JNIEnv*, jobject, jlong shareWith) {
-		return nCreateWindow(shareWith);
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nCreateWindow(JNIEnv*, jobject, jlong shareWith, jint samples) {
+		return nCreateWindow(shareWith, samples);
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLPipeline_nMakeCurrent(JNIEnv*, jobject, jlong handle) {
