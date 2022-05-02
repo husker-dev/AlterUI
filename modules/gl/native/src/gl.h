@@ -5,12 +5,24 @@
 
 #include <glad/glad.h>
 
+static int maxMSAA = -1;
+
 jlong nCreateWindow(jlong shareWith, jint samples);
 void nMakeCurrent(jlong handle);
 void nSwapBuffers(jlong handle);
 
 void throwJavaException(JNIEnv* env, const char* exceptionClass, const char* message) {
 	env->ThrowNew(env->FindClass(exceptionClass), message);
+}
+
+int getSupportedMSAA(int samples) {
+	if (samples % 2 == 1)
+		samples--;
+	if (samples > maxMSAA)
+		return maxMSAA;
+	if (samples <= 0)
+		return 1;
+	return samples;
 }
 
 void loadContextDefaults() {
@@ -110,7 +122,9 @@ extern "C" {
 		glGenTextures(1, &texture);
 
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB, width, height, GL_TRUE);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, getSupportedMSAA(samples), GL_RGB, width, height, GL_TRUE);
+
+		glFlush();
 		return texture;
 	}
 
@@ -132,7 +146,7 @@ extern "C" {
 		GLuint targetTexture;
 		glGenTextures(1, &targetTexture);
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, targetTexture);
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, type, width, height, GL_TRUE);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, getSupportedMSAA(samples), type, width, height, GL_TRUE);
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 		// Creating framebuffers
@@ -150,10 +164,11 @@ extern "C" {
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, sourceFramebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebuffer);
 		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		glFlush();
-
+		
 		glDeleteFramebuffers(1, &targetFramebuffer);
 		glDeleteFramebuffers(1, &sourceFramebuffer);
+
+		glFlush();
 
 		return targetTexture;
 	}
@@ -164,6 +179,8 @@ extern "C" {
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, isMSAA ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, texture, 0);
+
+		glFlush();
 		return framebuffer;
 	}
 
@@ -172,6 +189,7 @@ extern "C" {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target);
 
 		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
 		glFlush();
 	}
 

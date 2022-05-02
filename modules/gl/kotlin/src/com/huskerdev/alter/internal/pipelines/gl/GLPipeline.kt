@@ -22,12 +22,9 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         lateinit var resourceContext: GLResourceContext
         val contexts = hashMapOf<WindowPeer, GLContext>()
 
-        // Platform-specific
         @JvmStatic external fun nCreateWindow(shareWith: Long, msaa: Int): Long
         @JvmStatic external fun nMakeCurrent(handle: Long)
         @JvmStatic external fun nSwapBuffers(handle: Long)
-
-
     }
 
     override fun load() {
@@ -63,7 +60,6 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         dpi: Float
     ) = GLImage(type, physicalWidth, physicalHeight, logicWidth, logicHeight, dpi, null, resourceContext)
 
-
     override fun isMainThreadRequired() = true
 
     override fun createWindow(): WindowPeer {
@@ -79,5 +75,4 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         windows.add(newWindow)
         return newWindow
     }
-
 }

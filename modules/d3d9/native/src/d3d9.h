@@ -391,7 +391,7 @@ extern "C" {
 				int posSource = (y * width + x) * components;
 				int posTarget = y * lockedRect.Pitch + x * destComponents;
 
-				if (destComponents == 4) {
+				if (destComponents > 1) {
 					pData[posTarget] = data[posSource + 2];
 					pData[posTarget + 1] = data[posSource + 1];
 					pData[posTarget + 2] = data[posSource];

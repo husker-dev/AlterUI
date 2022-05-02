@@ -12,23 +12,13 @@ static std::map<HWND, HDC> dc_list;
 static bool openglInitialiased = false;
 static int gl_major_version;
 static int gl_minor_version;
-static int maxMSAA = -1;
+
 
 void throwError(const char* text) {
     std::cout << "[ERROR] Internal OpenGL error: " << text << std::endl;
     std::cout << glGetError() << std::endl;
     MessageBoxA(NULL, text, "Internal OpenGL error", MB_OK | MB_ICONERROR);
     exit(1);
-}
-
-int getSupportedMSAA(int samples) {
-    if (samples % 2 == 1)
-        samples--;
-    if (samples > maxMSAA)
-        return maxMSAA;
-    if (samples < 0)
-        return 0;
-    return samples;
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

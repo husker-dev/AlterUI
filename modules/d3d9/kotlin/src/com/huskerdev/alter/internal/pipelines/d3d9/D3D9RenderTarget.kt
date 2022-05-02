@@ -21,6 +21,10 @@ class D3D9RenderTarget(
     val surface by ::renderSurface
     val texture by ::renderTexture
 
+    init {
+        loadTarget()
+    }
+
     override fun disposeTexture(texture: Long) =
         nReleaseTexture(texture)
     override fun disposeRenderSurface(surface: Long) =

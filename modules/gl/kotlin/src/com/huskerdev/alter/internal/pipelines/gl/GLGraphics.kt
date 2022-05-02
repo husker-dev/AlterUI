@@ -15,6 +15,48 @@ abstract class GLGraphics(
     val inverseY: Boolean
 ): Graphics() {
 
+    override fun clear() {
+        synchronized(GLPipeline.contexts){
+            super.clear()
+        }
+    }
+
+    override fun fillRect(x: Float, y: Float, width: Float, height: Float) {
+        synchronized(GLPipeline.contexts) {
+            super.fillRect(x, y, width, height)
+        }
+    }
+
+    override fun drawRect(x: Float, y: Float, width: Float, height: Float) {
+        synchronized(GLPipeline.contexts) {
+            super.drawRect(x, y, width, height)
+        }
+    }
+
+    override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
+        synchronized(GLPipeline.contexts) {
+            super.drawImage(image, x, y, width, height)
+        }
+    }
+
+    override fun drawText(text: String, x: Float, y: Float) {
+        synchronized(GLPipeline.contexts) {
+            super.drawText(text, x, y)
+        }
+    }
+
+    override fun fillShape(shape: Shape) {
+        synchronized(GLPipeline.contexts) {
+            super.fillShape(shape)
+        }
+    }
+
+    override fun drawShape(shape: Shape) {
+        synchronized(GLPipeline.contexts) {
+            super.drawShape(shape)
+        }
+    }
+
     override fun getColorPainter() = GLColorPainter
     override fun getImagePainter() = GLImagePainter
 }
@@ -88,7 +130,7 @@ class SurfaceImageGLGraphics(val image: GLImage): GLGraphics(image.renderTarget.
 
  */
 
-class WindowGLGraphics(val window: WindowPeer, context: GLContext): GLGraphics(0, context, false) {
+class WindowGLGraphics(private val window: WindowPeer, context: GLContext): GLGraphics(0, context, false) {
     override val width: Float
         get() = window.width
     override val height: Float

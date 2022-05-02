@@ -5,16 +5,16 @@ import java.nio.ByteBuffer
 abstract class DefaultRenderTarget <T: Number>(
     val width: Int,
     val height: Int,
-    components: Int,
-    samples: Int,
-    data: ByteBuffer?
+    val components: Int,
+    val samples: Int,
+    val data: ByteBuffer?
 ) {
     var contentChanged = true
 
-    private val simpleTexture by lazy { createTexture(width, height, components) }
-    private val simpleTextureSurface by lazy { getTextureRenderSurface(simpleTexture) }
+    private lateinit var simpleTexture: T
+    private lateinit var simpleTextureSurface: T
 
-    protected val renderSurface by lazy { createMSAARenderSurface(width, height, components, samples, data) }
+    protected lateinit var renderSurface: T
     protected val renderTexture: T
         get() {
             if(contentChanged) {
@@ -23,6 +23,13 @@ abstract class DefaultRenderTarget <T: Number>(
             }
             return simpleTexture
         }
+
+    fun loadTarget(){
+        renderSurface = createMSAARenderSurface(width, height, components, samples, data)
+
+        simpleTexture = createTexture(width, height, components)
+        simpleTextureSurface = getTextureRenderSurface(simpleTexture)
+    }
 
     open fun dispose() {
         disposeTexture(simpleTexture)

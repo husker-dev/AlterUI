@@ -22,12 +22,7 @@ fun main() = AlterUI.run {
     }
     rectangle.stroke = ellipse.stroke
 
-
-    val image = Image.fromFile("C:\\Users\\redfa\\Desktop\\15104f78cb83e3cefaf63ecc718a2a43.jpg")
-    image.graphics.apply {
-        color = Color.red
-        fillRect(0f, 0f, 100f, 100f)
-    }
+    var image: Image? = null
 
     val frame = object: Frame(){
         override fun paint(gr: Graphics) {
@@ -37,8 +32,16 @@ fun main() = AlterUI.run {
             gr.drawShape(ellipse)
             gr.drawShape(rectangle)
 
-            gr.drawImage(image, 10f, 10f, 100f, 100f)
+            if(image != null)
+                gr.drawImage(image!!, 10f, 10f, 100f, 100f)
         }
+    }
+
+    thread {
+        Thread.sleep(1000)
+        image = Image.fromFile("C:\\Users\\redfa\\Desktop\\958580.jpg")
+
+        frame.repaint()
     }
 
     frame.title = "${AlterUIProperties.pipeline.uppercase()} Window"
@@ -48,8 +51,6 @@ fun main() = AlterUI.run {
     frame.height = 500f
     frame.visible = true
     frame.background = Color.rgba(0.2f, 0.3f, 0.6f, 1f)
-    frame.titleColor = Color.red
-    frame.textColor = Color.blue
 
     frame.onMouseMoved {
         frame.repaint()

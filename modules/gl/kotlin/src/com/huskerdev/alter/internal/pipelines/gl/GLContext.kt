@@ -48,13 +48,18 @@ open class GLContext {
     private var viewportHeight = 0
     private val boundTextures = IntArray(5)
 
-    open var framebuffer by unique(0) {
-        nglBindFramebuffer(GL_FRAMEBUFFER, it)
-    }
+    open var framebuffer = 0
+        set(value) {
+            field = value
+            nglBindFramebuffer(GL_FRAMEBUFFER, value)
+        }
 
-    open var shader by unique<GLShader?>(null){
-        nglUseProgram(it!!.program)
-    }
+    open var shader: GLShader? = null
+        set(value) {
+            field = value
+            if(value != null)
+                nglUseProgram(value.program)
+        }
 
     // ----------
     // Basics

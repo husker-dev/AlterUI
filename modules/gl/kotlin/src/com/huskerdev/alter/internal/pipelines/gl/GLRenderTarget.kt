@@ -16,6 +16,10 @@ class GLRenderTarget(
     val framebuffer by ::renderSurface
     val texture by ::renderTexture
 
+    init {
+        loadTarget()
+    }
+
     override fun disposeTexture(texture: Int) =
         context.glDeleteTexture(texture)
 
