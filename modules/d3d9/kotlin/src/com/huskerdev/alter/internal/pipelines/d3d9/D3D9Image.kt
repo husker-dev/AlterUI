@@ -2,6 +2,7 @@ package com.huskerdev.alter.internal.pipelines.d3d9
 
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
+import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.device
 import java.nio.ByteBuffer
 
 class D3D9Image(
@@ -18,14 +19,15 @@ class D3D9Image(
     val renderTarget = D3D9RenderTarget(physicalWidth, physicalHeight, type.channels, samples, data)
 
     override val data: ByteBuffer
-        get() = TODO("Not yet implemented")
+    get() {
+        renderTarget.resolveContent()
+        return device.getSurfaceData(renderTarget.simpleTextureSurface, physicalWidth, physicalHeight, pixelType.channels)
+    }
 
     override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int): Image {
         TODO("Not yet implemented")
     }
 
-    override fun disposeImpl() {
-        renderTarget.dispose()
-    }
+    override fun disposeImpl() = renderTarget.dispose()
 
 }

@@ -192,23 +192,23 @@ extern "C" {
 			NULL);
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nGetWindowSurface(JNIEnv*, jobject, jlong hwnd) {
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nGetWindowSurface(JNIEnv*, jobject, jlong hwnd) {
 		return (jlong)surfaces[(HWND)hwnd];
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nGetTextureSurface(JNIEnv*, jobject, jlong _texture) {
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nGetTextureSurface(JNIEnv*, jobject, jlong _texture) {
 		IDirect3DTexture9* texture = (IDirect3DTexture9*)_texture;
 		IDirect3DSurface9* surface;
 		texture->GetSurfaceLevel(0, &surface);
 		return (jlong)surface;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nReleaseTexture(JNIEnv*, jobject, jlong _texture) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nReleaseTexture(JNIEnv*, jobject, jlong _texture) {
 		IDirect3DTexture9* texture = (IDirect3DTexture9*)_texture;
 		texture->Release();
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nReleaseSurface(JNIEnv*, jobject, jlong _surface) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nReleaseSurface(JNIEnv*, jobject, jlong _surface) {
 		IDirect3DSurface9* surface = (IDirect3DSurface9*)_surface;
 		surface->Release();
 	}
@@ -217,27 +217,27 @@ extern "C" {
 		Default
 	   ===============
 	*/
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetRenderTarget(JNIEnv*, jobject, jlong surface) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetRenderTarget(JNIEnv*, jobject, jlong surface) {
 		device->SetRenderTarget(0, (IDirect3DSurface9*)surface);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nBeginScene(JNIEnv*, jobject) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nBeginScene(JNIEnv*, jobject) {
 		device->BeginScene();
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nEndScene(JNIEnv*, jobject) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nEndScene(JNIEnv*, jobject) {
 		device->EndScene();
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nPresent(JNIEnv*, jobject, jlong hwnd) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nPresent(JNIEnv*, jobject, jlong hwnd) {
 		swapChains[(HWND)hwnd]->Present(NULL, NULL, NULL, NULL, NULL);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nClear(JNIEnv*, jobject) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nClear(JNIEnv*, jobject) {
 		device->Clear(0, NULL, D3DCLEAR_TARGET, 0, 1.0f, 0);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetTexture(JNIEnv*, jobject, jint index, jlong texture) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetTexture(JNIEnv*, jobject, jint index, jlong texture) {
 		device->SetTexture(index, (IDirect3DTexture9*)texture);
 	}
 
@@ -246,7 +246,7 @@ extern "C" {
 	   ===============
 	*/
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nDrawArrays(JNIEnv* env, jobject, jobject _array, jint count, jint type) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nDrawArrays(JNIEnv* env, jobject, jobject _array, jint count, jint type) {
 		jfloat* array = (jfloat*)env->GetDirectBufferAddress(_array);
 		
 		LPDIRECT3DVERTEXBUFFER9 v_buffer;
@@ -279,7 +279,7 @@ extern "C" {
 			v_buffer->Release();
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreatePixelShader(JNIEnv* env, jobject, jobject _content, jint length) {
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nCreatePixelShader(JNIEnv* env, jobject, jobject _content, jint length) {
 		char* content = (char*)env->GetDirectBufferAddress(_content);
 		
 		ID3DXBuffer* buffer;
@@ -298,7 +298,7 @@ extern "C" {
 		return (jlong)shader;
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateVertexShader(JNIEnv* env, jobject, jobject _content, jint length) {
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nCreateVertexShader(JNIEnv* env, jobject, jobject _content, jint length) {
 		char* content = (char*)env->GetDirectBufferAddress(_content);
 
 		ID3DXBuffer* buffer;
@@ -316,43 +316,43 @@ extern "C" {
 		return (jlong)shader;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetPixelShader(JNIEnv* env, jobject, jlong _shader) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetPixelShader(JNIEnv* env, jobject, jlong _shader) {
 		IDirect3DPixelShader9* shader = (IDirect3DPixelShader9*)_shader;
 		device->SetPixelShader(shader);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetVertexShader(JNIEnv* env, jobject, jlong _shader) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetVertexShader(JNIEnv* env, jobject, jlong _shader) {
 		IDirect3DVertexShader9* shader = (IDirect3DVertexShader9*)_shader;
 		device->SetVertexShader(shader);
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nGetShaderVariableHandle(JNIEnv* env, jobject, jlong _shader, jobject _name) {
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nGetShaderVariableHandle(JNIEnv* env, jobject, jlong _shader, jobject _name) {
 		char* name = (char*)env->GetDirectBufferAddress(_name);
 		ID3DXConstantTable* table = constantTables[_shader];
 
 		return (jlong)table->GetConstantByName(0, name);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetShaderValue1f(JNIEnv* env, jobject, jlong _shader, jlong varHandle, jfloat v) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetShaderValue1f(JNIEnv* env, jobject, jlong _shader, jlong varHandle, jfloat v) {
 		ID3DXConstantTable* table = constantTables[_shader];
 		table->SetFloat(device, (D3DXHANDLE)varHandle, v);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetShaderValue3f(JNIEnv* env, jobject, jlong _shader, jlong varHandle, jfloat v1, jfloat v2, jfloat v3) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetShaderValue3f(JNIEnv* env, jobject, jlong _shader, jlong varHandle, jfloat v1, jfloat v2, jfloat v3) {
 		ID3DXConstantTable* table = constantTables[_shader];
 
 		const float a[3]{ v1, v2, v3 };
 		table->SetFloatArray(device, (D3DXHANDLE)varHandle, a, 3);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetShaderValue4f(JNIEnv* env, jobject, jlong _shader, jlong varHandle, jfloat v1, jfloat v2, jfloat v3, jfloat v4) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetShaderValue4f(JNIEnv* env, jobject, jlong _shader, jlong varHandle, jfloat v1, jfloat v2, jfloat v3, jfloat v4) {
 		ID3DXConstantTable* table = constantTables[_shader];
 
 		const float a[4]{ v1, v2, v3, v4 };
 		table->SetFloatArray(device, (D3DXHANDLE)varHandle, a, 4);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetShaderMatrix(JNIEnv* env, jobject, jlong _shader, jlong varHandle, jobject _matrix) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetShaderMatrix(JNIEnv* env, jobject, jlong _shader, jlong varHandle, jobject _matrix) {
 		jfloat* matrix = (jfloat*)env->GetDirectBufferAddress(_matrix);
 		ID3DXConstantTable* table = constantTables[_shader];
 
@@ -360,7 +360,7 @@ extern "C" {
 		table->SetMatrix(device, (D3DXHANDLE)varHandle, &m);
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateEmptySurface(JNIEnv* env, jobject, jint width, jint height, jint components, jint samples) {
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nCreateEmptySurface(JNIEnv* env, jobject, jint width, jint height, jint components, jint samples) {
 		IDirect3DSurface9* surface;
 
 		HRESULT h;
@@ -370,7 +370,7 @@ extern "C" {
 		return (jlong)surface;
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateSurface(JNIEnv* env, jobject, jint width, jint height, jint components, jint samples, jobject _data) {
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nCreateSurface(JNIEnv* env, jobject, jint width, jint height, jint components, jint samples, jobject _data) {
 		char* data = (char*)env->GetDirectBufferAddress(_data);
 		IDirect3DSurface9* targetSurface;
 		IDirect3DSurface9* sourceSurface;
@@ -410,7 +410,7 @@ extern "C" {
 		return (jlong)targetSurface;
 	}
 
-	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint components) {
+	JNIEXPORT jlong JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nCreateTexture(JNIEnv* env, jobject, jint width, jint height, jint components) {
 		IDirect3DTexture9* targetTexture;
 
 		HRESULT h;
@@ -420,17 +420,56 @@ extern "C" {
 		return (jlong)targetTexture;
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nStretchRect(JNIEnv* env, jobject, jlong _surfaceSource, jlong _surfaceTarget) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nStretchRect(JNIEnv* env, jobject, jlong _surfaceSource, jlong _surfaceTarget) {
 		IDirect3DSurface9* sourceSurface = (IDirect3DSurface9*)_surfaceSource;
 		IDirect3DSurface9* targetSurface = (IDirect3DSurface9*)_surfaceTarget;
 
 		device->StretchRect(sourceSurface, 0, targetSurface, 0, D3DTEXF_POINT);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Pipeline_nSetLinearFiltering(JNIEnv*, jobject, jboolean linearFiltering) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nSetLinearFiltering(JNIEnv*, jobject, jboolean linearFiltering) {
 		device->SetSamplerState(0, D3DSAMP_MINFILTER, linearFiltering ? D3DTEXF_LINEAR : D3DTEXF_POINT);
 		device->SetSamplerState(0, D3DSAMP_MAGFILTER, linearFiltering ? D3DTEXF_LINEAR : D3DTEXF_POINT);
 		device->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+	}
+
+	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nGetSurfaceData(JNIEnv* env, jobject, jlong _surface, jint width, jint height, jint components) {
+		IDirect3DSurface9* surface = (IDirect3DSurface9*)_surface;
+
+		D3DSURFACE_DESC sd;
+		surface->GetDesc(&sd);
+
+		IDirect3DSurface9* memorySurface;
+		device->CreateOffscreenPlainSurface(sd.Width, sd.Height, GetFormat(components), D3DPOOL_SYSTEMMEM, &memorySurface, NULL);
+		device->GetRenderTargetData(surface, memorySurface);
+		
+		// Locking rect
+		D3DLOCKED_RECT lockedRect;
+		memorySurface->LockRect(&lockedRect, NULL, D3DLOCK_READONLY);
+		char* pData = (char*)lockedRect.pBits;
+		char* data = new char[width * height * components];
+		int sourceComponents = components == 1 ? 1 : 4;
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int posSource = y * lockedRect.Pitch + x * sourceComponents;
+				int posTarget = (y * width + x) * components;
+
+				if (components > 1) {
+					data[posTarget] = pData[posSource + 2];
+					data[posTarget + 1] = pData[posSource + 1];
+					data[posTarget + 2] = pData[posSource];
+					data[posTarget + 3] = components == 3 ? 255 : pData[posSource + 3];
+				}
+				else
+					data[posTarget] = pData[posSource];
+			}
+		}
+
+		memorySurface->UnlockRect();
+		memorySurface->Release();
+
+		return env->NewDirectByteBuffer(data, width * height * components);
 	}
 
 }

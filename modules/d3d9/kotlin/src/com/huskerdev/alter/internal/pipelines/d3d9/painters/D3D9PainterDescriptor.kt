@@ -5,8 +5,6 @@ import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.VertexHelper
 import com.huskerdev.alter.internal.pipelines.d3d9.*
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nBeginScene
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nEndScene
 
 
 abstract class D3D9PainterDescriptor {
@@ -21,6 +19,7 @@ abstract class D3D9PainterDescriptor {
     private var varTextureColors = 0L
     private var varColorChannels = 0L
 
+    private var forceViewportUpdate = false
     private var lastViewportWidth = 0f
     private var lastViewportHeight = 0f
     private var lastDpi = 0f
@@ -49,30 +48,35 @@ abstract class D3D9PainterDescriptor {
             varTextureBounds = pixelShader.getVariableHandler("u_TextureBounds")
             varTextureColors = pixelShader.getVariableHandler("u_TextureColors")
         }
-        device.vertexShader = vertexShader
-        device.pixelShader = pixelShader
-        device.surface = graphics.surface
+        if(device.vertexShader != vertexShader || device.pixelShader != pixelShader){
+            device.vertexShader = vertexShader
+            device.pixelShader = pixelShader
+            forceViewportUpdate = true
+        }
         updateShaderViewport(graphics)
-        nBeginScene()
+
+        device.surface = graphics.surface
+        device.beginScene()
     }
 
     fun onEndPaint(){
-        nEndScene()
+        device.endScene()
     }
 
     private fun updateShaderViewport(graphics: Graphics) {
-        if(lastViewportWidth != graphics.width) {
+        if(lastViewportWidth != graphics.width || forceViewportUpdate) {
             lastViewportWidth = graphics.width
             vertexShader[varViewportWidth] = graphics.width
         }
-        if(lastViewportHeight != graphics.height) {
+        if(lastViewportHeight != graphics.height || forceViewportUpdate) {
             lastViewportHeight = graphics.height
             vertexShader[varViewportHeight] = graphics.height
         }
-        if(lastDpi != graphics.dpi) {
+        if(lastDpi != graphics.dpi || forceViewportUpdate) {
             lastDpi = graphics.dpi
             pixelShader[varDpi] = graphics.dpi
         }
+        forceViewportUpdate = false
     }
 
     fun clear() = D3D9Pipeline.device.clear()
@@ -100,7 +104,7 @@ abstract class D3D9PainterDescriptor {
     fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
         pixelShader[varRenderType] = 3f
         pixelShader[varTextureColors] = image.pixelType.channels.toFloat()
-        pixelShader.set4f(varTextureBounds, x, y, width, height)
+        pixelShader.set(varTextureBounds, x, y, width, height)
         device.bindTexture(0, (image as D3D9Image).renderTarget.texture)
         device.linearFiltering = image.linearFiltered
         VertexHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)

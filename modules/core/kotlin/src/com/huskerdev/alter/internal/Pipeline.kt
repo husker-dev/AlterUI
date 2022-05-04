@@ -4,6 +4,7 @@ import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
+import com.huskerdev.alter.graphics.filters.GaussianBlur
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import java.nio.ByteBuffer
@@ -41,6 +42,9 @@ abstract class Pipeline {
         dpi: Float
     ): Image
     abstract fun isMainThreadRequired(): Boolean
+
+    // Image filters
+    abstract fun createGaussianBlurFilter(radius: Int): GaussianBlur
 
     abstract class DefaultEventPoll(private val libName: String): Pipeline() {
 

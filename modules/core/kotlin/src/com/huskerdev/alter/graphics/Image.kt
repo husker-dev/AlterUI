@@ -76,7 +76,8 @@ abstract class Image(
     open val graphics: Graphics by lazy { Pipeline.current.createGraphics(this) }
     abstract val data: ByteBuffer
 
-    private var isDisposed = false
+    var isDisposed = false
+    private set
 
     fun getSubImage(x: Int, y: Int, width: Int, height: Int): Image {
         if(x + width >= this.width || y + height >= this.height)

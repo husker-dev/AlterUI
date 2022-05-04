@@ -3,9 +3,11 @@ package com.huskerdev.alter.internal.pipelines.gl
 import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
+import com.huskerdev.alter.graphics.filters.GaussianBlur
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.WindowPeer
+import com.huskerdev.alter.internal.pipelines.gl.filters.GLGaussianBlur
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import com.huskerdev.alter.internal.utils.Trigger
@@ -61,6 +63,9 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
     ) = GLImage(type, physicalWidth, physicalHeight, logicWidth, logicHeight, dpi, null, resourceContext)
 
     override fun isMainThreadRequired() = true
+
+    // Image filters
+    override fun createGaussianBlurFilter(radius: Int) = GLGaussianBlur(radius)
 
     override fun createWindow(): WindowPeer {
         lateinit var newWindow: WindowPeer

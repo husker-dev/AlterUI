@@ -13,14 +13,14 @@ object D3D9ColorPainter: ColorPainter() {
 
         override fun initShaders() {
             pixelShader = D3D9Shader.pixelFromResources("/com/huskerdev/alter/resources/d3d9/shaders/colorFragment.hlsl").compile()
-            vertexShader = D3D9Shader.vertexFromResources("/com/huskerdev/alter/resources/d3d9/shaders/defaultVertex.hlsl").compile()
+            vertexShader = D3D9Shader.vertexFromResources("/com/huskerdev/alter/resources/d3d9/shaders/orthoVertex.hlsl").compile()
 
             colorBar = pixelShader.getVariableHandler("u_Color")
         }
     }
 
     override fun updateColor() =
-        descriptor.pixelShader.set4f(descriptor.colorBar, color.r, color.g, color.b, color.a)
+        descriptor.pixelShader.set(descriptor.colorBar, color.r, color.g, color.b, color.a)
 
     override fun onBeginPaint(graphics: Graphics) {
         descriptor.onBeginPaint(graphics)

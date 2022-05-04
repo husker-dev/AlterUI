@@ -5,8 +5,7 @@ import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
 import com.huskerdev.alter.internal.WindowPeer
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nGetWindowSurface
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nPresent
+import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.device
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ColorPainter
 import com.huskerdev.alter.internal.pipelines.d3d9.painters.D3D9ImagePainter
 
@@ -118,7 +117,7 @@ class D3D9WindowGraphics(val window: WindowPeer): D3D9Graphics(0){
     override val pixelType = PixelType.RGBA
 
     override val surface: Long
-        get() = nGetWindowSurface(window.handle)
+        get() = device.getWindowSurface(window.handle)
 
-    override fun finish() = nPresent(window.handle)
+    override fun finish() = device.present(window.handle)
 }

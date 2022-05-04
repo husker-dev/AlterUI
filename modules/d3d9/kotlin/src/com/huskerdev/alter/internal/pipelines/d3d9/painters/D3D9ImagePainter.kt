@@ -4,7 +4,7 @@ import com.huskerdev.alter.geom.Shape
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.ImagePainter
-import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.nSetLinearFiltering
+import com.huskerdev.alter.internal.pipelines.d3d9.D3D9Pipeline.Companion.device
 
 object D3D9ImagePainter: ImagePainter() {
 
@@ -14,7 +14,7 @@ object D3D9ImagePainter: ImagePainter() {
     override fun onLoad() {
         super.onLoad()
 
-        //vertex = D3D9Shader.vertexFromResources("/com/huskerdev/alter/resources/d3d9/shaders/defaultVertex.hlsl")
+        //vertex = D3D9Shader.vertexFromResources("/com/huskerdev/alter/resources/d3d9/shaders/orthoVertex.hlsl")
         //pixel = D3D9Shader.pixelFromResources("/com/huskerdev/alter/resources/d3d9/shaders/textureFragment.hlsl")
     }
 
@@ -27,7 +27,7 @@ object D3D9ImagePainter: ImagePainter() {
 
         //vertex.apply()
         //pixel.apply()
-        nSetLinearFiltering(image!!.linearFiltered)
+        device.linearFiltering = image!!.linearFiltered
     }
 
     override fun updateColor() {

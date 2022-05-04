@@ -89,7 +89,7 @@ abstract class Graphics {
     }
 
     open fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
-        if(isValidRect(x, y, width, height)) {
+        if(isValidRect(x, y, width, height) && !image.isDisposed) {
             painter!!.runPaint {
                 drawImage(image, x, y, width, height)
             }

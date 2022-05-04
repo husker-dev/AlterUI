@@ -3,6 +3,7 @@ package com.huskerdev.alter.internal.pipelines.d3d11
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
+import com.huskerdev.alter.graphics.filters.GaussianBlur
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.WindowPeer
@@ -72,5 +73,8 @@ class D3D11Pipeline: Pipeline.DefaultEventPoll("d3d11") {
 
 
     override fun isMainThreadRequired() = true
+    override fun createGaussianBlurFilter(radius: Int): GaussianBlur {
+        TODO("Not yet implemented")
+    }
 
 }
