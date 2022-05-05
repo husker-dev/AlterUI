@@ -14,10 +14,7 @@ class D3D9GaussianBlur(radius: Int): GaussianBlur(radius) {
         private val vertexShader = D3D9Shader.vertexFromResources("/com/huskerdev/alter/resources/d3d9/shaders/defaultVertex.hlsl").compile()
     }
 
-    override fun process(input: Image): Image {
-        if(radius == 0)
-            throw UnsupportedOperationException("Blur radius can not be 0")
-
+    override fun processImpl(input: Image): Image {
         input as D3D9Image
         val newImage = Image.createEmpty(input.width, input.height, input.pixelType) as D3D9Image
 
@@ -49,12 +46,11 @@ class D3D9GaussianBlur(radius: Int): GaussianBlur(radius) {
             VertexHelper.fillRect(-1f, -1f, 2f, 2f, device::drawVertices)
 
             device.endScene()
-
-            newImage.renderTarget.contentChanged = true
-
-            device.releaseTexture(tmpTexture)
-            device.releaseSurface(tmpSurface)
         }
+
+        newImage.renderTarget.contentChanged = true
+        device.releaseTexture(tmpTexture)
+        device.releaseSurface(tmpSurface)
         return newImage
     }
 

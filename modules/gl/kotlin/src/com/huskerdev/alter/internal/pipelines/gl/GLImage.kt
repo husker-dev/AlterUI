@@ -37,6 +37,8 @@ class GLImage(
         fromFile(width, height, pixelType, context.readPixels(this, x, y, width, height))
 
     override fun disposeImpl() {
-        renderTarget.dispose()
+        context.invokeOnResourceThread {
+            renderTarget.dispose()
+        }
     }
 }

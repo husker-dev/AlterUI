@@ -16,7 +16,7 @@ object GLImagePainter: ImagePainter() {
 
         override fun initShader() {
             shader = GLShader.fromResources(
-                "/com/huskerdev/alter/resources/gl/shaders/defaultVertex.glsl",
+                "/com/huskerdev/alter/resources/gl/shaders/orthoVertex.glsl",
                 "/com/huskerdev/alter/resources/gl/shaders/textureFragment.glsl"
             )
             shader.compile(context)
@@ -42,10 +42,10 @@ object GLImagePainter: ImagePainter() {
         super.onEndPaint()
     }
 
-    override fun updateColor() = descriptor.shader.set4f(descriptor.context, descriptor.colorVar, color.r, color.g, color.b, color.a)
-    override fun updateSize() = descriptor.shader.set4f(descriptor.context, descriptor.boundsVar, x, y, width, height)
+    override fun updateColor() = descriptor.shader.set(descriptor.context, descriptor.colorVar, color.r, color.g, color.b, color.a)
+    override fun updateSize() = descriptor.shader.set(descriptor.context, descriptor.boundsVar, x, y, width, height)
     override fun updateImage() {
-        descriptor.shader[descriptor.context, descriptor.textureColorsVar] = image!!.pixelType.channels.toFloat()
+        descriptor.shader.set(descriptor.context, descriptor.textureColorsVar, image!!.pixelType.channels.toFloat())
         descriptor.context.glBindTexture(1, (image as GLImage).renderTarget.texture)
     }
 

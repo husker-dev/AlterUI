@@ -107,7 +107,7 @@ extern "C" {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, type, width, height, 0, type, GL_UNSIGNED_BYTE, 0);
-		glFlush();
+		glFinish();
 		return texture;
 	}
 
@@ -124,7 +124,7 @@ extern "C" {
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, getSupportedMSAA(samples), GL_RGB, width, height, GL_TRUE);
 
-		glFlush();
+		glFinish();
 		return texture;
 	}
 
@@ -168,7 +168,7 @@ extern "C" {
 		glDeleteFramebuffers(1, &targetFramebuffer);
 		glDeleteFramebuffers(1, &sourceFramebuffer);
 
-		glFlush();
+		glFinish();
 
 		return targetTexture;
 	}
@@ -180,7 +180,7 @@ extern "C" {
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, isMSAA ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, texture, 0);
 
-		glFlush();
+		glFinish();
 		return framebuffer;
 	}
 
@@ -190,14 +190,14 @@ extern "C" {
 
 		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-		glFlush();
+		glFinish();
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nSetLinearFiltering(JNIEnv* env, jobject, jint texture, jboolean linearFiltering) {
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linearFiltering ? GL_LINEAR : GL_NEAREST);
-		glFlush();
+		glFinish();
 	}
 
 	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nReadPixels(JNIEnv* env, jobject, jint framebuffer, jint channels, jint x, jint y, jint width, jint height) {
@@ -215,11 +215,11 @@ extern "C" {
 		return env->NewDirectByteBuffer(pixels, width * height * channels);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglDeleteTextures(JNIEnv* env, jobject, jint texture) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglDeleteTexture(JNIEnv* env, jobject, jint texture) {
 		glDeleteTextures(1, (GLuint*)&texture);
 	}
 
-	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglDeleteFrameBuffer(JNIEnv* env, jobject, jint buf) {
+	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglDeleteFramebuffer(JNIEnv* env, jobject, jint buf) {
 		glDeleteFramebuffers(1, (GLuint*)&buf);
 	}
 

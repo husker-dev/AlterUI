@@ -1,7 +1,6 @@
 package com.huskerdev.alter.internal.pipelines.gl.painters
 
 import com.huskerdev.alter.geom.Shape
-import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.ColorPainter
@@ -14,7 +13,7 @@ object GLColorPainter: ColorPainter() {
 
         override fun initShader() {
             shader = GLShader.fromResources(
-                "/com/huskerdev/alter/resources/gl/shaders/defaultVertex.glsl",
+                "/com/huskerdev/alter/resources/gl/shaders/orthoVertex.glsl",
                 "/com/huskerdev/alter/resources/gl/shaders/colorFragment.glsl"
             )
             shader.compile(context)
@@ -33,7 +32,7 @@ object GLColorPainter: ColorPainter() {
     }
 
     override fun updateColor() {
-        descriptor.shader.set4f(descriptor.context, descriptor.colorVar, color.r, color.g, color.b, color.a)
+        descriptor.shader.set(descriptor.context, descriptor.colorVar, color.r, color.g, color.b, color.a)
     }
 
     override fun clear() = descriptor.clear()

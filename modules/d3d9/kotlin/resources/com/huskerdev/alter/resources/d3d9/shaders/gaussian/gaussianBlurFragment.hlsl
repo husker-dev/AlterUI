@@ -19,11 +19,13 @@ float4 main(float2 Pos : SV_POSITION) : COLOR {
         float kernel = getKernel(u_radius, i);
 
         if(u_type == 0){
-            result +=   tex2Dlod(u_Texture, float4((Pos.x - i) / u_size.b, Pos.y / u_size.a, 0, 0)) * kernel +
-                        tex2Dlod(u_Texture, float4((Pos.x + i) / u_size.b, Pos.y / u_size.a, 0, 0)) * kernel;
+            result +=
+                tex2Dlod(u_Texture, float4((Pos.x - i) / u_size.b, Pos.y / u_size.a, 0, 0)) * kernel +
+                tex2Dlod(u_Texture, float4((Pos.x + i) / u_size.b, Pos.y / u_size.a, 0, 0)) * kernel;
         }else {
-            result +=   tex2Dlod(u_Texture, float4(Pos.x / u_size.b, (Pos.y - i) / u_size.a, 0, 0)) * kernel +
-                        tex2Dlod(u_Texture, float4(Pos.x / u_size.b, (Pos.y + i) / u_size.a, 0, 0)) * kernel;
+            result +=
+                tex2Dlod(u_Texture, float4(Pos.x / u_size.b, (Pos.y - i) / u_size.a, 0, 0)) * kernel +
+                tex2Dlod(u_Texture, float4(Pos.x / u_size.b, (Pos.y + i) / u_size.a, 0, 0)) * kernel;
         }
     }
 

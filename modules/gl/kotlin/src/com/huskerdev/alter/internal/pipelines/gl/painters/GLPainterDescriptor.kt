@@ -101,7 +101,7 @@ abstract class GLPainterDescriptor {
     fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
         shader[context, varRenderType] = 3f
         shader[context, varTextureColors] = image.pixelType.channels.toFloat()
-        shader.set4f(context, varTextureBounds, x, y, width, height)
+        shader.set(context, varTextureBounds, x, y, width, height)
         context.glBindTexture(0, (image as GLImage).renderTarget.texture)
         VertexHelper.fillRect(x, y, width, height, context::drawArray)
     }
@@ -109,7 +109,7 @@ abstract class GLPainterDescriptor {
     fun drawText(textImage: Image, x: Float, y: Float, width: Float, height: Float) {
         shader[context, varRenderType] = 4f
         shader[context, varTextureColors] = textImage.pixelType.channels.toFloat()
-        shader.set4f(context, varTextureBounds, x, y, width, height)
+        shader.set(context, varTextureBounds, x, y, width, height)
         context.glBindTexture(0, (textImage as GLImage).renderTarget.texture)
         VertexHelper.fillRect(x, y, width, height, context::drawArray)
     }

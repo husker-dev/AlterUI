@@ -11,7 +11,7 @@ repositories {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.huskerdev.alter.demo.MainKt'
+        attributes 'Main-Class': 'com.huskerdev.alter.demo.DemoMainKt'
     }
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }

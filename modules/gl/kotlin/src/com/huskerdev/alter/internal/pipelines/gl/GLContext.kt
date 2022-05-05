@@ -4,7 +4,6 @@ import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.painters.VertexHelper
 import com.huskerdev.alter.internal.c_str
 import com.huskerdev.alter.internal.utils.BufferUtils
-import com.huskerdev.alter.internal.utils.kotlin.unique
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 

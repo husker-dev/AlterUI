@@ -22,14 +22,15 @@ class GLShader(val vertex: String, val fragment: String) {
     var program = 0
         private set
 
-    fun compile(context: GLContext) {
+    fun compile(context: GLContext): GLShader {
         program = context.createShaderProgram(vertex, fragment)
+        return this
     }
 
-    fun set4f(context: GLContext, location: Int, v1: Float, v2: Float, v3: Float, v4: Float) =
+    fun set(context: GLContext, location: Int, v1: Float, v2: Float, v3: Float, v4: Float) =
         context.glUniform1f(this, location, v1, v2, v3, v4)
 
-    fun set3f(context: GLContext, location: Int, val1: Float, val2: Float, val3: Float) =
+    fun set(context: GLContext, location: Int, val1: Float, val2: Float, val3: Float) =
         context.glUniform1f(this, location, val1, val2, val3)
 
     /*
