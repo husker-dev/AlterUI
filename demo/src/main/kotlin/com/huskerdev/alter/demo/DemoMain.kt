@@ -7,6 +7,10 @@ import com.huskerdev.alter.geom.*
 import com.huskerdev.alter.graphics.*
 import com.huskerdev.alter.graphics.filters.GaussianBlur
 import com.huskerdev.alter.internal.Pipeline
+import com.huskerdev.alter.os.MessageBox
+import com.huskerdev.alter.os.MessageBoxButton
+import com.huskerdev.alter.os.MessageBoxIcon
+import com.huskerdev.alter.os.MessageBoxType
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.concurrent.timerTask
@@ -17,6 +21,8 @@ fun main() = AlterUI.run {
     var blurredImage: Image? = null
     var radius = 2.0
     val maxRadius = 50.0
+
+
 
     val frame = object: Frame(){
         override fun paint(gr: Graphics) {
@@ -44,7 +50,6 @@ fun main() = AlterUI.run {
     frame.visible = true
     frame.background = Color.rgba(0.2f, 0.3f, 0.6f, 1f)
 
-
     thread(isDaemon = true) {
         image = Image.fromURL("https://phonoteka.org/uploads/posts/2021-05/1621983443_4-phonoteka_org-p-gepard-art-krasivo-4.jpg")
         frame.repaint()
@@ -62,5 +67,6 @@ fun main() = AlterUI.run {
             Thread.sleep(10)
         }
     }
+
 }
 

@@ -379,52 +379,6 @@ extern "C" {
 		return point.y;
 	}
 
-	/*
-		WindowsPlatform
-	*/
-	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetFontData(JNIEnv* env, jobject, jobject _name) {
-		char* name = (char*)env->GetDirectBufferAddress(_name);
-
-		LOGFONT logFont = {};
-		HGLOBAL hGlobal = NULL;
-		HDC hDC = NULL;
-		LPVOID ptr = NULL;
-
-		hDC = CreateDC(L"DISPLAY", NULL, NULL, NULL);
-
-		wcscpy_s(logFont.lfFaceName, (LPCWSTR)name);
-		HGDIOBJ hFont = CreateFontIndirect(&logFont);
-		SelectObject(hDC, hFont);
-
-		DWORD fontDataLen = GetFontData(hDC, 0, 0, NULL, 0);
-		if (fontDataLen == GDI_ERROR)
-			return NULL;
-
-		hGlobal = GlobalAlloc(GMEM_MOVEABLE, fontDataLen);
-		ptr = GlobalLock(hGlobal);
-
-		GetFontData(hDC, 0, 0, ptr, fontDataLen);
-		GlobalUnlock(hGlobal);
-
-		return env->NewDirectByteBuffer(ptr, fontDataLen);
-	}
-
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseX(JNIEnv* env, jobject) {
-		POINT point;
-		GetCursorPos(&point);
-		return point.x;
-	}
-
-	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseY(JNIEnv* env, jobject) {
-		POINT point;
-		GetCursorPos(&point);
-		return point.y;
-	}
-
-	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseDpi(JNIEnv* env, jobject) {
-		return 1.0f;
-	}
-
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_platforms_win_WWindowPeer_nRequestRepaint(JNIEnv*, jobject, jlong hwnd) {
 		RedrawWindow((HWND)hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 	}
@@ -579,5 +533,96 @@ extern "C" {
 			}
 		}
 		return 1.0;
+	}
+
+	/*
+		WindowsPlatform
+	*/
+	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetFontData(JNIEnv* env, jobject, jobject _name) {
+		char* name = (char*)env->GetDirectBufferAddress(_name);
+
+		LOGFONT logFont = {};
+		HGLOBAL hGlobal = NULL;
+		HDC hDC = NULL;
+		LPVOID ptr = NULL;
+
+		hDC = CreateDC(L"DISPLAY", NULL, NULL, NULL);
+
+		wcscpy_s(logFont.lfFaceName, (LPCWSTR)name);
+		HGDIOBJ hFont = CreateFontIndirect(&logFont);
+		SelectObject(hDC, hFont);
+
+		DWORD fontDataLen = GetFontData(hDC, 0, 0, NULL, 0);
+		if (fontDataLen == GDI_ERROR)
+			return NULL;
+
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE, fontDataLen);
+		ptr = GlobalLock(hGlobal);
+
+		GetFontData(hDC, 0, 0, ptr, fontDataLen);
+		GlobalUnlock(hGlobal);
+
+		return env->NewDirectByteBuffer(ptr, fontDataLen);
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseX(JNIEnv* env, jobject) {
+		POINT point;
+		GetCursorPos(&point);
+		return point.x;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseY(JNIEnv* env, jobject) {
+		POINT point;
+		GetCursorPos(&point);
+		return point.y;
+	}
+
+	JNIEXPORT jfloat JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nGetMouseDpi(JNIEnv* env, jobject) {
+		return 1.0f;
+	}
+
+	JNIEXPORT jint JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nShowMessage(JNIEnv* env, jobject, jlong hwnd, jobject _title, jobject _content, jint _icon, jint _type) {
+		LPCWSTR title = (LPCWSTR)env->GetDirectBufferAddress(_title);
+		LPCWSTR content = (LPCWSTR)env->GetDirectBufferAddress(_content);
+
+		int icon = 0;
+		int type = 0;
+
+		switch (_icon) {
+		case 0:
+			icon = 0; break;
+		case 1:
+			icon = MB_ICONERROR; break;
+		case 2:
+			icon = MB_ICONWARNING; break;
+		case 3:
+			icon = MB_ICONQUESTION; break;
+		case 4:
+			icon = MB_ICONINFORMATION; break;
+		}
+
+		switch (_type) {
+		case 0:
+			type = MB_ABORTRETRYIGNORE; break;
+		case 1:
+			type = MB_CANCELTRYCONTINUE; break;
+		case 2:
+			type = MB_OK; break;
+		case 3:
+			type = MB_OKCANCEL; break;
+		case 4:
+			type = MB_RETRYCANCEL; break;
+		case 5:
+			type = MB_YESNO; break;
+		case 6:
+			type = MB_YESNOCANCEL; break;
+		}
+
+		return MessageBox(
+			(HWND)hwnd,
+			content,
+			title,
+			icon | type
+		);
 	}
 }

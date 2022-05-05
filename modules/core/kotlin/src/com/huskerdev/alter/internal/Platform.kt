@@ -3,6 +3,8 @@ package com.huskerdev.alter.internal
 import com.huskerdev.alter.Monitor
 import com.huskerdev.alter.OS
 import com.huskerdev.alter.geom.Point
+import com.huskerdev.alter.os.MessageBox
+import com.huskerdev.alter.os.MessageBoxButton
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
@@ -64,4 +66,6 @@ abstract class Platform {
     abstract fun getFontData(name: String): ByteBuffer?
     abstract fun getPrimaryMonitor(): Monitor
     abstract fun getMonitors(): Array<Monitor>
+
+    abstract fun showMessage(context: WindowPeer?, message: MessageBox): MessageBoxButton
 }
