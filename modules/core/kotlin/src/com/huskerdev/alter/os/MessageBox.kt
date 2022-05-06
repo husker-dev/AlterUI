@@ -23,7 +23,6 @@ enum class MessageBoxButton{
     Yes
 }
 
-
 enum class MessageBoxType{
     AbortRetryIgnore,
     CancelTryContinue,
@@ -34,45 +33,39 @@ enum class MessageBoxType{
     YesNoCancel
 }
 
-class MessageBoxButtonsBuilder(private val messageBox: MessageBox){
-
-    fun onAbort(runnable: Runnable) = messageBox.onClick(MessageBoxButton.Abort, runnable)
-    fun onCancel(runnable: Runnable) = messageBox.onClick(MessageBoxButton.Cancel, runnable)
-    fun onContinue(runnable: Runnable) = messageBox.onClick(MessageBoxButton.Continue, runnable)
-    fun onIgnore(runnable: Runnable) = messageBox.onClick(MessageBoxButton.Ignore, runnable)
-    fun onNo(runnable: Runnable) = messageBox.onClick(MessageBoxButton.No, runnable)
-    fun onOk(runnable: Runnable) = messageBox.onClick(MessageBoxButton.OK, runnable)
-    fun onRetry(runnable: Runnable) = messageBox.onClick(MessageBoxButton.Retry, runnable)
-    fun onTryAgain(runnable: Runnable) = messageBox.onClick(MessageBoxButton.TryAgain, runnable)
-    fun onYes(runnable: Runnable) = messageBox.onClick(MessageBoxButton.Yes, runnable)
-}
-
 class MessageBox(
     var title: String,
     var message: String,
     var icon: MessageBoxIcon = MessageBoxIcon.Information,
     var type: MessageBoxType = MessageBoxType.OK
 ) {
+    companion object {
+        fun show(
+             title: String,
+             message: String,
+             icon: MessageBoxIcon = MessageBoxIcon.Information,
+             type: MessageBoxType = MessageBoxType.OK) =
+            MessageBox(title, message, icon, type).show()
+
+        fun show(
+            frame: Frame,
+            title: String,
+            message: String,
+            icon: MessageBoxIcon = MessageBoxIcon.Information,
+            type: MessageBoxType = MessageBoxType.OK) =
+            MessageBox(title, message, icon, type).show(frame)
+    }
 
     val listeners = hashMapOf<MessageBoxButton, Runnable>()
-
-    constructor(
-        title: String,
-        message: String,
-        icon: MessageBoxIcon = MessageBoxIcon.Information,
-        type: MessageBoxType = MessageBoxType.OK,
-        buttonInit: MessageBoxButtonsBuilder.() -> Unit
-    ) : this(title, message, icon, type) {
-        buttonInit(MessageBoxButtonsBuilder(this))
-    }
 
     fun onClick(button: MessageBoxButton, runnable: Runnable){
         listeners[button] = runnable
     }
 
-    fun show(context: Frame? = null){
+    fun show(context: Frame? = null): MessageBoxButton{
         val result = Platform.current.showMessage(context?.peer, this)
         listeners[result]?.run()
+        return result
     }
 
 }

@@ -112,7 +112,7 @@ class ImageGLGraphics(
     }
 
     override fun finish() = resourceContext.invokeOnResourceThread {
-        context.glFlush()
+        context.glFinish()
     }
 }
 

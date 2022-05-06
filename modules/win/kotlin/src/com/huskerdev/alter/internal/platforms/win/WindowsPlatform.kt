@@ -7,6 +7,7 @@ import com.huskerdev.alter.internal.c_wideBytes
 import com.huskerdev.alter.internal.utils.BufferUtils
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.LibraryLoader
+import com.huskerdev.alter.internal.utils.MainThreadLocker
 import com.huskerdev.alter.os.MessageBox
 import com.huskerdev.alter.os.MessageBoxButton
 import java.nio.ByteBuffer
@@ -40,13 +41,16 @@ class WindowsPlatform: Platform() {
     override fun getMonitors() = WMonitorPeer.list
 
     override fun showMessage(context: WindowPeer?, message: MessageBox): MessageBoxButton {
-        val result = nShowMessage(
-            context?.handle ?: 0,
-            BufferUtils.createByteBuffer(*message.title.c_wideBytes),
-            BufferUtils.createByteBuffer(*message.message.c_wideBytes),
-            message.icon.ordinal,
-            message.type.ordinal
-        )
+        var result = 0
+        MainThreadLocker.invoke {
+            result = nShowMessage(
+                context?.handle ?: 0,
+                BufferUtils.createByteBuffer(*message.title.c_wideBytes),
+                BufferUtils.createByteBuffer(*message.message.c_wideBytes),
+                message.icon.ordinal,
+                message.type.ordinal
+            )
+        }
         return when(result){
             1 -> MessageBoxButton.No
             2 -> MessageBoxButton.Cancel

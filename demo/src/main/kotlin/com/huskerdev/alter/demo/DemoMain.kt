@@ -47,8 +47,15 @@ fun main() = AlterUI.run {
     frame.y = 200f
     frame.width = 830f
     frame.height = 500f
-    frame.visible = true
     frame.background = Color.rgba(0.2f, 0.3f, 0.6f, 1f)
+    frame.visible = true
+
+    when(MessageBox.show(frame, "Message title", "Message content", type = MessageBoxType.YesNoCancel)){
+        MessageBoxButton.Yes -> println("yes")
+        MessageBoxButton.No -> println("no")
+        MessageBoxButton.Cancel -> println("cancel")
+        else -> {}
+    }
 
     thread(isDaemon = true) {
         image = Image.fromURL("https://phonoteka.org/uploads/posts/2021-05/1621983443_4-phonoteka_org-p-gepard-art-krasivo-4.jpg")
