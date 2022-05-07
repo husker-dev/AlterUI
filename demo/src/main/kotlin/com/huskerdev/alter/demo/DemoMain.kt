@@ -3,26 +3,20 @@ package com.huskerdev.alter.demo
 import com.huskerdev.alter.AlterUI
 import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.Frame
-import com.huskerdev.alter.geom.*
-import com.huskerdev.alter.graphics.*
+import com.huskerdev.alter.graphics.Color
+import com.huskerdev.alter.graphics.Graphics
+import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.filters.GaussianBlur
-import com.huskerdev.alter.internal.Pipeline
-import com.huskerdev.alter.os.MessageBox
-import com.huskerdev.alter.os.MessageBoxButton
-import com.huskerdev.alter.os.MessageBoxIcon
-import com.huskerdev.alter.os.MessageBoxType
-import java.util.*
+import com.huskerdev.alter.os.*
+import java.io.File
 import kotlin.concurrent.thread
-import kotlin.concurrent.timerTask
-import kotlin.math.*
+import kotlin.math.cos
 
 fun main() = AlterUI.run {
     var image: Image? = null
     var blurredImage: Image? = null
     var radius = 2.0
     val maxRadius = 50.0
-
-
 
     val frame = object: Frame(){
         override fun paint(gr: Graphics) {
@@ -50,15 +44,12 @@ fun main() = AlterUI.run {
     frame.background = Color.rgba(0.2f, 0.3f, 0.6f, 1f)
     frame.visible = true
 
-    when(MessageBox.show(frame, "Message title", "Message content", type = MessageBoxType.YesNoCancel)){
-        MessageBoxButton.Yes -> println("yes")
-        MessageBoxButton.No -> println("no")
-        MessageBoxButton.Cancel -> println("cancel")
-        else -> {}
-    }
-
     thread(isDaemon = true) {
-        image = Image.fromURL("https://phonoteka.org/uploads/posts/2021-05/1621983443_4-phonoteka_org-p-gepard-art-krasivo-4.jpg")
+        val dialog = FileDialog(FileDialogType.Open)
+        dialog.directory = File("C:\\Users\\redfa\\Desktop")
+        dialog.addFilters(FileDialog.ImageFilter, FileDialog.AllFiles)
+
+        image = Image.fromFile(dialog.show()[0])
         frame.repaint()
 
         var anim = 0.0
@@ -74,6 +65,8 @@ fun main() = AlterUI.run {
             Thread.sleep(10)
         }
     }
+
+
 
 }
 

@@ -56,16 +56,5 @@ class MessageBox(
             MessageBox(title, message, icon, type).show(frame)
     }
 
-    val listeners = hashMapOf<MessageBoxButton, Runnable>()
-
-    fun onClick(button: MessageBoxButton, runnable: Runnable){
-        listeners[button] = runnable
-    }
-
-    fun show(context: Frame? = null): MessageBoxButton{
-        val result = Platform.current.showMessage(context?.peer, this)
-        listeners[result]?.run()
-        return result
-    }
-
+    fun show(context: Frame? = null) = Platform.current.showMessage(context?.peer, this)
 }

@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include <shobjidl.h>
+#include <shlobj_core.h>
 
 #include "callbacks.h"
 
@@ -19,6 +20,7 @@
 #if !defined(DWMWA_CAPTION_COLOR)
 #define DWMWA_CAPTION_COLOR DWORD(35)
 #endif
+#include <vector>
 #if !defined(DWMWA_TEXT_COLOR)
 #define DWMWA_TEXT_COLOR DWORD(36)
 #endif
@@ -624,5 +626,103 @@ extern "C" {
 			title,
 			icon | type
 		);
+	}
+
+	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_platforms_win_WindowsPlatform_nShowFileDialog(JNIEnv* env, jobject, 
+		jlong hwnd, 
+		jboolean isSave,
+		jboolean onlyDirectories,
+		jboolean multipleSelect, 
+		jobjectArray _filters,
+		jobject _dir,
+		jobject _title
+	) {
+		wchar_t* dir = (wchar_t*)env->GetDirectBufferAddress(_dir);
+		wchar_t* title = (wchar_t*)env->GetDirectBufferAddress(_title);
+
+		int filtersCount = env->GetArrayLength(_filters) / 2;
+		COMDLG_FILTERSPEC* filters = new COMDLG_FILTERSPEC[filtersCount];
+
+		for (int i = 0; i < env->GetArrayLength(_filters); i += 2) {
+			jbyteArray filterTitle = (jbyteArray)env->GetObjectArrayElement(_filters, i);
+			jbyteArray filterExt = (jbyteArray)env->GetObjectArrayElement(_filters, i + 1);
+
+			filters[i / 2] = {
+				(wchar_t*)env->GetByteArrayElements(filterTitle, 0),
+				(wchar_t*)env->GetByteArrayElements(filterExt, 0)
+			};
+		}
+
+		CoInitialize(NULL);
+
+		std::wstring result;
+		IShellItem* directory;
+		SHCreateItemFromParsingName(dir, nullptr, IID_PPV_ARGS(&directory));
+		auto options = FOS_FORCEFILESYSTEM |
+			(onlyDirectories ? FOS_PICKFOLDERS : 0) |
+			(multipleSelect ? FOS_ALLOWMULTISELECT : 0);
+
+		if (isSave) {
+			IFileSaveDialog* fileDialog = NULL;
+			CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog));
+
+			fileDialog->SetFileTypes(filtersCount, filters);
+			fileDialog->SetTitle(title);
+			fileDialog->SetFolder(directory);
+			fileDialog->SetOptions(options);
+
+			if (SUCCEEDED(fileDialog->Show((HWND)hwnd))) {
+				IShellItem* item;
+				fileDialog->GetResult(&item);
+
+				PWSTR filePath;
+				item->GetDisplayName(SIGDN_FILESYSPATH, &filePath);
+				result = std::wstring(filePath);
+
+				// Release
+				CoTaskMemFree(filePath);
+				item->Release();
+				fileDialog->Release();
+				CoUninitialize();
+			}
+		}
+		else {
+			IFileOpenDialog* fileDialog = NULL;
+			CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&fileDialog));
+
+			fileDialog->SetFileTypes(filtersCount, filters);
+			fileDialog->SetTitle(title);
+			fileDialog->SetFolder(directory);
+			fileDialog->SetOptions(options);
+
+			if (SUCCEEDED(fileDialog->Show((HWND)hwnd))) {
+				IShellItemArray* items;
+				fileDialog->GetResults(&items);
+
+				DWORD count;
+				items->GetCount(&count);
+
+				for (DWORD i = 0; i < count; i++) {
+					IShellItem* item;
+					items->GetItemAt(i, &item);
+
+					PWSTR filePath;
+					item->GetDisplayName(SIGDN_FILESYSPATH, &filePath);
+
+					if (result.length() != 0)
+						result += L";";
+					result += filePath;
+
+					CoTaskMemFree(filePath);
+					item->Release();
+				}
+
+				items->Release();
+				fileDialog->Release();
+			}
+		}
+		CoUninitialize();
+
+		return env->NewDirectByteBuffer((char*)result.c_str(), result.length() * 2);
 	}
 }

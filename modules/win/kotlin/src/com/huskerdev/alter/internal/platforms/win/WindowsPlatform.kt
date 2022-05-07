@@ -1,15 +1,16 @@
 package com.huskerdev.alter.internal.platforms.win
 
 import com.huskerdev.alter.geom.Point
-import com.huskerdev.alter.internal.Platform
-import com.huskerdev.alter.internal.WindowPeer
-import com.huskerdev.alter.internal.c_wideBytes
+import com.huskerdev.alter.internal.*
 import com.huskerdev.alter.internal.utils.BufferUtils
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.LibraryLoader
 import com.huskerdev.alter.internal.utils.MainThreadLocker
+import com.huskerdev.alter.os.FileDialog
+import com.huskerdev.alter.os.FileDialogType
 import com.huskerdev.alter.os.MessageBox
 import com.huskerdev.alter.os.MessageBoxButton
+import java.io.File
 import java.nio.ByteBuffer
 
 @ImplicitUsage
@@ -21,6 +22,14 @@ class WindowsPlatform: Platform() {
         @JvmStatic external fun nGetMouseY(): Int
         @JvmStatic external fun nGetMouseDpi(): Float
         @JvmStatic external fun nShowMessage(hwnd: Long, title: ByteBuffer, content: ByteBuffer, icon: Int, type: Int): Int
+        @JvmStatic external fun nShowFileDialog(
+            hwnd: Long,
+            isSave: Boolean,
+            onlyDirectories: Boolean,
+            multipleSelect: Boolean,
+            filter: Array<ByteArray>,
+            dir: ByteBuffer,
+            title: ByteBuffer): ByteBuffer
     }
 
     override val defaultFontFamily = "Arial"
@@ -63,6 +72,30 @@ class WindowsPlatform: Platform() {
             11 -> MessageBoxButton.Continue
             else -> throw UnsupportedOperationException("Unsupported button")
         }
+    }
+
+    override fun showFileDialog(context: WindowPeer?, fileDialog: FileDialog): Array<File> {
+        val filter = fileDialog.filters
+            .map { arrayOf(it.first.c_wideBytes, it.second.c_wideBytes) }
+            .flatMap { it.toList() }
+            .toTypedArray()
+
+        val buffer = nShowFileDialog(
+            context?.handle ?: 0,
+            fileDialog.type == FileDialogType.Save,
+            fileDialog.onlyDirectories,
+            fileDialog.multipleSelect,
+            filter,
+            BufferUtils.createByteBuffer(*fileDialog.directory.absolutePath.c_wideBytes),
+            BufferUtils.createByteBuffer(*fileDialog.title.c_wideBytes)
+        )
+        return if(buffer.capacity() == 0)
+            emptyArray()
+        else ByteArray(buffer.capacity()) { buffer.get(it) }
+            .utf8TextFromWide
+            .split(";")
+            .map { File(it) }
+            .toTypedArray()
     }
 
     override val mousePosition: Point
