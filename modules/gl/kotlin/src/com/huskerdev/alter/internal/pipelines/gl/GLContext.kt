@@ -45,7 +45,6 @@ open class GLContext {
 
     private var viewportWidth = 0
     private var viewportHeight = 0
-    private val boundTextures = IntArray(5)
 
     open var framebuffer = 0
         set(value) {
@@ -75,12 +74,8 @@ open class GLContext {
         }
     }
 
-    open fun glBindTexture(index: Int, texture: Int){
-
-            boundTextures[index] = texture
-            nglBindTexture(GL_TEXTURE_2D + index, texture)
-
-    }
+    open fun glBindTexture(index: Int, texture: Int) =
+        nglBindTexture(GL_TEXTURE_2D + index, texture)
 
     open fun glFlush() =
         nglFlush()

@@ -103,8 +103,6 @@ abstract class Component {
 
     fun onResized(event: () -> Unit) = onResizeListeners.add(event)
 
-
-
     private fun checkFlag(flag: Int): Boolean{
         val result = (flags and flag == flag)
         if(result)
@@ -143,7 +141,6 @@ abstract class Component {
                 frame!!.dpi
             )
             texture!!.linearFiltered = false
-            println("${texture!!.width} ${texture!!.height}")
 
             val contentGraphics = texture!!.graphics
             paintComponent(contentGraphics)

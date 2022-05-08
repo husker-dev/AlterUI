@@ -17,13 +17,30 @@ import kotlin.concurrent.thread
 import kotlin.math.cos
 
 fun main() = AlterUI.run {
+    val image1 = Image.createEmpty(1000, 1000)
+    val image2 = Image.fromFile("C:\\Users\\redfa\\Desktop\\avatar_snow.png")
+
+    image2.graphics.apply {
+        color = Color.red
+        fillRect(0f, 0f, 100f, 100f)
+    }
+
+    image1.graphics.apply {
+        color = Color.blue
+        fillRect(0f, 0f, width, height)
+
+        color = Color.white
+        drawImage(image2, 0f, 0f, 100f, 100f)
+    }
+
     val frame = object: Frame(){
         init {
-            content = object: FlowPane(){
-                init {
-                    children.add(Button())
-                }
-            }
+
+        }
+
+        override fun paint(gr: Graphics) {
+            super.paint(gr)
+            gr.drawImage(image1, 0f, 0f, 400f, 400f)
         }
     }
 

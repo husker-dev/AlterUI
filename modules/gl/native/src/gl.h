@@ -185,10 +185,16 @@ extern "C" {
 	}
 
 	JNIEXPORT void JNICALL Java_com_huskerdev_alter_internal_pipelines_gl_GLContext_nglBlitFramebuffer(JNIEnv* env, jobject, jint source, jint target, jint width, jint height) {
+		GLint oldFBO = 0;
+		glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &oldFBO);
+
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, source);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target);
 
 		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, oldFBO);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFBO);
 
 		glFinish();
 	}
