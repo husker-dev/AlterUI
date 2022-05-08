@@ -59,7 +59,7 @@ abstract class Image(
 
         fun fromFile(file: File) = fromFile(file.absolutePath)
 
-        fun fromFile(width: Int, height: Int, type: PixelType, bitmap: ByteBuffer): Image {
+        fun fromBitmap(width: Int, height: Int, type: PixelType, bitmap: ByteBuffer): Image {
             if(width <= 0 || height <= 0)
                 throw UnsupportedOperationException("Image size can not be <= 0")
             return Pipeline.current.createImage(type, width, height, bitmap)
@@ -80,14 +80,14 @@ abstract class Image(
     private set
 
     fun getSubImage(x: Int, y: Int, width: Int, height: Int): Image {
-        if(x + width >= this.width || y + height >= this.height)
+        if(x + width > this.width || y + height > this.height)
             throw UnsupportedOperationException("Out of bounds")
         return getSubImageImpl(x, y, width, height)
     }
 
     fun getSubImage(width: Int, height: Int) = getSubImage(0, 0, width, height)
     fun getResized(newWidth: Int, newHeight: Int, resizeType: ResizeAlgorithm = ResizeAlgorithm.Box) =
-        fromFile(newWidth, newHeight, pixelType, nResize(data, width, height, pixelType.channels, newWidth, newHeight, resizeType.index))
+        fromBitmap(newWidth, newHeight, pixelType, nResize(data, width, height, pixelType.channels, newWidth, newHeight, resizeType.index))
 
     protected abstract fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int): Image
     protected abstract fun disposeImpl()

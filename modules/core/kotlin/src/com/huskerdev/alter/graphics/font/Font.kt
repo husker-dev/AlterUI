@@ -80,7 +80,7 @@ class Font private constructor(
             val bearingX = nGetBearingX(family.face)
             val bearingY = nGetBearingY(family.face)
             val image = if(width > 0 && height > 0) {
-                Image.fromFile(width, height, if(useSubpixel) PixelType.RGB else PixelType.MONO, data).apply {
+                Image.fromBitmap(width, height, if(useSubpixel) PixelType.RGB else PixelType.MONO, data).apply {
                     linearFiltered = false
                 }
             } else null

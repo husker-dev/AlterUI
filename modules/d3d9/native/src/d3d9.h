@@ -433,19 +433,21 @@ extern "C" {
 		device->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
 	}
 
-	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nGetSurfaceData(JNIEnv* env, jobject, jlong _surface, jint width, jint height, jint components) {
+	JNIEXPORT jobject JNICALL Java_com_huskerdev_alter_internal_pipelines_d3d9_D3D9Device_nGetSurfaceData(JNIEnv* env, jobject, jlong _surface, jint tx, jint ty, jint width, jint height, jint components) {
 		IDirect3DSurface9* surface = (IDirect3DSurface9*)_surface;
 
 		D3DSURFACE_DESC sd;
 		surface->GetDesc(&sd);
 
 		IDirect3DSurface9* memorySurface;
-		device->CreateOffscreenPlainSurface(sd.Width, sd.Height, GetFormat(components), D3DPOOL_SYSTEMMEM, &memorySurface, NULL);
+		device->CreateOffscreenPlainSurface(sd.Width, sd.Height, sd.Format, D3DPOOL_SYSTEMMEM, &memorySurface, NULL);
 		device->GetRenderTargetData(surface, memorySurface);
 		
 		// Locking rect
 		D3DLOCKED_RECT lockedRect;
-		memorySurface->LockRect(&lockedRect, NULL, D3DLOCK_READONLY);
+		RECT toLock = { tx, ty, width, height};
+		memorySurface->LockRect(&lockedRect, &toLock, D3DLOCK_READONLY);
+
 		char* pData = (char*)lockedRect.pBits;
 		char* data = new char[width * height * components];
 		int sourceComponents = components == 1 ? 1 : 4;
@@ -459,7 +461,8 @@ extern "C" {
 					data[posTarget] = pData[posSource + 2];
 					data[posTarget + 1] = pData[posSource + 1];
 					data[posTarget + 2] = pData[posSource];
-					data[posTarget + 3] = components == 3 ? 255 : pData[posSource + 3];
+					if(components == 4)
+						data[posTarget + 3] = components == 3 ? 255 : pData[posSource + 3];
 				}
 				else
 					data[posTarget] = pData[posSource];

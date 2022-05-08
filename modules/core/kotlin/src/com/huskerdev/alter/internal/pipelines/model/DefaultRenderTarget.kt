@@ -11,19 +11,19 @@ abstract class DefaultRenderTarget <T: Number>(
 ) {
     var contentChanged = true
 
-    lateinit var simpleTexture: T
-    lateinit var simpleTextureSurface: T
+    lateinit var resolvedTexture: T
+    lateinit var resolvedTextureSurface: T
 
     protected lateinit var renderSurface: T
     protected val renderTexture: T
         get() {
-            resolveContent()
-            return simpleTexture
+            resolve()
+            return resolvedTexture
         }
 
-    fun resolveContent(){
+    fun resolve(){
         if(contentChanged) {
-            resolveMSAA(renderSurface, simpleTextureSurface)
+            resolveMSAA(renderSurface, resolvedTextureSurface)
             contentChanged = false
         }
     }
@@ -31,14 +31,14 @@ abstract class DefaultRenderTarget <T: Number>(
     fun loadTarget(){
         renderSurface = createMSAARenderSurface(width, height, components, samples, data)
 
-        simpleTexture = createTexture(width, height, components)
-        simpleTextureSurface = getTextureRenderSurface(simpleTexture)
-        resolveContent()
+        resolvedTexture = createTexture(width, height, components)
+        resolvedTextureSurface = getTextureRenderSurface(resolvedTexture)
+        resolve()
     }
 
     open fun dispose() {
-        disposeTexture(simpleTexture)
-        disposeRenderSurface(simpleTextureSurface)
+        disposeTexture(resolvedTexture)
+        disposeRenderSurface(resolvedTextureSurface)
         disposeRenderSurface(renderSurface)
     }
 

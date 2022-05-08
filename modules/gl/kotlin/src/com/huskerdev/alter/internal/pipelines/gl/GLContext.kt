@@ -108,8 +108,8 @@ open class GLContext {
     open fun setLinearFiltering(texture: Int, linear: Boolean) =
         nSetLinearFiltering(texture, linear)
 
-    open fun readPixels(image: Image, x: Int, y: Int, width: Int, height: Int) =
-        nReadPixels((image as GLImage).renderTarget.framebuffer, image.pixelType.channels, x, y, width, height)
+    open fun readPixels(image: GLImage, x: Int, y: Int, width: Int, height: Int) =
+        nReadPixels(image.renderTarget.resolvedTextureSurface, image.pixelType.channels, x, y, width, height)
 
     open fun glDeleteTexture(texture: Int) =
         nglDeleteTexture(texture)

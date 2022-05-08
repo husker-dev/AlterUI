@@ -36,7 +36,7 @@ class D3D9Device {
         @JvmStatic private external fun nCreateTexture(width: Int, height: Int, components: Int): Long
         @JvmStatic private external fun nStretchRect(surfaceFrom: Long, surfaceTo: Long)
         @JvmStatic private external fun nSetLinearFiltering(linearFiltering: Boolean)
-        @JvmStatic private external fun nGetSurfaceData(surface: Long, width: Int, height: Int, components: Int): ByteBuffer
+        @JvmStatic private external fun nGetSurfaceData(surface: Long, x: Int, y: Int, width: Int, height: Int, components: Int): ByteBuffer
     }
 
     var pixelShader by unique<D3D9Shader?>(null){
@@ -81,7 +81,7 @@ class D3D9Device {
     fun createSurface(width: Int, height: Int, components: Int, samples: Int, data: ByteBuffer) = nCreateSurface(width, height, components, samples, data)
     fun createTexture(width: Int, height: Int, components: Int) = nCreateTexture(width, height, components)
     fun stretchRect(surfaceFrom: Long, surfaceTo: Long) = nStretchRect(surfaceFrom, surfaceTo)
-    fun getSurfaceData(surface: Long, width: Int, height: Int, components: Int) = nGetSurfaceData(surface, width, height, components)
+    fun getSurfaceData(surface: Long, x: Int, y: Int, width: Int, height: Int, components: Int) = nGetSurfaceData(surface, x, y, width, height, components)
 
     fun clear() = nClear()
 

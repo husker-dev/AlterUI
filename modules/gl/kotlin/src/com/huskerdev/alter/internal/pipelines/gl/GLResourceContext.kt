@@ -112,7 +112,7 @@ class GLResourceContext: GLContext() {
         super.setLinearFiltering(texture, linear)
     }
 
-    override fun readPixels(image: Image, x: Int, y: Int, width: Int, height: Int) = invokeOnResourceThread {
+    override fun readPixels(image: GLImage, x: Int, y: Int, width: Int, height: Int) = invokeOnResourceThread {
         super.readPixels(image, x, y, width, height)
     }
 

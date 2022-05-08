@@ -24,11 +24,15 @@ class GLImage(
     }
 
     override val data: ByteBuffer
-        get() = context.readPixels(this, 0, 0, width, height)
+        get() {
+            renderTarget.resolve()
+            return context.readPixels(this, 0, 0, width, height)
+        }
 
-
-    override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int) =
-        fromFile(width, height, pixelType, context.readPixels(this, x, y, width, height))
+    override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int): Image {
+        renderTarget.resolve()
+        return fromBitmap(width, height, pixelType, context.readPixels(this, x, y, width, height))
+    }
 
     override fun disposeImpl() =
         renderTarget.dispose()

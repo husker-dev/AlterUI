@@ -20,12 +20,13 @@ class D3D9Image(
 
     override val data: ByteBuffer
     get() {
-        renderTarget.resolveContent()
-        return device.getSurfaceData(renderTarget.simpleTextureSurface, physicalWidth, physicalHeight, pixelType.channels)
+        renderTarget.resolve()
+        return device.getSurfaceData(renderTarget.resolvedTextureSurface, 0, 0, physicalWidth, physicalHeight, pixelType.channels)
     }
 
     override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int): Image {
-        TODO("Not yet implemented")
+        renderTarget.resolve()
+        return fromBitmap(width, height, pixelType, device.getSurfaceData(renderTarget.resolvedTextureSurface, x, y, width, height, pixelType.channels))
     }
 
     override fun disposeImpl() = renderTarget.dispose()
