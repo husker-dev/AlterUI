@@ -143,6 +143,7 @@ abstract class Component {
                 frame!!.dpi
             )
             texture!!.linearFiltered = false
+            println("${texture!!.width} ${texture!!.height}")
 
             val contentGraphics = texture!!.graphics
             paintComponent(contentGraphics)

@@ -122,7 +122,7 @@ extern "C" {
 		glGenTextures(1, &texture);
 
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, getSupportedMSAA(samples), GL_RGB, width, height, GL_TRUE);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, getSupportedMSAA(samples), type, width, height, GL_TRUE);
 
 		glFinish();
 		return texture;

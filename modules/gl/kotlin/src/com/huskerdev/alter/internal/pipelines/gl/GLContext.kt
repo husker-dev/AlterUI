@@ -76,10 +76,10 @@ open class GLContext {
     }
 
     open fun glBindTexture(index: Int, texture: Int){
-        if(boundTextures[index] != texture){
+
             boundTextures[index] = texture
             nglBindTexture(GL_TEXTURE_2D + index, texture)
-        }
+
     }
 
     open fun glFlush() =

@@ -111,9 +111,7 @@ class ImageGLGraphics(
         image.renderTarget.contentChanged = true
     }
 
-    override fun finish() = resourceContext.invokeOnResourceThread {
-        context.glFinish()
-    }
+    override fun finish() = context.glFinish()
 }
 
 /*

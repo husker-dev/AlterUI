@@ -54,12 +54,13 @@ class GLResourceContext: GLContext() {
         else queue.offer(run)
     }
 
-
-    override var framebuffer by unique(0) {
-        invokeOnResourceThread {
-            super.framebuffer = it
+    override var framebuffer = 0
+        set(value) {
+            field = value
+            invokeOnResourceThread {
+                super.framebuffer = value
+            }
         }
-    }
 
     override var shader by unique<GLShader?>(null){
         invokeOnResourceThread {
