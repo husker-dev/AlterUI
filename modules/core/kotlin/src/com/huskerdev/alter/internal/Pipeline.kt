@@ -39,7 +39,8 @@ abstract class Pipeline {
         physicalHeight: Int,
         logicWidth: Int,
         logicHeight: Int,
-        dpi: Float
+        dpi: Float,
+        isInternalUse: Boolean = false
     ): Image
     abstract fun isMainThreadRequired(): Boolean
 

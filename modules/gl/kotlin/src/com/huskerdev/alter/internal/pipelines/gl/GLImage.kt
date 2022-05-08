@@ -14,11 +14,10 @@ class GLImage(
     val logicHeight: Int,
     dpi: Float,
     data: ByteBuffer?,
-    val context: GLResourceContext
+    val context: GLContext
 ): Image(physicalWidth, physicalHeight, type, dpi) {
 
-    lateinit var renderTarget: GLRenderTarget
-        private set
+    var renderTarget = GLRenderTarget(width, height, type.channels, AlterUIProperties.msaa, data, context)
 
     override var linearFiltered by unique(true) {
         context.setLinearFiltering(renderTarget.texture, it)
@@ -27,18 +26,10 @@ class GLImage(
     override val data: ByteBuffer
         get() = context.readPixels(this, 0, 0, width, height)
 
-    init {
-        context.invokeOnResourceThread {
-            renderTarget = GLRenderTarget(width, height, type.channels, AlterUIProperties.msaa, data, context)
-        }
-    }
 
     override fun getSubImageImpl(x: Int, y: Int, width: Int, height: Int) =
         fromFile(width, height, pixelType, context.readPixels(this, x, y, width, height))
 
-    override fun disposeImpl() {
-        context.invokeOnResourceThread {
-            renderTarget.dispose()
-        }
-    }
+    override fun disposeImpl() =
+        renderTarget.dispose()
 }

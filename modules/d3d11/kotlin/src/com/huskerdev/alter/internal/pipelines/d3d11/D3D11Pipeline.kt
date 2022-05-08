@@ -66,7 +66,8 @@ class D3D11Pipeline: Pipeline.DefaultEventPoll("d3d11") {
         physicalHeight: Int,
         logicWidth: Int,
         logicHeight: Int,
-        dpi: Float
+        dpi: Float,
+        isInternalUse: Boolean
     ): Image {
         TODO("Not yet implemented")
     }

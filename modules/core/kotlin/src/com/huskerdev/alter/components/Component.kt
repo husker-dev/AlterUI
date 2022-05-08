@@ -138,7 +138,8 @@ abstract class Component {
                 PixelType.RGBA,
                 (width * frame!!.dpi).toInt(), (height * frame!!.dpi).toInt(),
                 width.toInt(), height.toInt(),
-                frame!!.dpi
+                frame!!.dpi,
+                true
             )
             texture!!.linearFiltered = false
 

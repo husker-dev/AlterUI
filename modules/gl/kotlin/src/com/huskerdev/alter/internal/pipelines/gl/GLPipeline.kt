@@ -3,18 +3,13 @@ package com.huskerdev.alter.internal.pipelines.gl
 import com.huskerdev.alter.AlterUIProperties
 import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.graphics.PixelType
-import com.huskerdev.alter.graphics.filters.GaussianBlur
 import com.huskerdev.alter.internal.Pipeline
 import com.huskerdev.alter.internal.Platform
 import com.huskerdev.alter.internal.WindowPeer
 import com.huskerdev.alter.internal.pipelines.gl.filters.GLGaussianBlur
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
-import com.huskerdev.alter.internal.utils.Trigger
 import java.nio.ByteBuffer
-import java.nio.FloatBuffer
-import java.util.concurrent.LinkedBlockingQueue
-import kotlin.concurrent.thread
 
 @ImplicitUsage
 class GLPipeline: Pipeline.DefaultEventPoll("gl") {
@@ -43,7 +38,11 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
     }
 
     override fun createGraphics(window: WindowPeer) = WindowGLGraphics(window, getWindowGLContext(window))
-    override fun createGraphics(image: Image) = ImageGLGraphics(image as GLImage, resourceContext)
+    override fun createGraphics(image: Image) =
+        if((image as GLImage).context == resourceContext)
+            ResourceImageGLGraphics(image, resourceContext)
+        else
+            ImageGLGraphics(image)
 
     override fun createImage(
         type: PixelType,
@@ -59,8 +58,9 @@ class GLPipeline: Pipeline.DefaultEventPoll("gl") {
         physicalHeight: Int,
         logicWidth: Int,
         logicHeight: Int,
-        dpi: Float
-    ) = GLImage(type, physicalWidth, physicalHeight, logicWidth, logicHeight, dpi, null, resourceContext)
+        dpi: Float,
+        isInternalUse: Boolean
+    ) = GLImage(type, physicalWidth, physicalHeight, logicWidth, logicHeight, dpi, null, if(isInternalUse) getWindowGLContext(window) else resourceContext)
 
     override fun isMainThreadRequired() = true
 

@@ -55,7 +55,8 @@ class D3D9Pipeline: Pipeline.DefaultEventPoll("d3d9") {
         physicalHeight: Int,
         logicWidth: Int,
         logicHeight: Int,
-        dpi: Float
+        dpi: Float,
+        isInternalUse: Boolean
     ) = D3D9Image(AlterUIProperties.msaa, physicalWidth, physicalHeight, logicWidth, logicHeight, type, dpi, null)
 
     override fun isMainThreadRequired() = true
