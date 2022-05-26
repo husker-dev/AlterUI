@@ -2,8 +2,6 @@
 
 Lightweight Kotlin/Java UI framework.
 
-The main task is to make window creation faster and easier.
-
 # What can it do now?
   - Draw and fill any shape
   - Draw lines with any caps and joins
