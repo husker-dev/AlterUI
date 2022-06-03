@@ -43,7 +43,7 @@ abstract class D3D9PainterDescriptor {
             varRenderType = pixelShader.getVariableHandler("u_RenderType")
             varViewportWidth = vertexShader.getVariableHandler("u_ViewportWidth")
             varViewportHeight = vertexShader.getVariableHandler("u_ViewportHeight")
-            varDpi = pixelShader.getVariableHandler("u_Dpi")
+            varDpi = vertexShader.getVariableHandler("u_Dpi")
 
             varTextureBounds = pixelShader.getVariableHandler("u_TextureBounds")
             varTextureColors = pixelShader.getVariableHandler("u_TextureColors")
@@ -66,15 +66,15 @@ abstract class D3D9PainterDescriptor {
     private fun updateShaderViewport(graphics: Graphics) {
         if(lastViewportWidth != graphics.width || forceViewportUpdate) {
             lastViewportWidth = graphics.width
-            vertexShader[varViewportWidth] = graphics.width
+            vertexShader[varViewportWidth] = graphics.physicalWidth.toFloat()
         }
         if(lastViewportHeight != graphics.height || forceViewportUpdate) {
             lastViewportHeight = graphics.height
-            vertexShader[varViewportHeight] = graphics.height
+            vertexShader[varViewportHeight] = graphics.physicalHeight.toFloat()
         }
         if(lastDpi != graphics.dpi || forceViewportUpdate) {
             lastDpi = graphics.dpi
-            pixelShader[varDpi] = graphics.dpi
+            vertexShader[varDpi] = graphics.dpi
         }
         forceViewportUpdate = false
     }
@@ -104,7 +104,7 @@ abstract class D3D9PainterDescriptor {
     fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
         pixelShader[varRenderType] = 3f
         pixelShader[varTextureColors] = image.pixelType.channels.toFloat()
-        pixelShader.set(varTextureBounds, x, y, width, height)
+        pixelShader.set(varTextureBounds, x * lastDpi, y * lastDpi, width * lastDpi, height * lastDpi)
         device.bindTexture(0, (image as D3D9Image).renderTarget.texture)
         device.linearFiltering = image.linearFiltered
         VertexHelper.fillRect(x, y, width, height, D3D9Pipeline.device::drawVertices)

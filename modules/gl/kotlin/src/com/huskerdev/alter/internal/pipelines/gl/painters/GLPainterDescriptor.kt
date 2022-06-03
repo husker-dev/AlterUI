@@ -63,12 +63,12 @@ abstract class GLPainterDescriptor {
 
     private fun updateShaderViewport(graphics: Graphics) {
         if(lastViewportWidth != graphics.width) {
-            lastViewportWidth = graphics.width
-            shader[context, varViewportWidth] = graphics.width
+            lastViewportWidth = graphics.physicalWidth.toFloat()
+            shader[context, varViewportWidth] = graphics.physicalWidth.toFloat()
         }
         if(lastViewportHeight != graphics.height) {
-            lastViewportHeight = graphics.height
-            shader[context, varViewportHeight] = graphics.height
+            lastViewportHeight = graphics.physicalHeight.toFloat()
+            shader[context, varViewportHeight] = graphics.physicalHeight.toFloat()
         }
         if(lastDpi != graphics.dpi) {
             lastDpi = graphics.dpi
@@ -101,7 +101,7 @@ abstract class GLPainterDescriptor {
     fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
         shader[context, varRenderType] = 3f
         shader[context, varTextureColors] = image.pixelType.channels.toFloat()
-        shader.set(context, varTextureBounds, x, y, width, height)
+        shader.set(context, varTextureBounds, x * lastDpi, y * lastDpi, width * lastDpi, height * lastDpi)
         context.glBindTexture(0, (image as GLImage).renderTarget.texture)
         VertexHelper.fillRect(x, y, width, height, context::drawArray)
     }

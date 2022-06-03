@@ -23,11 +23,20 @@ fun main() = AlterUI.run {
 
     val frame = object: Frame(){
 
+        init {
+            content = object: FlowPane(){
+                init {
+                    children.add(Button())
+                    children.add(Button())
+                }
+            }
+        }
 
         override fun paint(gr: Graphics) {
             super.paint(gr)
 
-            gr.drawImage(image, 0f, 0f, 400f, 400f)
+            //gr.drawImage(image, 0f, 0f, 400f, 400f)
+            //gr.drawImage(image, width - 400f, 0f, 400f, 400f)
         }
     }
 

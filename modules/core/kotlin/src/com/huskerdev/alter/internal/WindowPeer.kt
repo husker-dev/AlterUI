@@ -1,6 +1,5 @@
 package com.huskerdev.alter.internal
 
-import com.huskerdev.alter.components.Component
 import com.huskerdev.alter.geom.Point
 import com.huskerdev.alter.graphics.Color
 import com.huskerdev.alter.graphics.Graphics
@@ -8,7 +7,6 @@ import com.huskerdev.alter.graphics.Image
 import com.huskerdev.alter.internal.utils.ImplicitUsage
 import com.huskerdev.alter.internal.utils.MainThreadLocker
 import com.huskerdev.alter.internal.utils.kotlin.unique
-import kotlin.properties.Delegates
 
 enum class WindowStatus {
     Default,

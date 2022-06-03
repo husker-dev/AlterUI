@@ -15,43 +15,43 @@ abstract class D3D9Graphics(open val surface: Long): Graphics() {
     override fun getImagePainter() = D3D9ImagePainter
 
     override fun clear() {
-        synchronized(D3D9Pipeline.device){
+        synchronized(device){
             super.clear()
         }
     }
 
     override fun fillRect(x: Float, y: Float, width: Float, height: Float) {
-        synchronized(D3D9Pipeline.device) {
+        synchronized(device) {
             super.fillRect(x, y, width, height)
         }
     }
 
     override fun drawRect(x: Float, y: Float, width: Float, height: Float) {
-        synchronized(D3D9Pipeline.device) {
+        synchronized(device) {
             super.drawRect(x, y, width, height)
         }
     }
 
     override fun drawImage(image: Image, x: Float, y: Float, width: Float, height: Float) {
-        synchronized(D3D9Pipeline.device) {
+        synchronized(device) {
             super.drawImage(image, x, y, width, height)
         }
     }
 
     override fun drawText(text: String, x: Float, y: Float) {
-        synchronized(D3D9Pipeline.device) {
+        synchronized(device) {
             super.drawText(text, x, y)
         }
     }
 
     override fun fillShape(shape: Shape) {
-        synchronized(D3D9Pipeline.device) {
+        synchronized(device) {
             super.fillShape(shape)
         }
     }
 
     override fun drawShape(shape: Shape) {
-        synchronized(D3D9Pipeline.device) {
+        synchronized(device) {
             super.drawShape(shape)
         }
     }
@@ -109,9 +109,9 @@ class D3D9WindowGraphics(val window: WindowPeer): D3D9Graphics(0){
     override val height: Float
         get() = window.height
     override val physicalHeight: Int
-        get() = window.physicalHeight
+        get() = window.clientHeight
     override val physicalWidth: Int
-        get() = window.physicalWidth
+        get() = window.clientWidth
     override val dpi: Float
         get() = window.dpi
     override val pixelType = PixelType.RGBA

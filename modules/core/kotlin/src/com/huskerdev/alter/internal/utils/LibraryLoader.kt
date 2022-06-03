@@ -35,6 +35,8 @@ class LibraryLoader {
                         it.close()
                         output.close()
                     }
+                }catch (_: FileNotFoundException){
+                    // Ignore
                 }catch (e: Exception){
                     e.printStackTrace()
                 }

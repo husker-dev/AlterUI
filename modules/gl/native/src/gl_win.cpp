@@ -93,8 +93,6 @@ jlong nCreateWindow(jlong shareWith, jint samples) {
             throwError("Failed to load GLAD functions");
         if (!gladLoadWGL(dc))
             throwError("Failed to load GLAD-WGL functions");
-
-        glGetIntegerv(GL_MAX_SAMPLES, &maxMSAA);
     
         // Getting last OpenGL version
         gl_major_version = glGetString(GL_VERSION)[0] - '0';
